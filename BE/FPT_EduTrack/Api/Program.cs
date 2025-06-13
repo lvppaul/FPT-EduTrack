@@ -1,4 +1,4 @@
-using Domain.Entities;
+using FPT_EduTrack.DataAccessLayer.Context;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
