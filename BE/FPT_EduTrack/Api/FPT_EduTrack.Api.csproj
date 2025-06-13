@@ -11,11 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Application\FPT_EduTrack.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\FPT_EduTrack.BusinessLayer\FPT_EduTrack.BusinessLayer.csproj" />
   </ItemGroup>
 
 </Project>
