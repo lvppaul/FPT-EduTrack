@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FPT_EduTrack.DataAccessLayer\FPT_EduTrack.DataAccessLayer.csproj" />
+  </ItemGroup>
+
 </Project>
