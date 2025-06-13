@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
-    internal class Class1
+    public class Class1
     {
     }
 }
