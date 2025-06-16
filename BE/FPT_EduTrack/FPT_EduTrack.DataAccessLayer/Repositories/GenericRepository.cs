@@ -53,7 +53,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         }
 
         #region Asynchronous
-        public async Task<List<T>> GetAllAsync()
+        public virtual async Task<List<T>> GetAllAsync()
         {
             return await _context.Set<T>().ToListAsync();
         }
@@ -89,7 +89,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             return true;
         }
 
-        public async Task<T> GetByIdAsync(int id)
+        public virtual async Task<T> GetByIdAsync(int id)
         {
             return await _context.Set<T>().FindAsync(id);
         }

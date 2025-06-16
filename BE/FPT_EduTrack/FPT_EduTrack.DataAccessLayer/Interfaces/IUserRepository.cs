@@ -2,13 +2,12 @@
 
 namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserRepository : IGenericRepository<User>
     {
-        Task CreateAsync(User user);
-        Task<User> GetByIdAsync(int id);
-        Task<IEnumerable<User>> GetAllAsync();
-        Task UpdateAsync(User user);
         Task DeleteAsync(User user);
+        Task<User?> GetByEmailAsync(string email);
+        Task<bool> VerifyPasswordAsync(User user, string password);
+        Task<User?> GetByRefreshTokenAsync(string refreshToken);
 
     }
 }

@@ -1,34 +1,63 @@
 ﻿using FPT_EduTrack.DataAccessLayer.Context;
 using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace FPT_EduTrack.DataAccessLayer.Repositories
 {
     public class UserRepository : GenericRepository<User>, IUserRepository
     {
-        private readonly FptEduTrackContext _context;
-        public UserRepository(FptEduTrackContext context)
+        public UserRepository(FptEduTrackContext context) : base(context)
         {
-            _context = context;
         }
-        public Task DeleteAsync(User user)
+        public async Task DeleteAsync(User user)
         {
-            throw new NotImplementedException();
-        }
-
-        Task IUserRepository.CreateAsync(User user)
-        {
-            return CreateAsync(user);
+            user.IsDeleted = true;
+            await UpdateAsync(user);
         }
 
-        Task<IEnumerable<User>> IUserRepository.GetAllAsync()
+        public override async Task<User?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        Task IUserRepository.UpdateAsync(User user)
+        public override async Task<List<User>> GetAllAsync()
         {
-            return UpdateAsync(user);
+            return await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false)
+                .ToListAsync();
+        }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            return await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email && u.IsDeleted != true);
+        }
+
+        public async Task<User?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                return null;
+
+            return await _context.Users
+       .Include(u => u.Role)
+       .FirstOrDefaultAsync(u =>
+           u.RefreshToken == refreshToken &&
+           u.IsActive == true &&
+           u.IsDeleted == false);
+
+        }
+
+        public Task<bool> VerifyPasswordAsync(User user, string password)
+        {
+            return Task.FromResult(user.Password == password);
         }
     }
 }
