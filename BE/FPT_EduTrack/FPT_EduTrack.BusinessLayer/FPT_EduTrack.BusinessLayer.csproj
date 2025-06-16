@@ -14,8 +14,4 @@
     <ProjectReference Include="..\FPT_EduTrack.DataAccessLayer\FPT_EduTrack.DataAccessLayer.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Mappings\" />
-  </ItemGroup>
-
 </Project>
