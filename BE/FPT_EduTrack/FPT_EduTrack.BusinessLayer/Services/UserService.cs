@@ -46,6 +46,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+
             var user = await _unitOfWork.UserRepository.GetByEmailAsync(request.Email);
             if (user == null)
             {
@@ -65,7 +66,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     Message = "Invalid email or password"
                 };
             }
-
             if (user.IsActive != true || user.IsDeleted == true)
             {
                 return new AuthenticationResponse
