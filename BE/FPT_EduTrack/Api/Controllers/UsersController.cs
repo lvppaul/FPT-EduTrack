@@ -86,5 +86,29 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
         }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRequest user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                await _service.RegisterAsync(user);
+                return CreatedAtAction(nameof(GetByEmail), new { email = user.Email }, user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while registering user",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
     }
 }

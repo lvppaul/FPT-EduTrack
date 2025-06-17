@@ -55,9 +55,9 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         }
 
-        public Task<bool> VerifyPasswordAsync(User user, string password)
+        public async Task<bool> VerifyPasswordAsync(User user, string password)
         {
-            return Task.FromResult(user.Password == password);
+            return await Task.FromResult(BCrypt.Net.BCrypt.Verify(password, user.Password));
         }
     }
 }
