@@ -62,8 +62,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     Message = "Invalid email or password"
                 };
             }
-
-
             if (user.IsActive != true || user.IsDeleted == true)
             {
                 return new AuthenticationResponse
