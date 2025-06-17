@@ -101,7 +101,7 @@ namespace FPT_EduTrack.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
+                return StatusCode(400, new
                 {
                     success = false,
                     message = "An error occurred while registering user",

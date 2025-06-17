@@ -4,10 +4,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
-using FPT_EduTrack.DataAccessLayer.Entities;
-using FPT_EduTrack.DataAccessLayer.Interfaces;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
-using Microsoft.EntityFrameworkCore;
 
 namespace FPT_EduTrack.BusinessLayer.Services
 {
@@ -228,23 +225,14 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             ValidatePassword(user.Password);
 
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(user.RoleId);
             if (role == null)
             {
                 throw new Exception("Role not found");
             }
-            var newUser = new User
-            {
-                Email = user.Email,
-                Password = hashedPassword,
-                Fullname = user.Fullname,
-                RoleId = role.Id,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true,
-                IsDeleted = false
-            };
+            var newUser = UserMapper.ToEntity(user);
 
             await _unitOfWork.UserRepository.CreateAsync(newUser);
 
