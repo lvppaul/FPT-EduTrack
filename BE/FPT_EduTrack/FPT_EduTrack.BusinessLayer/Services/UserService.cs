@@ -63,6 +63,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+
             if (user.IsActive != true || user.IsDeleted == true)
             {
                 return new AuthenticationResponse
