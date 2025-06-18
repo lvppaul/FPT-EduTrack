@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
+using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
@@ -256,6 +257,56 @@ namespace FPT_EduTrack.BusinessLayer.Services
         public Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task RegisterAsync(UserRequest user)
+        {
+            var userExisted = await _unitOfWork.UserRepository.GetByEmailAsync(user.Email);
+            if (userExisted != null)
+            {
+                throw new UserAlreadyExistsException(email: user.Email);
+            }
+
+            ValidatePassword(user.Password);
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(user.RoleId);
+            if (role == null)
+            {
+                throw new Exception("Role not found");
+            }
+            var newUser = UserMapper.ToEntity(user);
+
+            await _unitOfWork.UserRepository.CreateAsync(newUser);
+
+            await _unitOfWork.SaveAsync();
+        }
+
+        private void ValidatePassword(string password)
+        {
+            var errors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(password))
+                errors.Add("Password cannot be empty.");
+
+            if (password.Length < 8)
+                errors.Add("Password must be at least 8 characters long.");
+
+            if (!password.Any(char.IsUpper))
+                errors.Add("Password must contain at least one uppercase letter.");
+
+            if (!password.Any(char.IsLower))
+                errors.Add("Password must contain at least one lowercase letter.");
+
+            if (!password.Any(char.IsDigit))
+                errors.Add("Password must contain at least one digit.");
+
+            if (!password.Any(c => !char.IsLetterOrDigit(c)))
+                errors.Add("Password must contain at least one special character.");
+
+            if (errors.Any())
+                throw new WeakPasswordException(errors);
         }
     }
 }

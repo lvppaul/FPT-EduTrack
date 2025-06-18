@@ -32,7 +32,6 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             return new User
             {
                 Email = request.Email?.Trim(),
-                // Password = BCrypt.HashPassword(request.Password), // Hash password
                 Password = request.Password,
                 Fullname = request.Fullname?.Trim(),
                 RoleId = request.RoleId,

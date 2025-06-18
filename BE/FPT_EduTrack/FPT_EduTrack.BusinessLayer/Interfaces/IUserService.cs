@@ -17,5 +17,6 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<string> GetUserRoleAsync(int userId);
         Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry);
         Task<UserResponse> GetUserWithRoleAsync(int userId);
+        Task RegisterAsync(UserRequest user);
     }
 }
