@@ -9,12 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
-interface Exam {
-  id: string;
-  code: string;
-  status: "In-Process" | "Completed";
-}
+import type { Exam } from "../../types/examType";
 
 const ExamManagement: React.FC = () => {
   const [exams] = useState<Exam[]>([

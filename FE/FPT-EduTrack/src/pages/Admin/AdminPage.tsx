@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import Sidebar from "../../components/AdminComponent/AdminSideBar";
 import Header from "../../components/Header";
 import Dashboard from "../../components/AdminComponent/AdminDashboard";
-import UserManagement from "../../components/AdminComponent/UserManagement";
+import UserManagement from "../../components/AdminComponent/AdminUserManagement";
 import ExamManagement from "../../components/AdminComponent/AdminExamManagement";
 import TestManagement from "../../components/AdminComponent/AdminTestManagement";
 import MeetingManagement from "../../components/AdminComponent/AdminMeetingManagement";
+import RequestManagement from "../../components/AdminComponent/AdminRequestManagement";
 export default function AdminPage() {
   const [activeItem, setActiveItem] = useState("overview");
 
@@ -24,16 +25,7 @@ export default function AdminPage() {
       case "test":
         return <TestManagement />;
       case "request":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Request Management
-            </h2>
-            <p className="text-gray-600">
-              Request management features will be implemented here.
-            </p>
-          </div>
-        );
+        return <RequestManagement />;
       case "meeting":
         return <MeetingManagement />;
       default:

@@ -19,71 +19,51 @@ const Dashboard: React.FC = () => {
       title: "Students",
       value: "7,265",
       icon: Users,
-      trend: "up" as const,
-      trendValue: "+5.2%",
     },
     {
       title: "Lecturers",
       value: "7,265",
       icon: GraduationCap,
-      trend: "stable" as const,
-      trendValue: "0%",
     },
     {
       title: "Head Of Department",
       value: "7,265",
       icon: UserCheck,
-      trend: "up" as const,
-      trendValue: "+2.1%",
     },
     {
       title: "Exams",
       value: "7,265",
       icon: FileText,
-      trend: "up" as const,
-      trendValue: "+12.5%",
     },
     {
       title: "Tests",
       value: "7,265",
       icon: BookOpen,
-      trend: "down" as const,
-      trendValue: "-3.2%",
     },
     {
       title: "Tests have a request",
       value: "7,265",
       icon: ClipboardList,
-      trend: "up" as const,
-      trendValue: "+8.4%",
     },
     {
       title: "In progress Meetings",
       value: "7,265",
       icon: Clock,
-      trend: "stable" as const,
-      trendValue: "0%",
     },
     {
       title: "Pending Request",
       value: "7,265",
       icon: Mail,
-      trend: "down" as const,
-      trendValue: "-1.8%",
     },
     {
       title: "Confirm Request",
       value: "7,265",
       icon: MessageCircle,
-      trend: "up" as const,
-      trendValue: "+15.3%",
     },
     {
       title: "Approved Request",
       value: "7,265",
       icon: CheckCircle,
-      trend: "up" as const,
-      trendValue: "+7.9%",
     },
   ];
 
@@ -96,8 +76,6 @@ const Dashboard: React.FC = () => {
             title={metric.title}
             value={metric.value}
             icon={metric.icon}
-            trend={metric.trend}
-            trendValue={metric.trendValue}
           />
         ))}
       </div>

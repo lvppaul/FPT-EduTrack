@@ -1,20 +1,10 @@
 import React from "react";
-import { DivideIcon as LucideIcon } from "lucide-react";
-
-interface MetricCardProps {
-  title: string;
-  value: string;
-  icon: typeof LucideIcon;
-  trend?: "up" | "down" | "stable";
-  trendValue?: string;
-}
+import type { MetricCardProps } from "../types/dashboardType";
 
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
   icon: Icon,
-  trend,
-  trendValue,
 }) => {
   return (
     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-blue-200">
@@ -22,19 +12,6 @@ const MetricCard: React.FC<MetricCardProps> = ({
         <div className="p-3 bg-white rounded-lg shadow-sm">
           <Icon className="w-6 h-6 text-blue-600" />
         </div>
-        {trend && trendValue && (
-          <div
-            className={`text-sm font-medium ${
-              trend === "up"
-                ? "text-green-600"
-                : trend === "down"
-                ? "text-red-600"
-                : "text-gray-600"
-            }`}
-          >
-            {trendValue}
-          </div>
-        )}
       </div>
 
       <div className="space-y-1">
