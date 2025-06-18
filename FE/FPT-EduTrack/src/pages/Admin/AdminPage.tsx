@@ -3,6 +3,8 @@ import Sidebar from "../../components/AdminComponent/AdminSideBar";
 import Header from "../../components/Header";
 import Dashboard from "../../components/AdminComponent/AdminDashboard";
 import UserManagement from "../../components/AdminComponent/UserManagement";
+import ExamManagement from "../../components/AdminComponent/AdminExamManagement";
+import TestManagement from "../../components/AdminComponent/AdminTestManagement";
 export default function AdminPage() {
   const [activeItem, setActiveItem] = useState("overview");
 
@@ -17,27 +19,9 @@ export default function AdminPage() {
       case "account":
         return <UserManagement />;
       case "exam":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Exam Management
-            </h2>
-            <p className="text-gray-600">
-              Exam management features will be implemented here.
-            </p>
-          </div>
-        );
+        return <ExamManagement />;
       case "test":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Test Management
-            </h2>
-            <p className="text-gray-600">
-              Test management features will be implemented here.
-            </p>
-          </div>
-        );
+        return <TestManagement />;
       case "request":
         return (
           <div className="p-6">
