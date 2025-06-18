@@ -4,9 +4,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
-using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace FPT_EduTrack.BusinessLayer.Services
 {
@@ -25,7 +23,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
         }
 
         public async Task<bool> DeleteAsync(int userId)
-        { 
+        {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
             if (user == null)
                 return false;
@@ -35,7 +33,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
 
-            }catch
+            }
+            catch
             {
                 await _unitOfWork.RollbackTransactionAsync();
                 throw;
@@ -46,7 +45,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
         public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
             var users = await _unitOfWork.UserRepository.GetAllAsync();
-            if(users == null || !users.Any())
+            if (users == null || !users.Any())
                 return Enumerable.Empty<UserResponse>();
             return users.Select(UserMapper.ToResponse).ToList();
         }
@@ -130,6 +129,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
         public async Task<AuthenticationResponse?> RefreshTokenAsync(string refreshToken)
         {
+            //refreshtoken trống
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 return new AuthenticationResponse
@@ -141,6 +141,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             var user = await _unitOfWork.UserRepository.GetByRefreshTokenAsync(refreshToken);
 
+            // ko tìm thấy user có refreshtoken nhập vào
             if (user == null)
             {
                 return new AuthenticationResponse
@@ -149,6 +150,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     Message = "Invalid refresh token"
                 };
             }
+
+            // Kiểm tra xem refresh token đã hết hạn chưa
+            // nếu hết hạn thì xóa token
+            // và trả về thông báo hết hạn
 
             if (user.ExpiredRefreshToken == null || user.ExpiredRefreshToken < DateTime.UtcNow)
             {
@@ -164,6 +169,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            // Kiểm tra xem tài khoản có bị xóa hay không hoạt động không
             if (user.IsActive != true || user.IsDeleted == true)
             {
                 return new AuthenticationResponse
@@ -173,6 +179,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            //Kiểm tra role của user
             var roleName = user.Role?.Name;
             if (string.IsNullOrWhiteSpace(roleName))
             {
@@ -183,6 +190,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            // nếu chưa hết hạn thì tạo access token mới
             var newAccessToken = _tokenProvider.GenerateAccessToken(user, roleName);
             var newRefreshToken = _tokenProvider.GenerateRefreshToken();
             var accessTokenExpiry = DateTime.UtcNow.AddMinutes(30);
@@ -244,8 +252,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
             userExist.RoleId = user.RoleId > 0 ? user.RoleId : null;
             userExist.IsActive = user.IsActive;
 
-            var isUpdated = await _unitOfWork.UserRepository.UpdateUserAsync(userExist);
-            if(!isUpdated)
+            var isUpdated = await _unitOfWork.UserRepository.UpdateAsync(userExist);
+            if (isUpdated != 0)
             {
                 throw new Exception("Failed to update user information");
             }
@@ -279,8 +287,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
             var newUser = UserMapper.ToEntity(user);
 
             await _unitOfWork.UserRepository.CreateAsync(newUser);
-
-            await _unitOfWork.SaveAsync();
         }
 
         private void ValidatePassword(string password)
