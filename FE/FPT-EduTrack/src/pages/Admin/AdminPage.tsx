@@ -5,6 +5,7 @@ import Dashboard from "../../components/AdminComponent/AdminDashboard";
 import UserManagement from "../../components/AdminComponent/UserManagement";
 import ExamManagement from "../../components/AdminComponent/AdminExamManagement";
 import TestManagement from "../../components/AdminComponent/AdminTestManagement";
+import MeetingManagement from "../../components/AdminComponent/AdminMeetingManagement";
 export default function AdminPage() {
   const [activeItem, setActiveItem] = useState("overview");
 
@@ -33,17 +34,8 @@ export default function AdminPage() {
             </p>
           </div>
         );
-      case "room":
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Room Management
-            </h2>
-            <p className="text-gray-600">
-              Room management features will be implemented here.
-            </p>
-          </div>
-        );
+      case "meeting":
+        return <MeetingManagement />;
       default:
         return <Dashboard />;
     }

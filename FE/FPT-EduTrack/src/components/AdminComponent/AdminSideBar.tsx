@@ -20,7 +20,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
     { id: "exam", label: "Exam Management", icon: FileText },
     { id: "test", label: "Test Management", icon: ClipboardCheck },
     { id: "request", label: "Request Management", icon: MessageSquare },
-    { id: "room", label: "Room Management", icon: Building },
+    { id: "meeting", label: "Meeting Management", icon: Building },
   ];
 
   return (
