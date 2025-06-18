@@ -60,15 +60,20 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task<int> CreateAsync(T entity)
         {
-            _context.Add(entity);
-            return await _context.SaveChangesAsync();
+   
+                _context.Add(entity);
+                return await _context.SaveChangesAsync();
+            
         }
 
         public async Task<int> UpdateAsync(T entity)
-        {
-            var tracker = _context.Attach(entity);
-            tracker.State = EntityState.Modified;
-            return await _context.SaveChangesAsync();
+        { 
+    
+                var tracker = _context.Attach(entity);
+                tracker.State = EntityState.Modified;
+                return await _context.SaveChangesAsync();
+
+       
         }
 
         public async Task<int> UpdateRangeAsync(IEnumerable<T> entities)
@@ -131,6 +136,16 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         public async Task<int> SaveAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        Task<int> IGenericRepository<T>.CreateAsync(T entity)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<int> IGenericRepository<T>.UpdateAsync(T entity)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion Separating asign entity and save operators
