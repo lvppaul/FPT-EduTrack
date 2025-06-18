@@ -102,10 +102,9 @@ const MeetingManagement: React.FC = () => {
   const totalMeetings = meetings.length;
 
   const filteredMeetings = meetings.filter((meeting) => {
-    const matchesSearch =
-      meeting.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      meeting.host.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = meeting.code
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === "All" || meeting.status === statusFilter;
     return matchesSearch && matchesStatus;
