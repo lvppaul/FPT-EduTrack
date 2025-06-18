@@ -3,7 +3,9 @@ using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace FPT_EduTrack.BusinessLayer.Services
 {
@@ -21,14 +23,31 @@ namespace FPT_EduTrack.BusinessLayer.Services
             throw new NotImplementedException();
         }
 
-        public Task DeleteAsync(int userId)
-        {
-            throw new NotImplementedException();
+        public async Task<bool> DeleteAsync(int userId)
+        { 
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+            try
+            {
+                await _unitOfWork.UserRepository.DeleteAsync(user);
+                await _unitOfWork.CommitTransactionAsync();
+                return true;
+
+            }catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+
         }
 
-        public Task<IEnumerable<UserResponse>> GetAllAsync()
+        public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            if(users == null || !users.Any())
+                return Enumerable.Empty<UserResponse>();
+            return users.Select(UserMapper.ToResponse).ToList();
         }
 
         public async Task<AuthenticationResponse?> LoginAsync(LoginRequest request)
@@ -204,9 +223,34 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return user == null ? null : UserMapper.ToResponse(user);
         }
 
-        public Task<UserResponse> UpdateAsync(UserUpdate user)
+        public async Task<UserResponse> UpdateAsync(UserUpdate user)
         {
-            throw new NotImplementedException();
+            var userExist = await _unitOfWork.UserRepository.GetByIdAsync(user.Id);
+            if (userExist == null)
+                return new UserResponse
+                {
+                    Id = 0,
+                    Email = "N/A",
+                    Fullname = "No user data",
+                    CreatedAt = null,
+                    IsActive = false,
+                    IsDeleted = false,
+                    RoleId = null,
+                    RoleName = "N/A"
+                };
+            userExist.Email = user.Email?.Trim();
+            userExist.Fullname = user.Fullname?.Trim();
+            userExist.RoleId = user.RoleId > 0 ? user.RoleId : null;
+            userExist.IsActive = user.IsActive;
+
+            var isUpdated = await _unitOfWork.UserRepository.UpdateUserAsync(userExist);
+            if(!isUpdated)
+            {
+                throw new Exception("Failed to update user information");
+            }
+            return UserMapper.ToResponse(userExist);
+
+
         }
 
         public Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry)

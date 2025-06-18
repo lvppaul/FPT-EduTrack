@@ -1,8 +1,12 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
+using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Packaging.Signing;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FPT_EduTrack.Api.Controllers
 {
@@ -15,6 +19,118 @@ namespace FPT_EduTrack.Api.Controllers
         {
             _service = service;
         }
+
+        [HttpGet("getUser")]
+        public async Task<IActionResult> GetAllUser()
+        {
+            try
+            {
+            var users = await _service.GetAllAsync();
+            if (users == null || !users.Any())
+                return NotFound(new
+                {
+                    success = false,
+                    message = "No users found",
+                    timestamp = DateTime.UtcNow
+                });
+            return Ok(users);
+            }catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving users",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateUser([FromBody] UserUpdate userUpdate)
+        {
+            try
+            {
+
+            if (userUpdate == null || userUpdate.Id <= 0)
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid user update information input",
+                    timestamp = DateTime.UtcNow
+                });
+            var updatedUser = await _service.UpdateAsync(userUpdate);
+            if (updatedUser == null || updatedUser.Id == 0)
+            {
+
+                return NotFound(new
+                {
+                    success = false,
+                    message = "User not found",
+                    timestamp = DateTime.UtcNow
+                });
+            }
+            else
+            {
+                return Ok(updatedUser);
+            }
+            } catch(Exception ex)
+
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Something wrong happends when updating user information",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+        [HttpDelete("delete/{userID}")]
+        public async Task<IActionResult> DeleteUser(int userID)
+        {
+            try
+            {
+                if (userID <= 0)
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Invalid user id",
+                        timestamp = DateTime.UtcNow
+                    });
+                var isDeleted = await _service.DeleteAsync(userID);
+
+                if(!isDeleted)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Delete failed",
+                        timestamp = DateTime.UtcNow
+                    });
+                }else
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Delete successfully",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+            }catch(Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                   success = false,
+                   message = "Something wrong when deleting User",
+                   error = ex.Message,
+                   timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
