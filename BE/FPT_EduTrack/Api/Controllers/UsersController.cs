@@ -2,11 +2,8 @@
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Packaging.Signing;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FPT_EduTrack.Api.Controllers
 {
@@ -25,16 +22,17 @@ namespace FPT_EduTrack.Api.Controllers
         {
             try
             {
-            var users = await _service.GetAllAsync();
-            if (users == null || !users.Any())
-                return NotFound(new
-                {
-                    success = false,
-                    message = "No users found",
-                    timestamp = DateTime.UtcNow
-                });
-            return Ok(users);
-            }catch (Exception ex)
+                var users = await _service.GetAllAsync();
+                if (users == null || !users.Any())
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "No users found",
+                        timestamp = DateTime.UtcNow
+                    });
+                return Ok(users);
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
@@ -53,29 +51,30 @@ namespace FPT_EduTrack.Api.Controllers
             try
             {
 
-            if (userUpdate == null || userUpdate.Id <= 0)
-                return BadRequest(new
+                if (userUpdate == null || userUpdate.Id <= 0)
+                    return BadRequest(new
+                    {
+                        Success = false,
+                        Message = "Invalid user update information input",
+                        timestamp = DateTime.UtcNow
+                    });
+                var updatedUser = await _service.UpdateAsync(userUpdate);
+                if (updatedUser == null || updatedUser.Id == 0)
                 {
-                    Success = false,
-                    Message = "Invalid user update information input",
-                    timestamp = DateTime.UtcNow
-                });
-            var updatedUser = await _service.UpdateAsync(userUpdate);
-            if (updatedUser == null || updatedUser.Id == 0)
-            {
 
-                return NotFound(new
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "User not found",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                else
                 {
-                    success = false,
-                    message = "User not found",
-                    timestamp = DateTime.UtcNow
-                });
+                    return Ok(updatedUser);
+                }
             }
-            else
-            {
-                return Ok(updatedUser);
-            }
-            } catch(Exception ex)
+            catch (Exception ex)
 
             {
                 return StatusCode(500, new
@@ -102,7 +101,7 @@ namespace FPT_EduTrack.Api.Controllers
                     });
                 var isDeleted = await _service.DeleteAsync(userID);
 
-                if(!isDeleted)
+                if (!isDeleted)
                 {
                     return NotFound(new
                     {
@@ -110,7 +109,8 @@ namespace FPT_EduTrack.Api.Controllers
                         message = "Delete failed",
                         timestamp = DateTime.UtcNow
                     });
-                }else
+                }
+                else
                 {
                     return Ok(new
                     {
@@ -119,14 +119,15 @@ namespace FPT_EduTrack.Api.Controllers
                         timestamp = DateTime.UtcNow
                     });
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, new
                 {
-                   success = false,
-                   message = "Something wrong when deleting User",
-                   error = ex.Message,
-                   timestamp = DateTime.UtcNow
+                    success = false,
+                    message = "Something wrong when deleting User",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
                 });
             }
         }
@@ -141,10 +142,38 @@ namespace FPT_EduTrack.Api.Controllers
             }
 
             var result = await _service.LoginAsync(request);
+            if (result == null)
+            {
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+
             if (!result.Success)
             {
                 return BadRequest(result);
             }
+            return Ok(result);
+        }
+
+        [HttpPost("refreshToken")]
+        public async Task<IActionResult> RefreshTokenAsync(RefreshTokenRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
+            {
+                return BadRequest(new { message = "Refresh token is required" });
+            }
+
+            var result = await _service.RefreshTokenAsync(request.RefreshToken);
+
+            if (result == null)
+            {
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
             return Ok(result);
         }
 
@@ -217,7 +246,7 @@ namespace FPT_EduTrack.Api.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, new
+                return StatusCode(500, new
                 {
                     success = false,
                     message = "An error occurred while registering user",

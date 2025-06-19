@@ -122,8 +122,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 Success = true,
                 Message = "Login successful",
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = expiresAt
+                RefreshToken = refreshToken
             };
         }
 
@@ -193,7 +192,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             // nếu chưa hết hạn thì tạo access token mới
             var newAccessToken = _tokenProvider.GenerateAccessToken(user, roleName);
             var newRefreshToken = _tokenProvider.GenerateRefreshToken();
-            var accessTokenExpiry = DateTime.UtcNow.AddMinutes(30);
+            //var accessTokenExpiry = DateTime.UtcNow.AddMinutes(30);
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
             user.RefreshToken = newRefreshToken;
@@ -205,8 +204,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 Success = true,
                 Message = "Token refreshed successfully",
                 AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
-                ExpiresAt = accessTokenExpiry
+                RefreshToken = newRefreshToken
             };
 
         }
@@ -253,7 +251,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             userExist.IsActive = user.IsActive;
 
             var isUpdated = await _unitOfWork.UserRepository.UpdateAsync(userExist);
-            if (isUpdated != 0)
+            if (isUpdated == 0)
             {
                 throw new Exception("Failed to update user information");
             }

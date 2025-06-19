@@ -7,15 +7,14 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
 {
     public static class UserMapper
     {
-         public static UserResponse ToResponse(User user)
+        public static UserResponse ToResponse(this User user)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
+            if (user == null) return null;
             return new UserResponse
             {
                 Id = user.Id,
-                Email = user.Email,
-                Fullname = user.Fullname,
+                Email = user.Email ?? string.Empty,
+                Fullname = user.Fullname ?? string.Empty,
                 CreatedAt = user.CreatedAt,
                 IsActive = user.IsActive,
                 IsDeleted = user.IsDeleted,
