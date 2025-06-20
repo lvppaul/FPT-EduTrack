@@ -2,7 +2,6 @@ using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Context;
 using FPT_EduTrack.DataAccessLayer.Interfaces;
-using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;

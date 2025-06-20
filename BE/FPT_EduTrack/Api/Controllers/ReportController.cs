@@ -1,7 +1,9 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
+using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,111 +18,94 @@ namespace FPT_EduTrack.Api.Controllers
         {
             _reportService = reportService;
         }
-        [HttpGet]
-        public ActionResult<List<ReportResponse>> GetAllReports()
-        {
-            var reports = _reportService.GetAllReports();
-            var responseList = reports.Select(report => new ReportResponse
-            {
-                Id = report.Id,
-                Title = report.Title,
-                Content = report.Content,
-                IsSecond = report.IsSecond,
-                CreatedAt = report.CreatedAt,
-                StudentId = report.StudentId,
-                TestId = report.TestId
-            }).ToList();
 
-            return Ok(responseList);
+        [HttpGet]
+        //[Authorize]
+        public async Task<ActionResult<List<ReportResponse>>> GetAllReports()
+        {
+            var reports = await _reportService.GetAllAsync();
+            if (reports == null || !reports.Any())
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "No reports found."
+                });
+            }
+            return Ok(reports);
         }
 
         [HttpGet("id")]
-        public ActionResult<ReportResponse> GetReportByID(int id)
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> GetReportByID(int id)
         {
-            var report = _reportService.GetReportById(id);
+            var report = await _reportService.GetByIdAsync(id);
             if (report == null)
             {
-                return NotFound($"Report with ID {id} not found.");
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Report with ID {id} not found."
+                });
             }
-
-            var response = new ReportResponse
-            {
-                Id = report.Id,
-                Title = report.Title,
-                Content = report.Content,
-                IsSecond = report.IsSecond,
-                CreatedAt = report.CreatedAt,
-                StudentId = report.StudentId,
-                TestId = report.TestId
-            };
-
-            return Ok(response);
+            return Ok(report);
         }
 
         [HttpPost]
-        public ActionResult<ReportResponse> CreateReport([FromBody] ReportRequest request)
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> CreateReport([FromBody] ReportRequest request)
         {
-            var newReport = new Report
+            var newReport = await _reportService.CreateAsync(request);
+            if(newReport == null)
             {
-                Title = request.Title,
-                Content = request.Content,
-                //IsDeleted = request.IsDeleted,
-                //IsSecond = request.IsSecond,
-                CreatedAt = DateTime.UtcNow,
-                StudentId = request.StudentId,
-                //ReportStatusId = request.ReportStatusId,
-                TestId = request.TestId
-            };
-
-            _reportService.AddReport(newReport);
-
-            var response = new ReportResponse
-            {
-                Id = newReport.Id,
-                Title = newReport.Title,
-                Content = newReport.Content,
-                //IsDeleted = newReport.IsDeleted,
-                //IsSecond = newReport.IsSecond,
-                CreatedAt = newReport.CreatedAt,
-                StudentId = newReport.StudentId,
-                //ReportStatusId = newReport.ReportStatusId,
-                TestId = newReport.TestId
-            };
-
-            return CreatedAtAction("GetReportById", new { id = response.Id }, response);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Failed to create report."
+                });
+            }
+            return CreatedAtAction(nameof(GetReportByID), new { id = newReport.Id }, newReport);
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateReport(int id, [FromBody] ReportRequest request)
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> UpdateReport(int id, [FromBody] ReportUpdate request)
         {
-            var existingReport = _reportService.GetReportById(id);
+            var existingReport = await _reportService.GetByIdAsync(id);
             if (existingReport == null)
             {
-                return NotFound($"Report with ID {id} not found.");
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Report with ID {id} not found."
+                });
             }
-
-            existingReport.Title = request.Title;
-            existingReport.Content = request.Content;
-            //existingReport.IsDeleted = request.IsDeleted;
-            //existingReport.IsSecond = request.IsSecond;
-            existingReport.StudentId = request.StudentId;
-            //existingReport.ReportStatusId = request.ReportStatusId;
-            existingReport.TestId = request.TestId;
-
-            _reportService.UpdateReport(existingReport);
-
-            return NoContent();
+            var updatedReport = await _reportService.EditAsync(id, request);
+            if (updatedReport == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Failed to update report."
+                });
+            }
+            return Ok(updatedReport);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult DeleteReport(int id)
+        //[Authorize]
+        public async Task<IActionResult> DeleteReport(int id)
         {
-            var existingReport = _reportService.GetReportById(id);
+            var existingReport = await _reportService.GetByIdAsync(id);
             if (existingReport == null)
             {
-                return NotFound($"Report with ID {id} not found.");
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Report with ID {id} not found."
+                });
             }
-            _reportService.DeleteReport(id);
+            await _reportService.DeleteAsync(id);
             return NoContent();
         }
     }

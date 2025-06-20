@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.DataAccessLayer.Context;
 using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using System;
 using System.Collections.Generic;
@@ -10,80 +11,59 @@ using System.Threading.Tasks;
 
 namespace FPT_EduTrack.DataAccessLayer.Repositories
 {
-    public class ReportRepository : IReportRepository
+    public class ReportRepository : GenericRepository<Report>, IReportRepository
     {
-        private readonly FptEduTrackContext _context;
-        public ReportRepository(FptEduTrackContext context)
+      
+        public ReportRepository(FptEduTrackContext context) : base(context)
         {
-            _context = context;
-        }
-        public List<Report> GetAllReports()
-        {
-            try
-            {
-                return _context.Reports.ToList();
-            }
-            catch(Exception e)
-            {
-                throw new Exception("Error retrieving reports", e);
-            }
-        }
-        public Report GetReportById(int id)
-        {
-            try
-            {
-                return _context.Reports.FirstOrDefault(r => r.Id == id);
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Error retrieving report with ID {id}", e);
-            }
         }
 
-        public void AddReport(Report report)
+        public override async Task<List<Report>> GetAllAsync()
         {
-            try
+            return await _context.Reports
+                .Include(r => r.ReportStatus)
+                .Where(r => r.IsDeleted == false)
+                .ToListAsync();
+        }
+
+        public override async Task<Report?> GetByIdAsync(int id)
+        {
+            return await _context.Reports
+                .Include(r => r.ReportStatus)
+                .FirstOrDefaultAsync(r => r.Id == id && r.IsDeleted != true);
+        }
+
+        public async Task AddAsync(Report report)
+        {
+            if (report == null)
+                throw new ArgumentNullException(nameof(report));
+            report.IsDeleted = false;
+            report.CreatedAt = DateTime.UtcNow;
+            report.IsSecond = false;
+            report.ReportStatusId = 1;
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task EditAsync(int id, Report report)
+        {
+            var existingReport = await GetByIdAsync(id);
+            if(existingReport != null)
             {
-                report.IsDeleted = false; 
                 report.CreatedAt = DateTime.UtcNow;
-                report.IsSecond = false;
-                report.ReportStatusId = 1;
-                _context.Reports.Add(report);
-                _context.SaveChanges();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error adding report", e);
+                report.Id = existingReport.Id;
+                _context.Reports.Update(report);
+                await _context.SaveChangesAsync();
             }
         }
 
-        public void UpdateReport(Report report)
+        public async Task DeleteAsync(int id)
         {
-            try
+            var report = await _context.Reports.FirstOrDefaultAsync(r => r.Id == id);
+            if (report != null)
             {
-                _context.Entry(report).State = Microsoft.EntityFrameworkCore.EntityState.Modified; 
-                _context.SaveChanges();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Error updating report", e);
-            }
-        }
-
-        public void DeleteReport(int id)
-        {
-            try
-            {
-                var report = _context.Reports.FirstOrDefault(r => r.Id == id);
-                if (report != null)
-                {
-                    _context.Reports.Remove(report);
-                    _context.SaveChanges();
-                }
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Error deleting report with ID {id}", e);
+                report.IsDeleted = true;
+                await _context.SaveChangesAsync();
             }
         }
     }

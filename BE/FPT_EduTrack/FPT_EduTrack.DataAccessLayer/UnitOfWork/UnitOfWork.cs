@@ -12,6 +12,7 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         // Repositories
         private IUserRepository _userRepository;
         private IRoleRepository _roleRepository;
+        private IReportRepository _reportRepository;
         private IMeetingRepository _meetingRepository;
         private IMeetingDetailRepository _meetingDetailRepository;
 
@@ -28,6 +29,9 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         {
             get { return _roleRepository ??= new RoleRepository(_context); }
         }
+        public IReportRepository ReportRepository
+        {
+            get { return _reportRepository ??= new ReportRepository(_context); }
         public IMeetingRepository MeetingRepository
         {
             get { return _meetingRepository ??= new MeetingRepository(_context); }
