@@ -56,6 +56,8 @@ public partial class FptEduTrackContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Exam>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Exams__3213E83FFCBF6A48");
@@ -279,6 +281,7 @@ public partial class FptEduTrackContext : DbContext
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Link).HasColumnName("link");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
@@ -286,6 +289,9 @@ public partial class FptEduTrackContext : DbContext
             entity.HasOne(d => d.Student).WithMany(p => p.Tests)
                 .HasForeignKey(d => d.StudentId)
                 .HasConstraintName("FK__Tests__student_i__571DF1D5");
+            entity.HasOne(d => d.Exam).WithMany(p => p.Tests)
+                .HasForeignKey(d => d.ExamId)
+                .HasConstraintName("FK__Tests__exam_id__5AEE82B9");
         });
 
         modelBuilder.Entity<TestsScore>(entity =>

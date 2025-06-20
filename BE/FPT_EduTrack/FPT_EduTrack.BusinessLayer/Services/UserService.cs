@@ -4,6 +4,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
 namespace FPT_EduTrack.BusinessLayer.Services
@@ -16,10 +17,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             _unitOfWork = unitOfWork;
             _tokenProvider = tokenProvider;
-        }
-        public Task<UserResponse> CreateAsync(UserRequest user)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<bool> DeleteAsync(int userId)
@@ -265,7 +262,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             throw new NotImplementedException();
         }
 
-        public async Task RegisterAsync(UserRequest user)
+        public async Task<User> RegisterAsync(UserRequest user)
         {
             var userExisted = await _unitOfWork.UserRepository.GetByEmailAsync(user.Email);
             if (userExisted != null)
@@ -274,6 +271,11 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
 
             ValidatePassword(user.Password);
+
+            if (!user.Password.Equals(user.ConfirmPassword))
+            {
+                throw new Exception("Password and confirm password does not match");
+            }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
@@ -285,6 +287,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
             var newUser = UserMapper.ToEntity(user);
 
             await _unitOfWork.UserRepository.CreateAsync(newUser);
+
+            return newUser;
         }
 
         private void ValidatePassword(string password)

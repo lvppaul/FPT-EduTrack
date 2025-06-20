@@ -1,7 +1,10 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
+using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
+using FPT_EduTrack.BusinessLayer.Mappings;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -232,17 +235,27 @@ namespace FPT_EduTrack.Api.Controllers
             }
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserRequest user)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create([FromBody] UserRequest user)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return ValidationProblem(ModelState);
             }
+
             try
             {
-                await _service.RegisterAsync(user);
-                return CreatedAtAction(nameof(GetByEmail), new { email = user.Email }, user);
+                var createdUser = await _service.RegisterAsync(user);
+                var response = UserMapper.ToResponse(createdUser);
+                return CreatedAtAction(nameof(GetByEmail), new { email = response.Email }, response);
+            }
+            catch (UserAlreadyExistsException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (WeakPasswordException ex)
+            {
+                return BadRequest(new { errors = ex.Errors });
             }
             catch (Exception ex)
             {
