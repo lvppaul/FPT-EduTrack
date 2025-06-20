@@ -9,6 +9,7 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         // Repository access
         IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
+        IReportRepository ReportRepository { get; }
 
         // Transaction management
         Task BeginTransactionAsync();

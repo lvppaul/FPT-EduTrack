@@ -1,35 +1,77 @@
-﻿using FPT_EduTrack.BusinessLayer.Interfaces;
+﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
+using FPT_EduTrack.BusinessLayer.DTOs.Response;
+using FPT_EduTrack.BusinessLayer.DTOs.Update;
+using FPT_EduTrack.BusinessLayer.Interfaces;
+using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Interfaces;
+using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
 namespace FPT_EduTrack.BusinessLayer.Services
 {
     public class ReportService : IReportService
     {
-        private readonly IReportRepository _reportRepository;
-        public ReportService(IReportRepository reportRepository)
+        private readonly IUnitOfWork _unitOfWork;
+        public ReportService(IUnitOfWork unitOfWork)
         {
-            _reportRepository = reportRepository;
+            _unitOfWork = unitOfWork;
         }
-        public List<Report> GetAllReports()
+        public async Task<IEnumerable<ReportResponse>> GetAllAsync()
         {
-            return _reportRepository.GetAllReports();
+            var reports = await _unitOfWork.ReportRepository.GetAllAsync();
+            if (reports == null || !reports.Any())
+            {
+                return Enumerable.Empty<ReportResponse>();
+            }
+            return reports.Select(ReportMapper.ToResponse).ToList();
         }
-        public Report GetReportById(int id)
+        public async Task<ReportResponse> GetByIdAsync(int id)
         {
-            return _reportRepository.GetReportById(id);
+            var report = await _unitOfWork.ReportRepository.GetByIdAsync(id);
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {id} not found.");
+            }
+            return report.ToResponse();
         }
-        public void AddReport(Report report)
+        public async Task<ReportResponse> CreateAsync(ReportRequest report)
         {
-            _reportRepository.AddReport(report);
+            if (report == null)
+            {
+                throw new ArgumentNullException(nameof(report), "Report cannot be null.");
+            }
+            var newReport = ReportMapper.ToEntity(report);
+            await _unitOfWork.ReportRepository.CreateAsync(newReport);
+            await _unitOfWork.SaveAsync();
+            return newReport.ToResponse();
         }
-        public void UpdateReport(Report report)
+        public async Task<ReportResponse> EditAsync(int id, ReportUpdate report)
         {
-            _reportRepository.UpdateReport(report);
+            if (report == null)
+            {
+                throw new ArgumentNullException(nameof(report), "Report cannot be null.");
+            }
+            var existingReport = await _unitOfWork.ReportRepository.GetByIdAsync(id);
+            if (existingReport == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {id} not found.");
+            }
+            report.ToUpdate(existingReport);
+            await _unitOfWork.ReportRepository.UpdateAsync(existingReport);
+            await _unitOfWork.SaveAsync();
+            return existingReport.ToResponse();
         }
-        public void DeleteReport(int id)
+        public async Task DeleteAsync(int id)
         {
-            _reportRepository.DeleteReport(id);
+            var report = await _unitOfWork.ReportRepository.GetByIdAsync(id);
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {id} not found.");
+            }
+
+            report.IsDeleted = true;
+            await _unitOfWork.ReportRepository.UpdateAsync(report);
+            await _unitOfWork.SaveAsync();
         }
     }
 }

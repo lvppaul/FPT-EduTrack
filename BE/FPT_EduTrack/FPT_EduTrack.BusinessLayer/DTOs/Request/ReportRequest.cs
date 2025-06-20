@@ -14,7 +14,6 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Request
 
         public int? StudentId { get; set; }
 
-
         public int? TestId { get; set; }
     }
 }

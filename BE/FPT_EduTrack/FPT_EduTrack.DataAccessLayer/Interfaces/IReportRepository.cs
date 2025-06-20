@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
-    public interface IReportRepository
+    public interface IReportRepository : IGenericRepository<Report>
     {
-        List<Report> GetAllReports();
-        Report GetReportById(int id);
-        void AddReport(Report report);
-        void UpdateReport(Report report);
-        void DeleteReport(int id);
+        Task<List<Report>> GetAllAsync();
+        Task<Report> GetByIdAsync(int id);
+        Task AddAsync(Report report);
+        Task EditAsync(int id, Report report);
+        Task DeleteAsync(int id);
     }
 }
