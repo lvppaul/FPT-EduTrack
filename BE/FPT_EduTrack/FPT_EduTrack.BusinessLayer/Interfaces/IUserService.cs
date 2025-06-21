@@ -18,5 +18,6 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry);
         Task<UserResponse> GetUserWithRoleAsync(int userId);
         Task<User> RegisterAsync(UserRequest user);
+        Task SaveGoogleTokenAsync(string email, string accessToken, string refreshToken, DateTime accessTokenExpiredAt);
     }
 }

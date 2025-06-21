@@ -316,5 +316,18 @@ namespace FPT_EduTrack.BusinessLayer.Services
             if (errors.Any())
                 throw new WeakPasswordException(errors);
         }
+
+        public async Task SaveGoogleTokenAsync(string email, string accessToken, string refreshToken, DateTime accessTokenExpiredAt)
+        {
+            var user = await _unitOfWork.UserRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception($"User with {email} does not exist.");
+            }
+            user.Google_access_token = accessToken;
+            user.Google_refresh_token = refreshToken;
+            user.GoogleAccessTokenExpiredAt = accessTokenExpiredAt;
+            await _unitOfWork.UserRepository.UpdateAsync(user);
+        }
     }
 }
