@@ -20,4 +20,5 @@ public partial class Meeting
     public virtual MeetingsStatus? MeetingStatus { get; set; }
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<MeetingDetail> MeetingDetails { get; set; } = new List<MeetingDetail>();
 }

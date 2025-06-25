@@ -56,6 +56,8 @@ public partial class FptEduTrackContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Exam>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Exams__3213E83FFCBF6A48");
@@ -122,24 +124,44 @@ public partial class FptEduTrackContext : DbContext
                 .HasForeignKey(d => d.MeetingStatusId)
                 .HasConstraintName("FK__Meetings__meetin__797309D9");
 
-            entity.HasMany(d => d.Users).WithMany(p => p.Meetings)
-                .UsingEntity<Dictionary<string, object>>(
-                    "MeetingsDetail",
-                    r => r.HasOne<User>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Meetings___user___7D439ABD"),
-                    l => l.HasOne<Meeting>().WithMany()
-                        .HasForeignKey("MeetingId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Meetings___meeti__7C4F7684"),
-                    j =>
-                    {
-                        j.HasKey("MeetingId", "UserId").HasName("PK__Meetings__2C22FFDB6A6F7074");
-                        j.ToTable("Meetings_Detail");
-                        j.IndexerProperty<int>("MeetingId").HasColumnName("meeting_id");
-                        j.IndexerProperty<int>("UserId").HasColumnName("user_id");
-                    });
+            //entity.HasMany(d => d.Users).WithMany(p => p.Meetings)
+            //    .UsingEntity<Dictionary<string, object>>(
+            //        "MeetingsDetail",
+            //        r => r.HasOne<User>().WithMany()
+            //            .HasForeignKey("UserId")
+            //            .OnDelete(DeleteBehavior.ClientSetNull)
+            //            .HasConstraintName("FK__Meetings___user___7D439ABD"),
+            //        l => l.HasOne<Meeting>().WithMany()
+            //            .HasForeignKey("MeetingId")
+            //            .OnDelete(DeleteBehavior.ClientSetNull)
+            //            .HasConstraintName("FK__Meetings___meeti__7C4F7684"),
+            //        j =>
+            //        {
+            //            j.HasKey("MeetingId", "UserId").HasName("PK__Meetings__2C22FFDB6A6F7074");
+            //            j.ToTable("Meetings_Detail");
+            //            j.IndexerProperty<int>("MeetingId").HasColumnName("meeting_id");
+            //            j.IndexerProperty<int>("UserId").HasColumnName("user_id");
+            //        });
+            entity.HasMany(e => e.MeetingDetails)
+            .WithOne(md => md.Meeting)
+            .HasForeignKey(md => md.MeetingId);
+        });
+
+        modelBuilder.Entity<MeetingDetail>(entity =>
+        {
+            entity.ToTable("Meetings_Detail");
+
+            entity.HasKey(md => new { md.MeetingId, md.UserId });
+
+            entity.HasOne(md => md.Meeting)
+                .WithMany(m => m.MeetingDetails)
+                .HasForeignKey(md => md.MeetingId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(md => md.User)
+                .WithMany(u => u.MeetingDetails)
+                .HasForeignKey(md => md.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<MeetingsStatus>(entity =>
@@ -279,6 +301,7 @@ public partial class FptEduTrackContext : DbContext
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Link).HasColumnName("link");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
@@ -286,6 +309,9 @@ public partial class FptEduTrackContext : DbContext
             entity.HasOne(d => d.Student).WithMany(p => p.Tests)
                 .HasForeignKey(d => d.StudentId)
                 .HasConstraintName("FK__Tests__student_i__571DF1D5");
+            entity.HasOne(d => d.Exam).WithMany(p => p.Tests)
+                .HasForeignKey(d => d.ExamId)
+                .HasConstraintName("FK__Tests__exam_id__5AEE82B9");
         });
 
         modelBuilder.Entity<TestsScore>(entity =>

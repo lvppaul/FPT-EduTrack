@@ -16,4 +16,6 @@ public partial class Exam
     public int? ExaminerId { get; set; }
 
     public virtual User? Examiner { get; set; }
+
+    public virtual ICollection<Test> Tests { get; set; } = new List<Test>();
 }
