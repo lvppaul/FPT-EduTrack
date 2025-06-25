@@ -11,34 +11,6 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
         }
 
-        public async Task<bool> CreateUserAsync(User user)
-        {
-            if (user == null) throw new ArgumentNullException(nameof(user), "User cannot be null!");
-            try
-            {
-                return await CreateAsync(user) > 0;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating user: {ex.Message}");
-                return false;
-            }
-        }
-
-        public async Task<bool> UpdateUserAsync(User user)
-        {
-
-            if (user == null) throw new ArgumentNullException(nameof(user), "User cannot be null!");
-            try
-            {
-                return await UpdateAsync(user) > 0;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating user: {ex.Message}");
-                return false;
-            }
-        }
 
         public async Task DeleteAsync(User user)
         {

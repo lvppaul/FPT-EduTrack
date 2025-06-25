@@ -244,14 +244,12 @@ namespace FPT_EduTrack.BusinessLayer.Services
             userExist.RoleId = user.RoleId > 0 ? user.RoleId : null;
             userExist.IsActive = user.IsActive;
 
-            var isUpdated = await _unitOfWork.UserRepository.UpdateUserAsync(userExist);
-            if(!isUpdated)
+            var isUpdated = await _unitOfWork.UserRepository.UpdateAsync(userExist);
+            if(isUpdated == 0)
             {
                 throw new Exception("Failed to update user information");
             }
             return UserMapper.ToResponse(userExist);
-
-
         }
 
         public Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry)
