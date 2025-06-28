@@ -66,8 +66,6 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IMeetingService, MeetingService>();
 builder.Services.AddScoped<IParseResponse, ParseResponse>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IMeetingService, MeetingService>();
 
 builder.Services.AddCors(options =>
 {
