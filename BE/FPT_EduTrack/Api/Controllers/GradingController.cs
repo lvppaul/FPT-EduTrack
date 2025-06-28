@@ -325,9 +325,12 @@ namespace FPT_EduTrack.Api.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     // Đọc response với UTF-8 encoding
-                    var responseBytes = await response.Content.ReadAsByteArrayAsync();
-                    var responseContent = Encoding.UTF8.GetString(responseBytes);
-                    //var parsedResponse = _service.ParseLangflowResponse(responseContent);
+                    //ReadAsByteArrayAsync: Đọc dữ liệu nhị phân (file, media)
+                    // nếu response là text/JSON thì nên dùng ReadAsStringAsync
+                    //var responseBytes = await response.Content.ReadAsByteArrayAsync();
+                    // var responseContent = Encoding.UTF8.GetString(responseBytes);
+                    var responseContent = await response.Content.ReadAsStringAsync();
+
                     var cleanedContent = _service.ParseLangflowResponse(responseContent);
                     return Ok(new
                     {
