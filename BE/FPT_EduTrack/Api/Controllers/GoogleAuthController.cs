@@ -11,13 +11,13 @@ namespace FPT_EduTrack.Api.Controllers
     public class GoogleAuthController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private readonly ITokenService _tokenService;
+        private readonly ITokenProvider _tokenProvider;
         private readonly IUserService _userService;
 
-        public GoogleAuthController(IConfiguration configuration, ITokenService tokenService, IUserService userService)
+        public GoogleAuthController(IConfiguration configuration, ITokenProvider tokenProvider, IUserService userService)
         {
             this.configuration = configuration;
-            _tokenService = tokenService;
+            _tokenProvider = tokenProvider;
             _userService = userService;
         }
 
@@ -41,7 +41,7 @@ namespace FPT_EduTrack.Api.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string state)
         {
-            var token = await _tokenService.GetTokenAsync(code);
+            var token = await _tokenProvider.GetTokenAsync(code);
 
             var email = state;
 

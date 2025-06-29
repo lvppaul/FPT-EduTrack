@@ -1,4 +1,5 @@
-﻿using FPT_EduTrack.DataAccessLayer.Entities;
+﻿using FPT_EduTrack.Api.Models;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using System.Security.Claims;
 
 namespace FPT_EduTrack.BusinessLayer.Interfaces
@@ -9,5 +10,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         string GenerateRefreshToken();
         ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
         bool ValidateToken(string token);
+        Task<Token> GetTokenAsync(string code);
+        Task<string> GetAccessTokenAsync(string email);
     }
 }

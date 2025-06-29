@@ -11,9 +11,9 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
     public interface IMeetingService
     {
         Task<EventResponse> CreateEventAsync(EventRequest eventRequest, string organizerEmail);
-        Task<EventResponse> UpdateEventAsync(string eventId, EventRequest eventRequest);
+        Task<EventResponse> UpdateEventAsync(string eventId, MeetingRequest eventRequest, string organizerEmail);
         Task<EventResponse> GetEventByIdAsync(string email, string eventId);
         Task<List<EventResponse>> GetEventsAsync();
-        Task<EventResponse> CreateMeetingAsync(string organizerEmail, CreateMeetingRequest request);
+        Task<EventResponse> CreateMeetingAsync(string organizerEmail, MeetingRequest request);
     }
 }
