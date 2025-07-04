@@ -9,6 +9,8 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         // Repository access
         IUserRepository UserRepository { get; }
         IRoleRepository RoleRepository { get; }
+        IMeetingRepository MeetingRepository { get; }
+        IMeetingDetailRepository MeetingDetailRepository { get; }
         IReportRepository ReportRepository { get; }
 
         // Transaction management

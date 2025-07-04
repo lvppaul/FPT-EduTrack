@@ -58,13 +58,15 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task<int> CreateAsync(T entity)
+        public virtual async Task<int> CreateAsync(T entity)
         {
+
             _context.Add(entity);
             return await _context.SaveChangesAsync();
+
         }
 
-        public async Task<int> UpdateAsync(T entity)
+        public virtual async Task<int> UpdateAsync(T entity)
         {
             var tracker = _context.Attach(entity);
             tracker.State = EntityState.Modified;

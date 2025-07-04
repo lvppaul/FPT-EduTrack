@@ -9,8 +9,11 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Request
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
-        [MinLength(6, ErrorMessage = "Password must be at least 6 characters")]
         public string Password { get; set; }
+
+        [Required(ErrorMessage = "Confirm password is required")]
+        public string ConfirmPassword { get; set; }
+
 
         [Required(ErrorMessage = "Full name is required")]
         public string Fullname { get; set; }

@@ -4,6 +4,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
 namespace FPT_EduTrack.BusinessLayer.Services
@@ -17,19 +18,33 @@ namespace FPT_EduTrack.BusinessLayer.Services
             _unitOfWork = unitOfWork;
             _tokenProvider = tokenProvider;
         }
-        public Task<UserResponse> CreateAsync(UserRequest user)
+
+        public async Task<bool> DeleteAsync(int userId)
         {
-            throw new NotImplementedException();
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+            try
+            {
+                await _unitOfWork.UserRepository.DeleteAsync(user);
+                await _unitOfWork.CommitTransactionAsync();
+                return true;
+
+            }
+            catch
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+
         }
 
-        public Task DeleteAsync(int userId)
+        public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<UserResponse>> GetAllAsync()
-        {
-            throw new NotImplementedException();
+            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            if (users == null || !users.Any())
+                return Enumerable.Empty<UserResponse>();
+            return users.Select(UserMapper.ToResponse).ToList();
         }
 
         public async Task<AuthenticationResponse?> LoginAsync(LoginRequest request)
@@ -104,13 +119,13 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 Success = true,
                 Message = "Login successful",
                 AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                ExpiresAt = expiresAt
+                RefreshToken = refreshToken
             };
         }
 
         public async Task<AuthenticationResponse?> RefreshTokenAsync(string refreshToken)
         {
+            //refreshtoken trống
             if (string.IsNullOrWhiteSpace(refreshToken))
             {
                 return new AuthenticationResponse
@@ -122,6 +137,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             var user = await _unitOfWork.UserRepository.GetByRefreshTokenAsync(refreshToken);
 
+            // ko tìm thấy user có refreshtoken nhập vào
             if (user == null)
             {
                 return new AuthenticationResponse
@@ -130,6 +146,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     Message = "Invalid refresh token"
                 };
             }
+
+            // Kiểm tra xem refresh token đã hết hạn chưa
+            // nếu hết hạn thì xóa token
+            // và trả về thông báo hết hạn
 
             if (user.ExpiredRefreshToken == null || user.ExpiredRefreshToken < DateTime.UtcNow)
             {
@@ -145,6 +165,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            // Kiểm tra xem tài khoản có bị xóa hay không hoạt động không
             if (user.IsActive != true || user.IsDeleted == true)
             {
                 return new AuthenticationResponse
@@ -154,6 +175,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            //Kiểm tra role của user
             var roleName = user.Role?.Name;
             if (string.IsNullOrWhiteSpace(roleName))
             {
@@ -164,9 +186,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 };
             }
 
+            // nếu chưa hết hạn thì tạo access token mới
             var newAccessToken = _tokenProvider.GenerateAccessToken(user, roleName);
             var newRefreshToken = _tokenProvider.GenerateRefreshToken();
-            var accessTokenExpiry = DateTime.UtcNow.AddMinutes(30);
+            //var accessTokenExpiry = DateTime.UtcNow.AddMinutes(30);
             var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
             user.RefreshToken = newRefreshToken;
@@ -178,8 +201,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 Success = true,
                 Message = "Token refreshed successfully",
                 AccessToken = newAccessToken,
-                RefreshToken = newRefreshToken,
-                ExpiresAt = accessTokenExpiry
+                RefreshToken = newRefreshToken
             };
 
         }
@@ -205,9 +227,34 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return user == null ? null : UserMapper.ToResponse(user);
         }
 
-        public Task<UserResponse> UpdateAsync(UserUpdate user)
+        public async Task<UserResponse> UpdateAsync(UserUpdate user)
         {
-            throw new NotImplementedException();
+            var userExist = await _unitOfWork.UserRepository.GetByIdAsync(user.Id);
+            if (userExist == null)
+                return new UserResponse
+                {
+                    Id = 0,
+                    Email = "N/A",
+                    Fullname = "No user data",
+                    CreatedAt = null,
+                    IsActive = false,
+                    IsDeleted = false,
+                    RoleId = null,
+                    RoleName = "N/A"
+                };
+            userExist.Email = user.Email?.Trim();
+            userExist.Fullname = user.Fullname?.Trim();
+            userExist.RoleId = user.RoleId > 0 ? user.RoleId : null;
+            userExist.IsActive = user.IsActive;
+
+            var isUpdated = await _unitOfWork.UserRepository.UpdateAsync(userExist);
+            if (isUpdated == 0)
+            {
+                throw new Exception("Failed to update user information");
+            }
+            return UserMapper.ToResponse(userExist);
+
+
         }
 
         public Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry)
@@ -215,7 +262,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             throw new NotImplementedException();
         }
 
-        public async Task RegisterAsync(UserRequest user)
+        public async Task<User> RegisterAsync(UserRequest user)
         {
             var userExisted = await _unitOfWork.UserRepository.GetByEmailAsync(user.Email);
             if (userExisted != null)
@@ -224,6 +271,11 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
 
             ValidatePassword(user.Password);
+
+            if (!user.Password.Equals(user.ConfirmPassword))
+            {
+                throw new Exception("Password and confirm password does not match");
+            }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
 
@@ -236,7 +288,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             await _unitOfWork.UserRepository.CreateAsync(newUser);
 
-            await _unitOfWork.SaveAsync();
+            return newUser;
         }
 
         private void ValidatePassword(string password)
@@ -263,6 +315,19 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             if (errors.Any())
                 throw new WeakPasswordException(errors);
+        }
+
+        public async Task SaveGoogleTokenAsync(string email, string accessToken, string refreshToken, DateTime accessTokenExpiredAt)
+        {
+            var user = await _unitOfWork.UserRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                throw new Exception($"User with {email} does not exist.");
+            }
+            user.Google_access_token = accessToken;
+            user.Google_refresh_token = refreshToken;
+            user.GoogleAccessTokenExpiredAt = accessTokenExpiredAt;
+            await _unitOfWork.UserRepository.UpdateAsync(user);
         }
     }
 }

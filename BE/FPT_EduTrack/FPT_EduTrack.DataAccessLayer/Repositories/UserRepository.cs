@@ -10,6 +10,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         public UserRepository(FptEduTrackContext context) : base(context)
         {
         }
+
+
         public async Task DeleteAsync(User user)
         {
             user.IsDeleted = true;
@@ -20,6 +22,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
@@ -59,5 +62,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await Task.FromResult(BCrypt.Net.BCrypt.Verify(password, user.Password));
         }
+
+
     }
 }

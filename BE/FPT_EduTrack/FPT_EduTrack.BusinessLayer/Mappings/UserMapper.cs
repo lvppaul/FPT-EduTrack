@@ -7,30 +7,21 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
 {
     public static class UserMapper
     {
-        #region Entity to DTO
-
         public static UserResponse ToResponse(this User user)
         {
             if (user == null) return null;
-
             return new UserResponse
             {
                 Id = user.Id,
                 Email = user.Email ?? string.Empty,
                 Fullname = user.Fullname ?? string.Empty,
                 CreatedAt = user.CreatedAt,
-                IsActive = user.IsActive ?? false,
-                IsDeleted = user.IsDeleted ?? false,
+                IsActive = user.IsActive,
+                IsDeleted = user.IsDeleted,
                 RoleId = user.RoleId,
-                RoleName = user.Role?.Name ?? string.Empty
+                RoleName = user.Role?.Name ?? "N/A"
             };
         }
-        public static List<UserResponse> ToDtoList(this IEnumerable<User> users)
-        {
-            return users?.Select(u => u.ToResponse()).ToList() ?? new List<UserResponse>();
-        }
-
-        #endregion
 
         #region Request to Entity
         public static User ToEntity(this UserRequest request)
