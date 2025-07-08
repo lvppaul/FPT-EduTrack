@@ -36,7 +36,10 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Link = request.HangoutLink,
                 CreatedAt = DateTime.UtcNow,
                 IsDeleted = false,
-                MeetingStatusId = 1
+                GoogleMeetingId = request.Id,
+                MeetingStatusId = 1,
+                StartTime = request.Start?.DateTime,
+                EndTime = request.End?.DateTime,
             };
         }
         #endregion

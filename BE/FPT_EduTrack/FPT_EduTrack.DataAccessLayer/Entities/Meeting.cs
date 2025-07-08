@@ -15,6 +15,12 @@ public partial class Meeting
 
     public string? Link { get; set; }
 
+    public string? GoogleMeetingId { get; set; }
+
+    public DateTime? StartTime { get; set; }
+
+    public DateTime? EndTime { get; set; }
+
     public int? MeetingStatusId { get; set; }
 
     public virtual MeetingsStatus? MeetingStatus { get; set; }

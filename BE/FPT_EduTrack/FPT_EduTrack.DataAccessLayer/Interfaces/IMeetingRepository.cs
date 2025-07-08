@@ -10,7 +10,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
     public interface IMeetingRepository : IGenericRepository<Meeting>
     {
         public Task<List<Meeting>> GetAllMeetingsAsync();
-        public Task<Meeting?> GetMeetingByIdAsync(int id);
+        public Task<Meeting?> GetByGoogleMeetingIdAsync(string id);
         public Task<List<Meeting>> GetMeetingsByUserIdAsync(int userId);
         public Task<List<Meeting>> GetMeetingsByStatusAsync(int statusId);
         public Task<List<Meeting>> GetMeetingsByDateAsync(DateTime date);

@@ -23,9 +23,11 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .ToListAsync();
         }
 
-        public Task<Meeting?> GetMeetingByIdAsync(int id)
+        public async Task<Meeting?> GetByGoogleMeetingIdAsync(string id)
         {
-            throw new NotImplementedException();
+            return await _context.Meetings
+                .Where(m => m.GoogleMeetingId == id && m.IsDeleted != true)
+                .FirstOrDefaultAsync();
         }
 
         public Task<List<Meeting>> GetMeetingsByUserIdAsync(int userId)

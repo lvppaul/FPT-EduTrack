@@ -115,6 +115,15 @@ public partial class FptEduTrackContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
             entity.Property(e => e.Link).HasColumnName("link");
+            entity.Property(e => e.GoogleMeetingId)
+                .HasMaxLength(100)
+                .HasColumnName("meeting_gg_id");
+            entity.Property(e => e.StartTime)
+            .HasColumnType("datetime")
+                .HasColumnName("start_time");
+            entity.Property(e => e.EndTime)
+                .HasColumnType("datetime")
+                .HasColumnName("end_time");
             entity.Property(e => e.MeetingStatusId).HasColumnName("meeting_status_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)

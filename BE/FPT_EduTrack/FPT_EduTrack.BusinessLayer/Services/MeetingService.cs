@@ -17,13 +17,13 @@ namespace FPT_EduTrack.BusinessLayer.Services
     public class MeetingService : IMeetingService
     {
         private readonly IRestClient restClient;
-        private readonly ITokenService tokenService;
+        private readonly ITokenProvider tokenProvider;
         private readonly IUnitOfWork _unitOfWork;
 
-        public MeetingService(ITokenService tokenService, IUnitOfWork unitOfWork)
+        public MeetingService(ITokenProvider tokenProvider, IUnitOfWork unitOfWork)
         {
             this.restClient = new RestClient("https://www.googleapis.com/calendar/v3/calendars/");
-            this.tokenService = tokenService;
+            this.tokenProvider = tokenProvider;
             _unitOfWork = unitOfWork;
         }
         public async Task<EventResponse> CreateEventAsync(EventRequest eventRequest, string organizerEmail)
@@ -32,7 +32,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             var restRequest = new RestRequest("primary/events", Method.Post);
             restRequest.AddQueryParameter("conferenceDataVersion", "1");
 
-            var accessToken = await this.tokenService.GetAccessTokenAsync(organizerEmail);
+            var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
             restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
             restRequest.AddHeader("Content-Type", "application/json");
 
@@ -51,7 +51,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
         public async Task<EventResponse> GetEventByIdAsync(string email, string eventId)
         {
             var restRequest = new RestRequest($"primary/events/{eventId}");
-            var accessToken = await this.tokenService.GetAccessTokenAsync(email);
+            var accessToken = await this.tokenProvider.GetAccessTokenAsync(email);
             restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
             return await this.restClient.GetAsync<EventResponse>(restRequest);
         }
@@ -61,30 +61,77 @@ namespace FPT_EduTrack.BusinessLayer.Services
             throw new NotImplementedException();
         }
 
-        public Task<EventResponse> UpdateEventAsync(string eventId, EventRequest eventRequest)
+        public async Task<EventResponse> UpdateEventAsync(string eventId, MeetingRequest eventRequest, string organizerEmail)
         {
-            throw new NotImplementedException();
+            var restRequest = new RestRequest($"primary/events/{eventId}", Method.Put);
+            var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
+
+            restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+
+            var body = new
+            {
+                summary = eventRequest.Summary,
+                description = eventRequest.Description,
+                start = new
+                {
+                    dateTime = eventRequest.StartTime.DateTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    timeZone = eventRequest.StartTime.TimeZone ?? "Asia/Ho_Chi_Minh"
+                },
+                end = new
+                {
+                    dateTime = eventRequest.EndTime.DateTime.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    timeZone = eventRequest.EndTime.TimeZone ?? "Asia/Ho_Chi_Minh"
+                },
+                attendees = eventRequest.AttendeeEmails.Select(x => new {
+                    email = x.Email,
+                    responseStatus = "accepted"
+                }).ToList()
+            };
+
+            restRequest.AddJsonBody(body);
+
+            var meetingExist = await _unitOfWork.MeetingRepository.GetByGoogleMeetingIdAsync(eventId);
+            if (meetingExist == null)
+            {
+                throw new Exception($"Meeting with ID {eventId} does not exist.");
+            }
+
+            var response = await this.restClient.PutAsync<EventResponse>(restRequest);
+
+            var meeting = MeetingMapper.ToEntity(response);
+
+            meetingExist.Name = meeting.Name;
+            meetingExist.Link = meeting.Link;
+            meetingExist.GoogleMeetingId = meeting.GoogleMeetingId;
+            meetingExist.MeetingStatusId = meeting.MeetingStatusId;
+            meetingExist.CreatedAt = meeting.CreatedAt;
+            meetingExist.StartTime = meeting.StartTime;
+            meetingExist.EndTime = meeting.EndTime;
+
+            await _unitOfWork.MeetingRepository.SaveAsync();
+
+            return response;
         }
 
-        public async Task<EventResponse> CreateMeetingAsync(string organizerEmail,CreateMeetingRequest request)
+        public async Task<EventResponse> CreateMeetingAsync(string organizerEmail,MeetingRequest request)
         {
             var eventRequest = new EventRequest
             {
-                Summary = request.Title,
+                Summary = request.Summary,
                 Description = request.Description,
                 Start = new EventDateTime
                 {
-                    DateTime = request.StartTime,
-                    TimeZone = "Asia/Ho_Chi_Minh"
+                    DateTime = request.StartTime.DateTime,
+                    TimeZone = request.StartTime.TimeZone ?? "Asia/Ho_Chi_Minh"
                 },
                 End = new EventDateTime
                 {
-                    DateTime = request.EndTime,
-                    TimeZone = "Asia/Ho_Chi_Minh"
+                    DateTime = request.EndTime.DateTime,
+                    TimeZone = request.StartTime.TimeZone ?? "Asia/Ho_Chi_Minh"
                 },
                 Attendees = request.AttendeeEmails.Select(email => new EventAttendee
                 {
-                    Email = email,
+                    Email = email.Email,
                     ResponseStatus = "accepted"
                 }).ToList(),
 
@@ -109,7 +156,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             foreach(var attendeeEmail in request.AttendeeEmails)
             {
-                var user = await _unitOfWork.UserRepository.GetByEmailAsync(attendeeEmail);
+                var user = await _unitOfWork.UserRepository.GetByEmailAsync(attendeeEmail.Email);
                 if (user != null)
                 {
                     await _unitOfWork.MeetingDetailRepository.CreateAsync(new MeetingDetail

@@ -14,13 +14,11 @@ namespace FPT_EduTrack.BusinessLayer.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly IRestClient restClient;
         private readonly IConfiguration configuration;
         private readonly IUnitOfWork _unitOfWork;
 
         public TokenService(IConfiguration configuration, IUnitOfWork unitOfWork)
         {
-            this.restClient = new RestClient("https://oauth2.googleapis.com/token");
             this.configuration = configuration;
             _unitOfWork = unitOfWork;
         }
