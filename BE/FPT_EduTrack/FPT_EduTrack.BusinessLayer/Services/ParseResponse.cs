@@ -1,5 +1,7 @@
-﻿using FPT_EduTrack.BusinessLayer.DTOs.Response;
+﻿using Aspose.Words;
+using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.Interfaces;
+using Microsoft.AspNetCore.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -268,6 +270,19 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 return null;
             }
         }
+
+        //Read file
+        public async Task<string> ReadFileAsync(IFormFile file)
+        {
+
+            using var stream = file.OpenReadStream();
+            var doc = new Document(stream);
+            string content = doc.ToString(SaveFormat.Text);
+            return content;
+
+        }
+
+
 
         // Method để làm sạch text response
         private string CleanResponseText(string text)
