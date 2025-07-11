@@ -4,6 +4,7 @@ import PublicRoute from "../authentication/PublicRoute";
 import AdminPage from "../pages/Examiner/AdminPage";
 import PrivateRoute from "../authentication/PrivateRoute";
 import HomePage from "../pages/HomePage";
+import LecturerPage from "../pages/Lecturer/LecturerPage";
 
 const AppRoutes = () => {
   return (
@@ -52,6 +53,20 @@ const AppRoutes = () => {
         {/* <Route path="assignments" element={<StudentAssignments />} /> */}
 
         {/* Default redirect for /student */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      {/* Lecturer Protected Routes */}
+      <Route
+        path="/lecturer"
+        element={<PrivateRoute allowedRoles={["lecturer"]} />}
+      >
+        <Route path="dashboard" element={<LecturerPage />} />
+        {/* Add more lecturer routes here */}
+        {/* <Route path="courses" element={<LecturerCourses />} /> */}
+        {/* <Route path="grades" element={<LecturerGrades />} /> */}
+
+        {/* Default redirect for /lecturer */}
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 

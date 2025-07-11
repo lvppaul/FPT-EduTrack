@@ -74,6 +74,8 @@ export class AuthUtils {
         return "/examiner/dashboard";
       case "student":
         return "/student/dashboard";
+      case "lecturer":
+        return "/lecturer/dashboard";
       default:
         return "/";
     }
