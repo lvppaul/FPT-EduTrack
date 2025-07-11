@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Sidebar from "../../components/AdminComponent/AdminSideBar";
 import Header from "../../components/Header";
 import Dashboard from "../../components/AdminComponent/AdminDashboard";
@@ -12,6 +12,25 @@ export default function AdminPage() {
 
   const handleItemClick = (item: string) => {
     setActiveItem(item);
+  };
+
+  const getPageTitle = () => {
+    switch (activeItem) {
+      case "overview":
+        return "Admin Dashboard";
+      case "account":
+        return "User Management";
+      case "exam":
+        return "Exam Management";
+      case "test":
+        return "Test Management";
+      case "request":
+        return "Request Management";
+      case "meeting":
+        return "Meeting Management";
+      default:
+        return "Admin Dashboard";
+    }
   };
 
   const renderContent = () => {
@@ -34,10 +53,10 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex">
       <Sidebar activeItem={activeItem} onItemClick={handleItemClick} />
       <div className="flex-1 flex flex-col">
-        <Header />
+        <Header title={getPageTitle()} />
         <main className="flex-1 overflow-y-auto">{renderContent()}</main>
       </div>
     </div>

@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   MessageSquare,
   Building,
+  UserCog,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,9 +25,19 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg h-full border-r border-gray-200">
-      <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-8">Dashboard</h2>
+    <div className="w-64 bg-white shadow-lg h-screen border-r border-gray-200 flex flex-col">
+      <div className="p-6 flex-1">
+        {/* Logo/Brand Section */}
+        <div className="flex items-center mb-8">
+          <div className="w-10 h-10 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg flex items-center justify-center mr-3">
+            <span className="text-white text-sm font-bold">FPT</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-800">EduTrack</h2>
+            <p className="text-xs text-gray-500">Admin Portal</p>
+          </div>
+        </div>
+
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -52,6 +63,21 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
             );
           })}
         </nav>
+      </div>
+
+      {/* User Info Section */}
+      <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center">
+          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+            <UserCog className="w-5 h-5 text-gray-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800 truncate">
+              Admin Name
+            </p>
+            <p className="text-xs text-gray-500 truncate">admin@fpt.edu.vn</p>
+          </div>
+        </div>
       </div>
     </div>
   );
