@@ -144,6 +144,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     response.Title = request.Title;
                     response.Description = request.Description;
                     response.StudentId = request.StudentId;
+                    response.ExamId = request.ExamId;   
                 }
                 else
                 {
@@ -179,6 +180,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     Title = request.Title?.Trim(),
                     Content = request.Description?.Trim(),
                     StudentId = request.StudentId,
+                    ExamId = request.ExamId,
                     // Store file URLs in Link field - you might want to create a separate table for better file management
                     Link = string.Join(";", uploadResult.UploadedFiles.Select(f => f.SecureUrl))
                 };

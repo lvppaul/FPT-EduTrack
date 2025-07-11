@@ -14,5 +14,6 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
         public string? Title { get; set; }
         public string? Description { get; set; }
         public int? StudentId { get; set; }
+        public int? ExamId { get; set; }
     }
 }
