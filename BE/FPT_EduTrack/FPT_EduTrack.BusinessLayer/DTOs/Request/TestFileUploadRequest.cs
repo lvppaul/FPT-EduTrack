@@ -9,5 +9,6 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Request
         public string? Code { get; set; }
         public string? Title { get; set; }
         public int? StudentId { get; set; }
+        public int? ExamId { get; set; }
     }
 }
