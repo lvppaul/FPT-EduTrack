@@ -2,8 +2,8 @@ import { Routes, Route } from "react-router-dom";
 
 import SignInPage from "../pages/Login";
 
-import PublicRoute from "./PublicRoute";
-import AdminPage from "../pages/Admin/AdminPage";
+import PublicRoute from "../authentication/PublicRoute";
+import AdminPage from "../pages/Examiner/AdminPage";
 
 const AppRoutes = () => {
   return (
@@ -19,7 +19,7 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/admin-dashboard"
+        path="/examiner/dashboard"
         element={
           <PublicRoute>
             <AdminPage />
