@@ -242,5 +242,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
             meeting.IsDeleted = true;
             await _unitOfWork.MeetingRepository.UpdateAsync(meeting);
         }
+
+        public async Task<List<string>> GetMeetingAttendees(int meetingId)
+        {
+            return await _unitOfWork.MeetingRepository.GetMeetingAttendees(meetingId);
+        }
     }
 }
