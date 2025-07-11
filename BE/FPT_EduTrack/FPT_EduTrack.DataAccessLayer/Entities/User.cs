@@ -17,7 +17,13 @@ public partial class User
 
     public DateTime? ExpiredRefreshToken { get; set; }
 
+    public string? Google_refresh_token { get; set; }
+
+    public string? Google_access_token { get; set; }
+
     public DateTime? CreatedAt { get; set; }
+
+    public DateTime? GoogleAccessTokenExpiredAt { get; set; }
 
     public bool? IsActive { get; set; }
 
@@ -38,4 +44,5 @@ public partial class User
     public virtual ICollection<Test> Tests { get; set; } = new List<Test>();
 
     public virtual ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
+    public virtual ICollection<MeetingDetail> MeetingDetails { get; set; } = new List<MeetingDetail>();
 }
