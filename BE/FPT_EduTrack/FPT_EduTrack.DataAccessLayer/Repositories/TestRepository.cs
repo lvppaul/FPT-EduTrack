@@ -16,22 +16,27 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
         }
 
-
-
         public async  Task<List<Test>> GetTestsAsync()
         {
             try
             {
-                return  await _context.Tests.Include(d=> d.TestsScores).ToListAsync();
+                return  await _context.Tests
+                    .Include(t => t.TestsScores)
+                    .Include(t => t.Student)
+                    .Include(t => t.Reports)
+                    .Include(t => t.LecturersTestsDetails)
+                        .ThenInclude(ltd => ltd.Lecturer)
+                    .Include(t => t.Exam)
+                    .ToListAsync();
             }
             catch (Exception e)
             {
 
-                throw new Exception("Error at GetTestAsync at TestRepository", e);
+                throw new Exception("Error at GetTestsAsync at TestRepository", e);
             }
         }
 
-        public Task<IEnumerable<Test>> UploadTestFileAsync()
+        public Task<List<Test>> UploadTestFileAsync()
         {
             throw new NotImplementedException();
         }

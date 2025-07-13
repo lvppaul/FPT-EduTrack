@@ -1,8 +1,7 @@
-import type { User } from "./userType";
+import type { UserToken } from "../utils/authUtils";
 
 export type AuthContextType = {
-  user: User | null;
-  signIn: (userData: User) => void;
-  signOut: () => void;
-  isAuthenticated: boolean;
+  user: UserToken | null;
+  handleLogin: (accessToken: string, refreshToken: string) => void;
+  handleLogout: () => void;
 };
