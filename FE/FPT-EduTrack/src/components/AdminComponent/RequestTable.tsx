@@ -58,29 +58,29 @@ const RequestTable: React.FC<RequestTableProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <input
                   type="checkbox"
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                 />
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Student
+                Sinh Viên
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Purpose
+                Mục Đích
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Created Date
+                Ngày Tạo
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Process Note
+                Ghi Chú Xử Lý
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+                Trạng Thái
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Response Date
+                Ngày Phản Hồi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Action
+                Thao Tác
               </th>
             </tr>
           </thead>
@@ -93,7 +93,7 @@ const RequestTable: React.FC<RequestTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
                     type="checkbox"
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
                   />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -195,29 +195,53 @@ const RequestTable: React.FC<RequestTableProps> = ({
 
       {/* Pagination */}
       <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        <div className="text-sm text-gray-600">
+          Showing {startIndex + 1} to{" "}
+          {Math.min(startIndex + itemsPerPage, requests.length)} of{" "}
+          {requests.length} results
+        </div>
+
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
           <div className="flex items-center space-x-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-1 rounded text-sm ${
-                  currentPage === page
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+            {[...Array(Math.min(5, totalPages))].map((_, index) => {
+              const pageNumber = index + 1;
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    currentPage === pageNumber
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+            {totalPages > 5 && (
+              <>
+                <span className="px-2 text-gray-400">...</span>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                    currentPage === totalPages
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {totalPages}
+                </button>
+              </>
+            )}
           </div>
 
           <button
@@ -225,16 +249,11 @@ const RequestTable: React.FC<RequestTableProps> = ({
               setCurrentPage(Math.min(totalPages, currentPage + 1))
             }
             disabled={currentPage === totalPages}
-            className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
-
-        <p className="text-sm text-gray-500">
-          Showing {startIndex + 1} to {Math.min(endIndex, requests.length)} of{" "}
-          {requests.length} results
-        </p>
       </div>
     </div>
   );

@@ -16,12 +16,42 @@ interface SidebarProps {
 
 const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
   const menuItems = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "account", label: "User Management", icon: Users },
-    { id: "exam", label: "Exam Management", icon: FileText },
-    { id: "test", label: "Test Management", icon: ClipboardCheck },
-    { id: "request", label: "Request Management", icon: MessageSquare },
-    { id: "meeting", label: "Meeting Management", icon: Building },
+    {
+      id: "overview",
+      label: "Tổng Quan",
+      icon: LayoutDashboard,
+      description: "Dashboard và thống kê tổng quát",
+    },
+    {
+      id: "account",
+      label: "Quản Lý Người Dùng",
+      icon: Users,
+      description: "Quản lý tài khoản sinh viên, giảng viên",
+    },
+    {
+      id: "exam",
+      label: "Quản Lý Kỳ Thi",
+      icon: FileText,
+      description: "Tạo và quản lý các kỳ thi",
+    },
+    {
+      id: "test",
+      label: "Quản Lý Bài Test",
+      icon: ClipboardCheck,
+      description: "Tạo và quản lý bài kiểm tra",
+    },
+    {
+      id: "request",
+      label: "Quản Lý Yêu Cầu",
+      icon: MessageSquare,
+      description: "Xử lý các yêu cầu từ người dùng",
+    },
+    {
+      id: "meeting",
+      label: "Quản Lý Cuộc Họp",
+      icon: Building,
+      description: "Tổ chức và quản lý cuộc họp",
+    },
   ];
 
   return (
@@ -29,7 +59,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
       <div className="p-6 flex-1">
         {/* Logo/Brand Section */}
         <div className="flex items-center mb-8">
-          <div className="w-10 h-10 bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg flex items-center justify-center mr-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
             <span className="text-white text-sm font-bold">FPT</span>
           </div>
           <div>
@@ -38,31 +68,59 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
           </div>
         </div>
 
-        <nav className="space-y-2">
+        <nav className="space-y-3">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeItem === item.id;
 
             return (
-              <button
-                key={item.id}
-                onClick={() => onItemClick(item.id)}
-                className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 hover:bg-gray-50 ${
-                  isActive
-                    ? "bg-gray-900 text-white shadow-md"
-                    : "text-gray-700 hover:text-gray-900"
-                }`}
-              >
-                <Icon
-                  className={`w-5 h-5 mr-3 ${
-                    isActive ? "text-white" : "text-gray-500"
+              <div key={item.id}>
+                <button
+                  onClick={() => onItemClick(item.id)}
+                  className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 hover:bg-gray-50 group ${
+                    isActive
+                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
+                      : "text-gray-700 hover:text-gray-900"
                   }`}
-                />
-                <span className="font-medium">{item.label}</span>
-              </button>
+                >
+                  <Icon
+                    className={`w-5 h-5 mr-3 ${
+                      isActive
+                        ? "text-white"
+                        : "text-gray-500 group-hover:text-gray-700"
+                    }`}
+                  />
+                  <div className="flex-1">
+                    <span className="font-medium text-sm">{item.label}</span>
+                    {!isActive && (
+                      <p className="text-xs text-gray-400 mt-0.5 group-hover:text-gray-500">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                </button>
+              </div>
             );
           })}
         </nav>
+
+        {/* Help Section */}
+        <div className="mt-8 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
+          <div className="flex items-start space-x-3">
+            <MessageSquare className="w-5 h-5 text-purple-600 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-medium text-purple-900">
+                Cần hỗ trợ?
+              </h4>
+              <p className="text-xs text-purple-700 mt-1">
+                Liên hệ với bộ phận kỹ thuật để được hỗ trợ
+              </p>
+              <button className="mt-2 text-xs text-purple-600 hover:text-purple-800 font-medium">
+                Liên hệ hỗ trợ →
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* User Info Section */}

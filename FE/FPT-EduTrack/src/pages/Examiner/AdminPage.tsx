@@ -17,19 +17,19 @@ export default function AdminPage() {
   const getPageTitle = () => {
     switch (activeItem) {
       case "overview":
-        return "Admin Dashboard";
+        return "Tổng Quan Hệ Thống";
       case "account":
-        return "User Management";
+        return "Quản Lý Người Dùng";
       case "exam":
-        return "Exam Management";
+        return "Quản Lý Kỳ Thi";
       case "test":
-        return "Test Management";
+        return "Quản Lý Bài Test";
       case "request":
-        return "Request Management";
+        return "Quản Lý Yêu Cầu";
       case "meeting":
-        return "Meeting Management";
+        return "Quản Lý Cuộc Họp";
       default:
-        return "Admin Dashboard";
+        return "Tổng Quan Hệ Thống";
     }
   };
 

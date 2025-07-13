@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, MessageSquare, Video, GraduationCap } from "lucide-react";
+import { MessageSquare, Video, GraduationCap } from "lucide-react";
 
 interface SidebarProps {
   activeItem: string;
@@ -17,12 +17,7 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
       icon: GraduationCap,
       description: "Các bài test cần chấm điểm",
     },
-    {
-      id: "appeals",
-      label: "Đơn Phúc Khảo",
-      icon: FileText,
-      description: "Xử lý đơn phúc khảo của sinh viên",
-    },
+
     {
       id: "meetings",
       label: "Cuộc Họp",
