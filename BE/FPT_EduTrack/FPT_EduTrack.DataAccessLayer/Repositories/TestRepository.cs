@@ -40,5 +40,10 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             throw new NotImplementedException();
         }
+
+        Task<List<Test>> ITestRepository.UploadTestFileAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

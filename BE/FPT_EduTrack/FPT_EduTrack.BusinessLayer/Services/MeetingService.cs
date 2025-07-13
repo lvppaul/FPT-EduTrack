@@ -4,6 +4,8 @@ using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using GoogleCalendarAPI;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -82,7 +84,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     dateTime = eventRequest.EndTime.DateTime.ToString("yyyy-MM-ddTHH:mm:ss"),
                     timeZone = eventRequest.EndTime.TimeZone ?? "Asia/Ho_Chi_Minh"
                 },
-                attendees = eventRequest.AttendeeEmails.Select(x => new {
+                attendees = eventRequest.AttendeeEmails.Select(x => new
+                {
                     email = x.Email,
                     responseStatus = "accepted"
                 }).ToList()
@@ -113,7 +116,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return response;
         }
 
-        public async Task<EventResponse> CreateMeetingAsync(string organizerEmail,MeetingRequest request)
+        public async Task<EventResponse> CreateMeetingAsync(string organizerEmail, MeetingRequest request)
         {
             var eventRequest = new EventRequest
             {
@@ -154,7 +157,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             await _unitOfWork.MeetingRepository.CreateAsync(meeting);
 
-            foreach(var attendeeEmail in request.AttendeeEmails)
+            foreach (var attendeeEmail in request.AttendeeEmails)
             {
                 var user = await _unitOfWork.UserRepository.GetByEmailAsync(attendeeEmail.Email);
                 if (user != null)
@@ -168,6 +171,81 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
 
             return eventResponse;
+        }
+
+        public async Task<List<EventResponse>> GetEventsOrganizeAsync(string organizerEmail)
+        {
+            try
+            {
+                var restRequest = new RestRequest("primary/events");
+                restRequest.AddParameter("singleEvents", "true");
+                restRequest.AddParameter("orderBy", "startTime");
+
+                var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
+                restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+
+                // Execute without generic type parameter
+                var response = await this.restClient.ExecuteAsync(restRequest);
+
+                if (!response.IsSuccessful)
+                {
+                    throw new Exception($"Google API Error:\nStatus: {response.StatusCode}\nContent: {response.Content}\nError: {response.ErrorMessage}");
+                }
+
+                // Parse the JSON manually to extract the items array
+                var jsonResponse = JObject.Parse(response.Content);
+                var itemsJson = jsonResponse["items"]?.ToString();
+
+                if (string.IsNullOrEmpty(itemsJson))
+                {
+                    return new List<EventResponse>();
+                }
+
+                var allEvents = JsonConvert.DeserializeObject<List<EventResponse>>(itemsJson);
+
+                // Filter events
+                var events = allEvents
+                    .Where(e => e != null &&
+                        e.Organizer.Email.Equals(organizerEmail))
+                    .ToList();
+
+                return events;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving events for organizer '{organizerEmail}': {ex.Message}", ex);
+            }
+        }
+
+        public async Task DeleteMeetingAsync(int meetingId, string organizerEmail)
+        {
+            //var restRequest = new RestRequest($"primary/events/{meetingId}", Method.Delete);
+            //var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
+            //restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+            //var response = await this.restClient.ExecuteAsync(restRequest);
+
+            //if (!response.IsSuccessful)
+            //{
+            //    throw new Exception($"Google API Error:\nStatus: {response.StatusCode}\nContent: {response.Content}");
+            //}
+            //var existingMeeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
+            //if (existingMeeting != null)
+            //{
+            //    _unitOfWork.MeetingRepository.Remove(existingMeeting);
+            //    await _unitOfWork.SaveAsync();
+            //}
+            var meeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
+            if (meeting == null)
+            {
+                throw new Exception($"Meeting with ID {meetingId} does not exist.");
+            }
+            meeting.IsDeleted = true;
+            await _unitOfWork.MeetingRepository.UpdateAsync(meeting);
+        }
+
+        public async Task<List<string>> GetMeetingAttendees(int meetingId)
+        {
+            return await _unitOfWork.MeetingRepository.GetMeetingAttendees(meetingId);
         }
     }
 }

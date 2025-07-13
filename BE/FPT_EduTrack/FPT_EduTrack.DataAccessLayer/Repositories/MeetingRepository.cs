@@ -15,7 +15,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         public MeetingRepository(FptEduTrackContext context) : base(context)
         {
         }
-        
+
         public async Task<List<Meeting>> GetAllMeetingsAsync()
         {
             return await _context.Meetings
@@ -44,6 +44,17 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             throw new NotImplementedException();
         }
-    }
 
+        public async Task<List<string>> GetMeetingAttendees(int meetingId)
+        {
+            return await _context.Meetings
+                .Where(m => m.Id == meetingId)
+                .Include(m => m.MeetingDetails)
+                    .ThenInclude(md => md.User)
+                .SelectMany(m => m.MeetingDetails.Select(md => md.User.Email))
+                .Where(email => !string.IsNullOrEmpty(email))
+                .ToListAsync();
+        }
+
+    }
 }

@@ -22,7 +22,6 @@ public partial class FptEduTrackContext : DbContext
     public virtual DbSet<LecturersTestsDetail> LecturersTestsDetails { get; set; }
 
     public virtual DbSet<Meeting> Meetings { get; set; }
-
     public virtual DbSet<MeetingsStatus> MeetingsStatuses { get; set; }
 
     public virtual DbSet<Report> Reports { get; set; }
