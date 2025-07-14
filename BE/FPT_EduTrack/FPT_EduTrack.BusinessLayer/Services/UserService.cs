@@ -253,8 +253,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw new Exception("Failed to update user information");
             }
             return UserMapper.ToResponse(userExist);
-
-
         }
 
         public Task UpdateRefreshTokenAsync(int userId, string refreshToken, DateTime expiry)
