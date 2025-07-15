@@ -54,18 +54,69 @@ namespace FPT_EduTrack.Api.Controllers
                 return Unauthorized("Email claim not found in token");
 
             var response = await meetingService.CreateMeetingAsync(organizerEmail, request);
+
+            var subject = "Lời mời tham gia cuộc họp Google Meet";
+
+            var body = $"Xin chào,<br/><br/>" +
+            $"Bạn được mời tham gia cuộc họp \"{response.Summary}\" do {organizerEmail} tổ chức.<br/><br/>" +
+            $"- 🗓 **Thời gian**: {response.Start.DateTime:dd/MM/yyyy HH:mm} - {response.End.DateTime:HH:mm}<br/>" +
+            $"- 📍 **Hình thức họp**: Trực tuyến qua Google Meet<br/>" +
+            $"- 🔗 **Link tham gia**: {response.HangoutLink}<br/><br/>" +
+            $"Vui lòng tham gia đúng giờ và kiểm tra thiết bị trước cuộc họp.<br/><br/>" +
+            $"Trân trọng,<br/>Đội ngũ hỗ trợ";
+
+            foreach (var attendee in request.AttendeeEmails)
+            {
+                if (!string.IsNullOrWhiteSpace(attendee.Email))
+                {
+                    await _emailService.SendEmailAsync(new EmailDto
+                    {
+                        To = new List<string> { attendee.Email },
+                        Subject = subject,
+                        Body = body
+                    });
+                }
+            }
             return Ok(response);
         }
 
         [HttpPut("event/{meetingId}/update")]
-        public async Task<IActionResult> UpdateEventAsync(string meetingId, [FromBody] MeetingRequest eventRequest)
+        public async Task<IActionResult> UpdateEventAsync(int meetingId, [FromBody] MeetingRequest eventRequest)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
-            var meeting = await _unitOfWork.MeetingRepository.GetByGoogleMeetingIdAsync(meetingId);
-            if (meeting == null) return NotFound("Meeting not found.");
+            var meeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
 
-            return Ok(await this.meetingService.UpdateEventAsync(meeting.GoogleMeetingId, eventRequest, organizerEmail));
+            var meetingGG = await _unitOfWork.MeetingRepository.GetByGoogleMeetingIdAsync(meeting.GoogleMeetingId);
+
+            if (meetingGG == null) return NotFound("Meeting not found.");
+
+            var updatedMeeting = await this.meetingService.UpdateEventAsync(meetingGG.GoogleMeetingId, eventRequest, organizerEmail);
+
+            var attendees = await meetingService.GetMeetingAttendees(meetingId);
+            if (attendees != null && attendees.Any())
+            {
+                foreach (var email in attendees)
+                {
+                    if (!string.IsNullOrWhiteSpace(email))
+                    {
+                        await _emailService.SendEmailAsync(new EmailDto
+                        {
+                            To = new List<string> { email },
+                            Subject = "Thông báo cập nhật lịch họp",
+                            Body = $"Xin chào,<br/><br/>" +
+                                   $"Lịch họp \"{updatedMeeting.Summary}\" mà bạn tham gia đã được cập nhật với thông tin mới như sau:<br/><br/>" +
+                                   $"- 🗓 **Thời gian mới**: {updatedMeeting.Start.DateTime:dd/MM/yyyy HH:mm} - {updatedMeeting.End.DateTime:HH:mm}<br/>" +
+                                   $"- 📍 **Hình thức họp**: Trực tuyến qua Google Meet<br/>" +
+                                   $"- 🔗 **Link tham gia**: {updatedMeeting.HangoutLink}<br/><br/>" +
+                                   $"Vui lòng kiểm tra lại lịch trình cá nhân và tham gia đúng giờ.<br/><br/>" +
+                                   $"Trân trọng,<br/>Đội ngũ hỗ trợ"
+                        });
+                    }
+                }
+            }
+
+            return Ok(updatedMeeting);
         }
 
         [HttpGet("events-organized")]

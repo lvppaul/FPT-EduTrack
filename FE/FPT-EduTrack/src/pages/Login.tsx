@@ -1,6 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { TextField, Button, Typography, Paper } from "@mui/material";
+import { TextField, Button } from "@mui/material";
 import { userLogin } from "../service/userService";
 import { useAuth } from "../context/AuthContext";
 import { validateLogin } from "../utils/validation";
@@ -45,75 +45,164 @@ export default function SignInPage() {
   };
 
   return (
-    <div
-      className="h-screen w-full bg-cover flex items-center justify-center "
-      style={{
-        backgroundImage:
-          "url('https://i.pinimg.com/736x/e4/7a/34/e47a34001489262a523c8b59ac64c782.jpg')",
-      }}
-    >
-      <Paper elevation={24} className="w-full min-w-fit max-w-4xl flex">
-        {/* Left Side - Form */}
-        <div className="w-full  p-23">
-          <Typography
-            variant="h4"
-            className="font-semibold  text-center "
-            sx={{ marginBottom: "30px" }}
-          >
-            Sign In
-          </Typography>
-          <form onSubmit={onSubmit} className="flex flex-col gap-3">
-            <TextField
-              label="Email"
-              variant="outlined"
-              fullWidth
-              onChange={(e) => setEmail(e.target.value)}
-              error={!!errors.email}
-              helperText={errors.email}
-              autoFocus
-            />
-            <TextField
-              label="Password"
-              type="password"
-              variant="outlined"
-              onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              error={!!errors.password}
-              helperText={errors.password}
-            />
-            <div className="flex items-center justify-end mt-4">
-              <input type="checkbox" id="rememberMe" className="mr-2 h-4 w-4" />
-              <label htmlFor="rememberMe" className="text-gray-700">
-                Remember me
-              </label>
-            </div>
-            <Button
-              type="submit"
-              variant="contained"
-              className="!bg-black hover:!bg-gray-800 text-white rounded-full py-2"
-              disabled={loading}
-            >
-              Sign in
-            </Button>
-            {error && (
-              <Typography color="error" sx={{ mt: 1 }}>
-                {error}
-              </Typography>
-            )}
-            <div className="text-center mt-4">
-              <Typography variant="body2" className="text-gray-600">
-                Forgot password?{" "}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand Section */}
+        <div className="text-center mb-8">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <span className="text-white text-2xl font-bold">FPT</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600">Sign in to your FPT EduTrack account</p>
+        </div>
+
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-8">
+            <form onSubmit={onSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <TextField
+                  label="Email Address"
+                  variant="outlined"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  autoFocus
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc",
+                      "&:hover": {
+                        backgroundColor: "#f1f5f9",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <TextField
+                  label="Password"
+                  type="password"
+                  variant="outlined"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  fullWidth
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc",
+                      "&:hover": {
+                        backgroundColor: "#f1f5f9",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label
+                    htmlFor="rememberMe"
+                    className="ml-2 text-sm text-gray-700 select-none"
+                  >
+                    Remember me
+                  </label>
+                </div>
                 <a
                   href="/forgot-password"
-                  className="text-blue-500 hover:underline"
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
                 >
-                  Reset it
+                  Forgot password?
                 </a>
-              </Typography>
-            </div>
-          </form>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)",
+                  borderRadius: "12px",
+                  padding: "12px 0",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  textTransform: "none",
+                  boxShadow: "0 4px 14px 0 rgba(59, 130, 246, 0.3)",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)",
+                    boxShadow: "0 6px 20px 0 rgba(59, 130, 246, 0.4)",
+                  },
+                  "&:disabled": {
+                    background: "#d1d5db",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-red-800 text-sm text-center">{error}</p>
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Footer */}
+          <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
+            <p className="text-center text-sm text-gray-600">
+              Need help? Contact{" "}
+              <a
+                href="#"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                IT Support
+              </a>
+            </p>
+          </div>
         </div>
-      </Paper>
+
+        {/* Additional Info */}
+        <div className="text-center mt-6">
+          <p className="text-xs text-gray-500">
+            © 2025 FPT Education. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -42,7 +42,6 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         {
             get { return _meetingDetailRepository ??= new MeetingDetailRepository(_context); }
         }
-
         public ITestRepository TestRepository
         {
             get { return _testRepository ??= new TestRepository(_context); }
