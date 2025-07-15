@@ -217,28 +217,26 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
         }
 
-        public async Task DeleteMeetingAsync(int meetingId, string organizerEmail)
+        public async Task DeleteMeetingAsync(string meetingId, string organizerEmail)
         {
-            //var restRequest = new RestRequest($"primary/events/{meetingId}", Method.Delete);
-            //var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
-            //restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
-            //var response = await this.restClient.ExecuteAsync(restRequest);
+            var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
 
-            //if (!response.IsSuccessful)
-            //{
-            //    throw new Exception($"Google API Error:\nStatus: {response.StatusCode}\nContent: {response.Content}");
-            //}
-            //var existingMeeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
-            //if (existingMeeting != null)
-            //{
-            //    _unitOfWork.MeetingRepository.Remove(existingMeeting);
-            //    await _unitOfWork.SaveAsync();
-            //}
-            var meeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
+            var restRequest = new RestRequest($"primary/events/{meetingId}", Method.Delete);
+            restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+
+            var response = await this.restClient.ExecuteAsync(restRequest);
+
+            if (!response.IsSuccessful)
+            {
+                throw new Exception($"Google Calendar deletion failed: {response.StatusCode} - {response.Content}");
+            }
+
+            var meeting = await _unitOfWork.MeetingRepository.GetByGoogleMeetingIdAsync(meetingId);
             if (meeting == null)
             {
-                throw new Exception($"Meeting with ID {meetingId} does not exist.");
+                throw new Exception($"Meeting with GoogleEventId {meetingId} does not exist in the system.");
             }
+
             meeting.IsDeleted = true;
             await _unitOfWork.MeetingRepository.UpdateAsync(meeting);
         }
