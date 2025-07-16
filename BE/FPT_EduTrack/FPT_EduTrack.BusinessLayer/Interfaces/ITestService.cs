@@ -17,5 +17,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<TestResponse?> GetTestByIdAsync(int testId);
         Task<TestFileUploadResponse> UploadTestFilesAsync(TestFileUploadRequest request);
         Task<TestResponse> CreateTestWithFilesAsync(TestFileUploadRequest request);
+        Task<TestUpdateResponse> UpdateTestAsync(TestUpdateRequest request);
+        Task<bool> DeleteTestAsync(int testId);
     }
 }

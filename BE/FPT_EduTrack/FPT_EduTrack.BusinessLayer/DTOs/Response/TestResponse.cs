@@ -21,7 +21,7 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public int? StudentId { get; set; }
 
-        public virtual ICollection<LecturersTestsDetail> LecturersTestsDetails { get; set; } = new List<LecturersTestsDetail>();
+        public virtual ICollection<LecturersTestsDetailResponse> LecturersTestsDetailResponse { get; set; } = new List<LecturersTestsDetailResponse>();
 
         public virtual bool hasReport { get; set; } = false;
 

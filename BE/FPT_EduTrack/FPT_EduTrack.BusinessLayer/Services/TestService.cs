@@ -198,5 +198,263 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw;
             }
         }
+
+        public async Task<TestUpdateResponse> UpdateTestAsync(TestUpdateRequest request)
+        {
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+
+                var response = new TestUpdateResponse
+                {
+                    Success = false,
+                    Message = "Update failed",
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                // Get existing test
+                var existingTest = await _unitOfWork.TestRepository.GetByIdAsync(request.Id);
+                if (existingTest == null)
+                {
+                    response.Message = $"Test with ID {request.Id} not found";
+                    return response;
+                }
+
+                // Update basic test information
+                existingTest.Code = request.Code?.Trim() ?? existingTest.Code;
+                existingTest.Title = request.Title?.Trim() ?? existingTest.Title;
+                existingTest.Content = request.Content?.Trim() ?? existingTest.Content;
+                existingTest.StudentId = request.StudentId ?? existingTest.StudentId;
+                existingTest.ExamId = request.ExamId ?? existingTest.ExamId;
+
+                // Handle file management
+                var currentFileUrls = new List<string>();
+                if (!string.IsNullOrEmpty(existingTest.Link))
+                {
+                    currentFileUrls = existingTest.Link.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
+                }
+
+                // Remove files if specified
+                var removedFiles = new List<string>();
+                if (request.FilesToRemove != null && request.FilesToRemove.Any())
+                {
+                    foreach (var publicIdToRemove in request.FilesToRemove)
+                    {
+                        try
+                        {
+                            var deleted = await _cloudinaryService.DeleteFileAsync(publicIdToRemove);
+                            if (deleted)
+                            {
+                                removedFiles.Add(publicIdToRemove);
+                                // Remove URL from current files (this is simplified - you might want to store publicId separately)
+                                var urlToRemove = currentFileUrls.FirstOrDefault(url => url.Contains(publicIdToRemove));
+                                if (urlToRemove != null)
+                                {
+                                    currentFileUrls.Remove(urlToRemove);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log warning but continue with other operations
+                            Console.WriteLine($"Warning: Failed to delete file {publicIdToRemove}: {ex.Message}");
+                        }
+                    }
+                }
+
+                // Upload new files if provided
+                var newUploadedFiles = new List<FileUploadResponse>();
+                if (request.NewFiles != null && request.NewFiles.Any())
+                {
+                    // Validate new files
+                    var allowedExtensions = new List<string> { ".doc", ".docx", ".pdf", ".txt" };
+                    const long maxFileSize = 10 * 1024 * 1024; // 10MB
+
+                    var validFiles = new List<Microsoft.AspNetCore.Http.IFormFile>();
+                    var invalidFiles = new List<string>();
+
+                    foreach (var file in request.NewFiles)
+                    {
+                        var (isValid, errorMessage) = _cloudinaryService.ValidateDocumentFile(file, 10);
+                        if (!isValid)
+                        {
+                            invalidFiles.Add($"{file.FileName}: {errorMessage}");
+                            continue;
+                        }
+                        validFiles.Add(file);
+                    }
+
+                    if (invalidFiles.Any())
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                        response.Message = $"Invalid files detected: {string.Join(", ", invalidFiles)}";
+                        return response;
+                    }
+
+                    if (validFiles.Any())
+                    {
+                        try
+                        {
+                            newUploadedFiles = await _cloudinaryService.UploadFilesAsync(validFiles, "test-documents");
+                            currentFileUrls.AddRange(newUploadedFiles.Select(f => f.SecureUrl));
+                        }
+                        catch (Exception ex)
+                        {
+                            await _unitOfWork.RollbackTransactionAsync();
+                            response.Message = $"File upload failed: {ex.Message}";
+                            return response;
+                        }
+                    }
+                }
+
+                // Handle file replacement logic
+                if (!request.KeepExistingFiles && request.NewFiles != null && request.NewFiles.Any())
+                {
+                    // Replace all existing files with new ones
+                    // First, try to delete all existing files
+                    var existingUrls = existingTest.Link?.Split(';', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+                    foreach (var url in existingUrls)
+                    {
+                        try
+                        {
+                            // Extract public ID from URL (this is simplified)
+                            var publicId = ExtractPublicIdFromUrl(url);
+                            if (!string.IsNullOrEmpty(publicId))
+                            {
+                                await _cloudinaryService.DeleteFileAsync(publicId);
+                            }
+                        }
+                        catch
+                        {
+                            // Continue even if some deletions fail
+                        }
+                    }
+                    currentFileUrls = newUploadedFiles.Select(f => f.SecureUrl).ToList();
+                }
+
+                // Update the link field with current file URLs
+                existingTest.Link = currentFileUrls.Any() ? string.Join(";", currentFileUrls) : null;
+
+                // Save changes to database
+                var updateResult = await _unitOfWork.TestRepository.UpdateAsync(existingTest);
+                if (updateResult == 0)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    response.Message = "Failed to update test in database";
+                    return response;
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+
+                // Get updated test for response
+                var updatedTest = await GetTestByIdAsync(request.Id);
+
+                response.Success = true;
+                response.Message = "Test updated successfully";
+                response.UpdatedTest = updatedTest;
+                response.NewFilesUploaded = newUploadedFiles;
+                response.FilesRemoved = removedFiles;
+                response.TotalNewFilesUploaded = newUploadedFiles.Count;
+                response.TotalFilesRemoved = removedFiles.Count;
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw new Exception("Error updating test", ex);
+            }
+        }
+
+        public async Task<bool> DeleteTestAsync(int testId)
+        {
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync();
+
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(testId);
+                if (test == null)
+                {
+                    return false;
+                }
+
+                // Delete associated files from Cloudinary
+                if (!string.IsNullOrEmpty(test.Link))
+                {
+                    var fileUrls = test.Link.Split(';', StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var url in fileUrls)
+                    {
+                        try
+                        {
+                            var publicId = ExtractPublicIdFromUrl(url);
+                            if (!string.IsNullOrEmpty(publicId))
+                            {
+                                await _cloudinaryService.DeleteFileAsync(publicId);
+                            }
+                        }
+                        catch
+                        {
+                            // Continue even if some file deletions fail
+                        }
+                    }
+                }
+
+                // Delete test from database
+                var deleted = await _unitOfWork.TestRepository.RemoveAsync(test);
+                if (!deleted)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return false;
+                }
+
+                await _unitOfWork.CommitTransactionAsync();
+                return true;
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Extracts public ID from Cloudinary URL
+        /// This is a simplified version - you might want to improve this based on your URL structure
+        /// </summary>
+        private string ExtractPublicIdFromUrl(string url)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(url))
+                    return string.Empty;
+
+                // Cloudinary URLs typically have format: https://res.cloudinary.com/{cloud_name}/{resource_type}/{delivery_type}/{folder}/{public_id}.{format}
+                var uri = new Uri(url);
+                var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+                
+                if (segments.Length >= 4)
+                {
+                    // Get the public ID (usually the last segment without extension)
+                    var lastSegment = segments[segments.Length - 1];
+                    var publicId = Path.GetFileNameWithoutExtension(lastSegment);
+                    
+                    // Include folder structure if exists
+                    if (segments.Length > 4)
+                    {
+                        var folderParts = segments.Skip(3).Take(segments.Length - 4).ToList();
+                        folderParts.Add(publicId);
+                        return string.Join("/", folderParts);
+                    }
+                    
+                    return publicId;
+                }
+                
+                return string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
     }
 }

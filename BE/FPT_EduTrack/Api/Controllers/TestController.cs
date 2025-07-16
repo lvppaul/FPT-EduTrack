@@ -330,6 +330,122 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         /// <summary>
+        /// Update an existing test with optional file management
+        /// Supports: .doc, .docx, .pdf, .txt files (max 10MB each)
+        /// </summary>
+        /// <param name="id">Test ID to update</param>
+        /// <param name="request">Test update request with optional new files and files to remove</param>
+        /// <returns>Updated test information</returns>
+        [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UpdateTest(int id, [FromForm] TestUpdateRequest request)
+        {
+            try
+            {
+                if (id != request.Id)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "ID in URL does not match ID in request body"
+                    });
+                }
+
+                // Validate new files if provided
+                if (request.NewFiles != null && request.NewFiles.Any())
+                {
+                    var invalidFiles = new List<string>();
+                    foreach (var file in request.NewFiles)
+                    {
+                        var (isValid, errorMessage) = _cloudinaryService.ValidateDocumentFile(file, 10);
+                        if (!isValid)
+                        {
+                            invalidFiles.Add($"{file.FileName}: {errorMessage}");
+                        }
+                    }
+
+                    if (invalidFiles.Any())
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = "Invalid files detected",
+                            errors = invalidFiles
+                        });
+                    }
+                }
+
+                var result = await _testService.UpdateTestAsync(request);
+
+                if (!result.Success)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = result.Message,
+                        data = result
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = result.Message,
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating test {TestId}", id);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while updating the test",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// Delete a test and its associated files
+        /// </summary>
+        /// <param name="id">Test ID to delete</param>
+        /// <returns>Success or failure result</returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTest(int id)
+        {
+            try
+            {
+                var result = await _testService.DeleteTestAsync(id);
+
+                if (!result)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"Test with ID {id} not found or could not be deleted"
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Test with ID {id} deleted successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting test {TestId}", id);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while deleting the test",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Validate document files without uploading
         /// </summary>
         /// <param name="files">Files to validate</param>

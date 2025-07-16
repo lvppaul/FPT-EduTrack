@@ -24,7 +24,8 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Content = test.Content?.Trim(),
                 Link = test.Link?.Trim(),
                 StudentId = test.StudentId,
-                LecturersTestsDetails = test.LecturersTestsDetails ?? new List<LecturersTestsDetail>(),
+                LecturersTestsDetailResponse = test.LecturersTestsDetails?
+                    .Select(detail => detail?.ToResponse()).ToList() ?? new List<LecturersTestsDetailResponse>(),
                 hasReport = test.Reports != null && test.Reports.Any(),
                 StudentName = test.Student?.Fullname?.Trim() ?? "Unknown",
                 TestsScores = test.TestsScores?.FirstOrDefault()?.Score ?? 0.0
