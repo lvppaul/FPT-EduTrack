@@ -76,6 +76,7 @@ builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<IParseResponse, ParseResponse>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IExamService, ExamService>();
 
 builder.Services.AddCors(options =>
 {

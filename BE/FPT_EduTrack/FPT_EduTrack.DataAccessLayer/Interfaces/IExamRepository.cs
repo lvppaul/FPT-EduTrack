@@ -1,0 +1,16 @@
+﻿using FPT_EduTrack.DataAccessLayer.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FPT_EduTrack.DataAccessLayer.Interfaces
+{
+    public interface IExamRepository : IGenericRepository<Exam>
+    {
+        Task AddAsync(Exam exam);
+        Task EditAsync(int id, Exam exam);
+        Task DeleteAsync(int id);
+    }
+}

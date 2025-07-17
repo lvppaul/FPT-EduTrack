@@ -4,6 +4,7 @@ using FPT_EduTrack.DataAccessLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FPT_EduTrack.DataAccessLayer.Migrations
 {
     [DbContext(typeof(FptEduTrackContext))]
-    partial class FptEduTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20250716074115_Add Duration into Exam table")]
+    partial class AddDurationintoExamtable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,12 +52,6 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                     b.Property<int?>("ExaminerId")
                         .HasColumnType("int")
                         .HasColumnName("examiner_id");
-
-                    b.Property<bool?>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
