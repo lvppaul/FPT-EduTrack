@@ -41,6 +41,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Name, user.Fullname),
                     new Claim(JwtRegisteredClaimNames.Email, email),
                     new Claim("Role", roleName)
                 }),
