@@ -1,5 +1,7 @@
 import React from "react";
-import { MessageSquare, Video, GraduationCap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { MessageSquare, GraduationCap, LogOut } from "lucide-react";
+import AuthUtils from "../../utils/authUtils";
 
 interface SidebarProps {
   activeItem: string;
@@ -10,19 +12,18 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
 }) => {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    AuthUtils.clearAuthData();
+    navigate("/login");
+  };
   const menuItems = [
     {
       id: "exams",
-      label: "Kỳ Thi",
+      label: "Quản Lý Kỳ Thi",
       icon: GraduationCap,
-      description: "Các bài test cần chấm điểm",
-    },
-
-    {
-      id: "meetings",
-      label: "Cuộc Họp",
-      icon: Video,
-      description: "Các cuộc họp và tư vấn",
+      description: "Quản lý và chấm điểm các kỳ thi",
     },
   ];
 
@@ -96,7 +97,7 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* User Info Section */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50">
+      <div className="p-6 border-t border-gray-200 bg-gray-50 space-y-3">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
             <GraduationCap className="w-5 h-5 text-gray-600" />
@@ -110,6 +111,20 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
             </p>
           </div>
         </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 group"
+        >
+          <LogOut size={20} className="text-red-500 group-hover:text-red-600" />
+          <div className="flex-1">
+            <div className="font-medium">Đăng xuất</div>
+            <div className="text-xs text-red-400 mt-0.5">
+              Thoát khỏi hệ thống
+            </div>
+          </div>
+        </button>
       </div>
     </div>
   );
