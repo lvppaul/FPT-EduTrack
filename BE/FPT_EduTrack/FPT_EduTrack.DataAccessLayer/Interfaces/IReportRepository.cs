@@ -14,5 +14,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task AddAsync(Report report);
         Task EditAsync(int id, Report report);
         Task DeleteAsync(int id);
+        Task<List<Report>> GetReportsByStudentIdAsync(int studentId);
+        Task<Report> GetReportByStudentAndTestAsync(int studentId, int testId);
     }
 }

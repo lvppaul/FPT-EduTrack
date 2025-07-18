@@ -66,6 +66,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .Include(m => m.Examiner)
                 .Include(m => m.Tests)
                     .ThenInclude(t => t.Student)
+                 .Include(e => e.Tests)
+                .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(ltd => ltd.Lecturer).ThenInclude(l => l.Role)
                 .FirstOrDefaultAsync(m => m.Id == id && m.IsDeleted != true);
         }
     }

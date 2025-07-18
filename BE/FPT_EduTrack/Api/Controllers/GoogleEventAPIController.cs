@@ -127,8 +127,11 @@ namespace FPT_EduTrack.Api.Controllers
             if (string.IsNullOrEmpty(organizerEmail))
                 return Unauthorized("Email claim not found in token");
 
-            var events = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
-            return Ok(events);
+            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
+            if (listEvent == null || !listEvent.Any())
+                return NotFound("No events found for the organizer.");
+
+            return Ok(listEvent);
         }
 
         [HttpDelete("event/{meetingId}/delete")]
@@ -145,25 +148,30 @@ namespace FPT_EduTrack.Api.Controllers
             if (string.IsNullOrEmpty(meeting.GoogleMeetingId))
                 return BadRequest("GoogleMeetingId is missing. Cannot delete event from Google Calendar.");
 
-            await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail);
-
+            if (await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail)) { 
+            
             var attendees = await meetingService.GetMeetingAttendees(meetingId);
-            if (attendees != null && attendees.Any())
-            {
-                foreach (var email in attendees)
+                if (attendees != null && attendees.Any())
                 {
-                    if (!string.IsNullOrWhiteSpace(email))
+                    foreach (var email in attendees)
                     {
-                        await _emailService.SendEmailAsync(new EmailDto
+                        if (!string.IsNullOrWhiteSpace(email))
                         {
-                            To = new List<string> { email },
-                            Subject = "Hủy cuộc họp",
-                            Body = $"Cuộc họp (ID: {meetingId}) đã bị hủy bởi {organizerEmail}."
-                        });
+                            await _emailService.SendEmailAsync(new EmailDto
+                            {
+                                To = new List<string> { email },
+                                Subject = "Hủy cuộc họp",
+                                Body = $"Cuộc họp (ID: {meetingId}) đã bị hủy bởi {organizerEmail}."
+                            });
+                        }
                     }
                 }
             }
-            return NoContent();
+            return Ok(new
+            {
+                success = true,
+                message = "Meeting deleted successfully."
+            });
         }
     }
 }

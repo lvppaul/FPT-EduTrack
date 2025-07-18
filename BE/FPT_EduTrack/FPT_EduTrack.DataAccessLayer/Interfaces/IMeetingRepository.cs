@@ -11,6 +11,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
     {
         public Task<List<Meeting>> GetAllMeetingsAsync();
         public Task<Meeting?> GetByGoogleMeetingIdAsync(string id);
+        public Task<List<Meeting>> GetMeetingsByGoogleIdsAsync(List<string> googleIds);
         public Task<List<Meeting>> GetMeetingsByUserIdAsync(int userId);
         public Task<List<Meeting>> GetMeetingsByStatusAsync(int statusId);
         public Task<List<Meeting>> GetMeetingsByDateAsync(DateTime date);
