@@ -21,6 +21,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Name = exam.Name,
                 ExaminerId = exam.ExaminerId,
                 ExaminerName = exam.Examiner?.Fullname,
+                Status = exam.Status,
                 Duration = exam.Duration,
                 IsDeleted = exam.IsDeleted,
                 Test = exam.Tests?.Select(TestMapper.ToResponse).ToList() ?? new List<TestResponse>()
@@ -34,11 +35,12 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             exam.Name = examRequest.Name;
             exam.ExaminerId = examRequest.ExaminerId;
             exam.Duration = examRequest.Duration;
+            exam.Status = examRequest.Status?.ToString() ?? exam.Status; // Convert enum to string, preserve existing if not provided
             exam.IsDeleted = false;
             exam.CreatedAt = DateTime.UtcNow;
         }
 
-        public static Exam ToEntity(this ExamRequest examRequest)
+        public static Exam? ToEntity(this ExamRequest examRequest)
         {
             if (examRequest == null) return null;
             return new Exam
@@ -47,6 +49,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Name = examRequest.Name,
                 ExaminerId = examRequest.ExaminerId,
                 Duration = examRequest.Duration,
+                Status = examRequest.Status?.ToString() ?? ExamStatus.InProgress.ToString(), // Convert enum to string, default to InProgress
                 IsDeleted = false,
                 CreatedAt = DateTime.UtcNow
             };
