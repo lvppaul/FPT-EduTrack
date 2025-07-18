@@ -19,14 +19,20 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? Link { get; set; }
 
+        public int? ExamId { get; set; }
+
         public int? StudentId { get; set; }
+
+        public virtual string StudentName { get; set; }
+    
+        public virtual bool hasReport { get; set; } = false;
+        
+        public virtual double TestsScores { get; set; } = 0.0;
+
+        public bool? isDeleted { get; set; } = false;
 
         public virtual ICollection<LecturersTestsDetailResponse> LecturersTestsDetailResponse { get; set; } = new List<LecturersTestsDetailResponse>();
 
-        public virtual bool hasReport { get; set; } = false;
-
-        public virtual string StudentName { get; set; }
-
-        public virtual double TestsScores { get; set; } = 0.0;
+       
     }
 }

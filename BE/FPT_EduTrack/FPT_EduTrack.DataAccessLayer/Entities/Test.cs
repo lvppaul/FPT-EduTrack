@@ -19,6 +19,8 @@ public partial class Test
 
     public int? ExamId { get; set; }
 
+    public bool? isDeleted { get; set; } = false;
+
     public virtual ICollection<LecturersTestsDetail> LecturersTestsDetails { get; set; } = new List<LecturersTestsDetail>();
 
     public virtual ICollection<Report> Reports { get; set; } = new List<Report>();

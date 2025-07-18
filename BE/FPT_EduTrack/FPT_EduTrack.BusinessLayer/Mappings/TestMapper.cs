@@ -23,12 +23,15 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Title = test.Title?.Trim(),
                 Content = test.Content?.Trim(),
                 Link = test.Link?.Trim(),
+                ExamId = test.ExamId,
                 StudentId = test.StudentId,
-                LecturersTestsDetailResponse = test.LecturersTestsDetails?
-                    .Select(detail => detail?.ToResponse()).ToList() ?? new List<LecturersTestsDetailResponse>(),
-                hasReport = test.Reports != null && test.Reports.Any(),
                 StudentName = test.Student?.Fullname?.Trim() ?? "Unknown",
-                TestsScores = test.TestsScores?.FirstOrDefault()?.Score ?? 0.0
+                hasReport = test.Reports != null && test.Reports.Any(),
+                TestsScores = test.TestsScores?.FirstOrDefault()?.Score ?? 0.0,
+                isDeleted = test.isDeleted ?? false,
+                LecturersTestsDetailResponse = test.LecturersTestsDetails?
+                    .Select(detail => detail?.ToResponse()).ToList() ?? new List<LecturersTestsDetailResponse>()
+               
             };
         }
     }

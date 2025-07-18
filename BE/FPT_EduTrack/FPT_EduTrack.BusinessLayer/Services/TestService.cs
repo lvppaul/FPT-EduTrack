@@ -456,5 +456,82 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 return string.Empty;
             }
         }
+
+        public async Task<List<TestResponse>> GetTestResponsesByExamIdAsync(int examId)
+        {
+            try
+            {
+                if (examId <= 0)
+                    throw new ArgumentException("Invalid exam ID");
+
+                var tests = await _unitOfWork.TestRepository.GetTestsAsync();
+                if (tests == null || !tests.Any())
+                    return new List<TestResponse>();
+
+                // Filter tests by examId and convert to TestResponse
+                var filteredTests = tests.Where(t => t.ExamId == examId).ToList();
+                return filteredTests.Select(TestMapper.ToResponse).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving tests for exam ID {examId}", ex);
+            }
+        }
+
+        public async Task<List<TestResponse>> GetTestResponsesByExamIdAndStudentIdAsync(int examId, int studentId)
+        {
+            try
+            {
+                if (examId <= 0)
+                    throw new ArgumentException("Invalid exam ID");
+                
+                if (studentId <= 0)
+                    throw new ArgumentException("Invalid student ID");
+
+                var tests = await _unitOfWork.TestRepository.GetTestsAsync();
+                if (tests == null || !tests.Any())
+                    return new List<TestResponse>();
+
+                // Filter tests by both examId and studentId, then convert to TestResponse
+                var filteredTests = tests
+                    .Where(t => t.ExamId == examId && t.StudentId == studentId)
+                    .ToList();
+                
+                return filteredTests.Select(TestMapper.ToResponse).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving tests for exam ID {examId} and student ID {studentId}", ex);
+            }
+        }
+
+        public async Task<List<TestResponse>> GetTestResponsesByExamIdAndLecturerIdIsGradingAsync(int examId, int lecturerId)
+        {
+            try
+            {
+                if (examId <= 0)
+                    throw new ArgumentException("Invalid exam ID");
+
+                if (lecturerId <= 0)
+                    throw new ArgumentException("Invalid student ID");
+
+                var tests = await _unitOfWork.TestRepository.GetTestsAsync();
+                if (tests == null || !tests.Any())
+                    return new List<TestResponse>();
+
+                
+                var filteredTests = tests
+                    .Where(t => t.ExamId == examId).Where( t => t.LecturersTestsDetails.Any(ltd =>  ltd.isGrading == true))
+                    .ToList();
+
+                
+
+                return filteredTests.Select(TestMapper.ToResponse).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving tests for exam ID {examId} and lecturer ID {lecturerId}", ex);
+            }
+        }
     }
 }

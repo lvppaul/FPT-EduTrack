@@ -19,6 +19,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 LecturerId = detail.LecturerId,
                 Score = detail.Score,
                 Reason = detail.Reason,
+                isGrading = detail.isGrading,
                 Lecturer = detail.Lecturer?.ToResponse() // Assuming UserMapper has a ToResponse method
             };
         }

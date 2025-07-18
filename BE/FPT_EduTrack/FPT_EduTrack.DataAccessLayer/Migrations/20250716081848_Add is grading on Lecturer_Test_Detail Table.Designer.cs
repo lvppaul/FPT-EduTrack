@@ -4,6 +4,7 @@ using FPT_EduTrack.DataAccessLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FPT_EduTrack.DataAccessLayer.Migrations
 {
     [DbContext(typeof(FptEduTrackContext))]
-    partial class FptEduTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20250716081848_Add is grading on Lecturer_Test_Detail Table")]
+    partial class AddisgradingonLecturer_Test_DetailTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

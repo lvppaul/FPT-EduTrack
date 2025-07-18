@@ -145,10 +145,6 @@ namespace FPT_EduTrack.Api.Controllers
             }
 
             var result = await _service.LoginAsync(request);
-            if (result == null)
-            {
-                return StatusCode(500, new { message = "Internal server error" });
-            }
 
             if (!result.Success)
             {

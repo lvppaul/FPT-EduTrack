@@ -17,6 +17,8 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? Reason { get; set; }
 
+        public bool? isGrading { get; set; }
+
         public virtual UserResponse Lecturer { get; set; } = null!;
     }
 }
