@@ -15,5 +15,7 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Request
         public int? ExaminerId { get; set; }
 
         public int? Duration { get; set; }
+
+        public ExamStatus? Status { get; set; }
     }
 }

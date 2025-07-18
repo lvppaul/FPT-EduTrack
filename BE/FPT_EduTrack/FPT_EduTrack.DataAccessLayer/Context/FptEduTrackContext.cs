@@ -73,6 +73,9 @@ public partial class FptEduTrackContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
             entity.Property(e => e.ExaminerId).HasColumnName("examiner_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
