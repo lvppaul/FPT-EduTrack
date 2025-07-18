@@ -66,5 +66,18 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId)
+        {
+            return await _context.Reports
+                .Where(r => r.StudentId == studentId && r.IsDeleted != true)
+                .ToListAsync();
+        }
+
+        public async Task<Report> GetReportByStudentAndTestAsync(int studentId, int testId)
+        {
+            return await _context.Reports
+                .FirstOrDefaultAsync(r => r.StudentId == studentId && r.TestId == testId && r.IsDeleted != true);
+        }
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 {
-    public class ReportResponse
+    public class ReportDataResponse
     {
         public int Id { get; set; }
 
@@ -21,9 +21,28 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
         public DateTime? CreatedAt { get; set; }
 
         public int? StudentId { get; set; }
+        public string? StudentName { get; set; }
 
         public int? ReportStatusId { get; set; }
 
         public int? TestId { get; set; }
+
+        public string? TestCode { get; set; }
+
+        public string? TestTitle { get; set; }
+
+        public string? TestContent { get; set; }
+
+        public string? TestLink { get; set; }
+
+        public DateTime? TestCreatedAt { get; set; }
+    }
+
+    public class ReportResponse 
+    {
+        public bool Success { get; set; } = true;
+        public string Message { get; set; }
+        public IEnumerable<ReportDataResponse> Data { get; set; } = new List<ReportDataResponse>();
+        public int Count { get; set; } = 0;
     }
 }

@@ -12,10 +12,10 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
 {
     public static class ReportMapper
     {
-        public static ReportResponse ToResponse(this Report report)
+        public static ReportDataResponse ToResponse(this Report report)
         {
             if (report == null) return null;
-            return new ReportResponse
+            return new ReportDataResponse
             {
                 Id = report.Id,
                 Title = report.Title ?? string.Empty,
@@ -29,9 +29,9 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             };
         }
 
-        public static List<ReportResponse> ToDtoList(this IEnumerable<Report> reports)
+        public static List<ReportDataResponse> ToDtoList(this IEnumerable<Report> reports)
         {
-            return reports?.Select(r => r.ToResponse()).ToList() ?? new List<ReportResponse>();
+            return reports?.Select(r => r.ToResponse()).ToList() ?? new List<ReportDataResponse>();
         }
 
         public static Report ToEntity(this ReportRequest request)
@@ -54,20 +54,18 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             if (request == null || report == null) return;
             report.Title = request.Title;
             report.Content = request.Content;
-            report.StudentId = request.StudentId;
-            report.TestId = request.TestId;
-            if (request.IsSecond.HasValue)
-            {
-                report.IsSecond = request.IsSecond;
-            }
-            if (request.IsDeleted.HasValue)
-            {
-                report.IsDeleted = request.IsDeleted;
-            }
-            if(request.ReportStatusId.HasValue)
-            {
-                report.ReportStatusId = request.ReportStatusId;
-            }
+            //if (request.IsSecond.HasValue)
+            //{
+            //    report.IsSecond = request.IsSecond;
+            //}
+            //if (request.IsDeleted.HasValue)
+            //{
+            //    report.IsDeleted = request.IsDeleted;
+            //}
+            //if(request.ReportStatusId.HasValue)
+            //{
+            //    report.ReportStatusId = request.ReportStatusId;
+            //}
         }
     }
 }
