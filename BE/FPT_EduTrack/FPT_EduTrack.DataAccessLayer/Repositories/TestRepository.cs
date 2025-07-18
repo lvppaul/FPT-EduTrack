@@ -25,7 +25,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .Include(t => t.Student)
                     .Include(t => t.Reports)
                     .Include(t => t.LecturersTestsDetails)
-                        .ThenInclude(ltd => ltd.Lecturer)
+                        .ThenInclude(ltd => ltd.Lecturer).ThenInclude(s => s.Role)
                     .Include(t => t.Exam)
                     .ToListAsync();
             }

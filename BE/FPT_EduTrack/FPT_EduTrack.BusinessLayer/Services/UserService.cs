@@ -65,17 +65,17 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 return new AuthenticationResponse
                 {
                     Success = false,
-                    Message = "Invalid email or password"
+                    Message = "User does not exist! Please check your email and try later."
                 };
             }
-
+                                    
             var isValidPassword = await _unitOfWork.UserRepository.VerifyPasswordAsync(user, request.Password);
             if (!isValidPassword)
             {
                 return new AuthenticationResponse
                 {
                     Success = false,
-                    Message = "Invalid email or password"
+                    Message = "Invalid password! Please check your password and try later."
                 };
             }
             if (user.IsActive != true || user.IsDeleted == true)

@@ -93,6 +93,7 @@ public partial class FptEduTrackContext : DbContext
             entity.Property(e => e.LecturerId).HasColumnName("lecturer_id");
             entity.Property(e => e.Reason).HasColumnName("reason");
             entity.Property(e => e.Score).HasColumnName("score");
+            entity.Property(e => e.isGrading).HasColumnName("is_grading");
 
             entity.HasOne(d => d.Lecturer).WithMany(p => p.LecturersTestsDetails)
                 .HasForeignKey(d => d.LecturerId)
@@ -314,6 +315,7 @@ public partial class FptEduTrackContext : DbContext
             entity.Property(e => e.Link).HasColumnName("link");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.ExamId).HasColumnName("exam_id");
+            entity.Property(e => e.isDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
