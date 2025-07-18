@@ -3,7 +3,6 @@ import StudentSidebar from "../components/StudentComponent/StudentSideBar";
 import Header from "../components/Header";
 import StudentExams from "../components/StudentComponent/StudentExams";
 import StudentAppeals from "../components/StudentComponent/StudentAppeals";
-import StudentMeetings from "../components/StudentComponent/StudentMeetings";
 
 export default function HomePage() {
   const [activeItem, setActiveItem] = useState("exams");
@@ -18,8 +17,7 @@ export default function HomePage() {
         return "Kỳ Thi";
       case "appeals":
         return "Đơn Phúc Khảo";
-      case "meetings":
-        return "Cuộc Họp";
+
       default:
         return "Kỳ Thi";
     }
@@ -31,8 +29,7 @@ export default function HomePage() {
         return <StudentExams />;
       case "appeals":
         return <StudentAppeals />;
-      case "meetings":
-        return <StudentMeetings />;
+
       default:
         return <StudentExams />;
     }

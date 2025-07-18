@@ -206,16 +206,6 @@ const HeadOfDepartmentGradeApproval: React.FC = () => {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Xác Nhận Điểm Chấm Bài
-        </h1>
-        <p className="text-gray-600">
-          Xem xét và phê duyệt điểm số do giảng viên chấm
-        </p>
-      </div>
-
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
