@@ -12,10 +12,12 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
 {
     public interface IReportService 
     {
-        Task<IEnumerable<ReportResponse>> GetAllAsync();
-        Task<ReportResponse> GetByIdAsync(int id);
-        Task<ReportResponse> CreateAsync(ReportRequest report);
-        Task<ReportResponse> EditAsync(int id, ReportUpdate report);
+        Task<IEnumerable<ReportDataResponse>> GetAllAsync();
+        Task<ReportDataResponse> GetByIdAsync(int id);
+        Task<ReportDataResponse> CreateAsync(ReportRequest report);
+        Task<ReportDataResponse> EditAsync(int id, ReportUpdate report);
+        Task<IEnumerable<ReportDataResponse>> GetReportByStudentId(int studentId);
         Task DeleteAsync(int id);
+        Task<ReportDataResponse> GetReportByStudentAndTest(int studentId, int testId);
     }
 }

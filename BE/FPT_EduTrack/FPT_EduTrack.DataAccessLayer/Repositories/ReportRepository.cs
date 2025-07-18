@@ -22,6 +22,11 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Reports
                 .Include(r => r.ReportStatus)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
                 .Where(r => r.IsDeleted == false)
                 .ToListAsync();
         }
@@ -30,6 +35,11 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Reports
                 .Include(r => r.ReportStatus)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
                 .FirstOrDefaultAsync(r => r.Id == id && r.IsDeleted != true);
         }
 
@@ -65,6 +75,24 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 report.IsDeleted = true;
                 await _context.SaveChangesAsync();
             }
+        }
+
+        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId)
+        {
+            return await _context.Reports
+                .Where(r => r.StudentId == studentId && r.IsDeleted != true)
+                .ToListAsync();
+        }
+
+        public async Task<Report> GetReportByStudentAndTestAsync(int studentId, int testId)
+        {
+            return await _context.Reports
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
+                .FirstOrDefaultAsync(r => r.StudentId == studentId && r.TestId == testId && r.IsDeleted != true);
         }
     }
 }

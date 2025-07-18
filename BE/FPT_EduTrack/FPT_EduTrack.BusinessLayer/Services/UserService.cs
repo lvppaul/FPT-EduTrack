@@ -206,9 +206,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
         }
 
-        public Task<UserResponse> GetByIdAsync(int id)
+        public async Task<UserResponse> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(id);
+            return user.ToResponse();
         }
 
         public Task<string> GetUserRoleAsync(int userId)
