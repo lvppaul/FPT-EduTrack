@@ -27,6 +27,8 @@ const Header: React.FC<HeaderProps> = ({ title = "Dashboard Overview" }) => {
         return "Student";
       case "lecturer":
         return "Lecturer";
+      case "headofdepartment":
+        return "Head of Department";
       default:
         return "User";
     }

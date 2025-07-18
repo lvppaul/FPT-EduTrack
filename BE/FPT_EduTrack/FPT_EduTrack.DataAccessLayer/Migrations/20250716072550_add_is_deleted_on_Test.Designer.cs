@@ -4,6 +4,7 @@ using FPT_EduTrack.DataAccessLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FPT_EduTrack.DataAccessLayer.Migrations
 {
     [DbContext(typeof(FptEduTrackContext))]
-    partial class FptEduTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20250716072550_add_is_deleted_on_Test")]
+    partial class add_is_deleted_on_Test
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,19 +45,9 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
-                    b.Property<int?>("Duration")
-                        .HasColumnType("int")
-                        .HasColumnName("duration");
-
                     b.Property<int?>("ExaminerId")
                         .HasColumnType("int")
                         .HasColumnName("examiner_id");
-
-                    b.Property<bool?>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
@@ -86,10 +79,6 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                     b.Property<double?>("Score")
                         .HasColumnType("float")
                         .HasColumnName("score");
-
-                    b.Property<bool?>("isGrading")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_grading");
 
                     b.HasKey("TestId", "LecturerId")
                         .HasName("PK__Lecturer__FEB201A960272DB1");
