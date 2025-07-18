@@ -2,6 +2,7 @@
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using GoogleCalendarAPI;
 using Newtonsoft.Json;
@@ -184,7 +185,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
                 restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
 
-                // Execute without generic type parameter
                 var response = await this.restClient.ExecuteAsync(restRequest);
 
                 if (!response.IsSuccessful)
@@ -192,7 +192,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     throw new Exception($"Google API Error:\nStatus: {response.StatusCode}\nContent: {response.Content}\nError: {response.ErrorMessage}");
                 }
 
-                // Parse the JSON manually to extract the items array
                 var jsonResponse = JObject.Parse(response.Content);
                 var itemsJson = jsonResponse["items"]?.ToString();
 
@@ -203,13 +202,28 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
                 var allEvents = JsonConvert.DeserializeObject<List<EventResponse>>(itemsJson);
 
-                // Filter events
-                var events = allEvents
-                    .Where(e => e != null &&
-                        e.Organizer.Email.Equals(organizerEmail))
+                var organizerEvents = allEvents
+                    .Where(e => e != null && e.Organizer?.Email == organizerEmail)
                     .ToList();
 
-                return events;
+                var googleEventIds = organizerEvents
+                    .Select(e => e.Id)
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .ToList();
+
+                if (!googleEventIds.Any())
+                {
+                    return new List<EventResponse>();
+                }
+
+                var meetingsInDb = await _unitOfWork.MeetingRepository.GetMeetingsByGoogleIdsAsync(googleEventIds);
+                var meetingIdSet = new HashSet<string>(meetingsInDb.Select(m => m.GoogleMeetingId));
+
+                var listEvent = organizerEvents
+                    .Where(e => meetingIdSet.Contains(e.Id))
+                    .ToList();
+
+                return listEvent;
             }
             catch (Exception ex)
             {
@@ -217,7 +231,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
         }
 
-        public async Task DeleteMeetingAsync(string meetingId, string organizerEmail)
+        public async Task<bool> DeleteMeetingAsync(string meetingId, string organizerEmail)
         {
             var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
 
@@ -239,6 +253,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             meeting.IsDeleted = true;
             await _unitOfWork.MeetingRepository.UpdateAsync(meeting);
+            return true;
         }
 
         public async Task<List<string>> GetMeetingAttendees(int meetingId)
