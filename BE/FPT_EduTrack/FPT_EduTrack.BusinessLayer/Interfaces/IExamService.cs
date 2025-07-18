@@ -11,10 +11,10 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
     public interface IExamService
     {
         Task<List<ExamResponse>> GetAllAsync();
-        Task<ExamResponse?> GetByIdAsync(int id);
+        Task<ExamResponse?> GetExamByIdAsync(int id);
         Task<ExamResponse> CreateAsync(ExamRequest request);
-        Task<ExamResponse> UpdateAsync(int id, ExamRequest request);
-        Task DeleteAsync(int id);
+        Task<ExamResponse> UpdateExamAsync(int id, ExamRequest request);
+        Task<bool> DeleteAsync(int id);
         Task<List<ExamResponse>> GetExamsByCourseIdAsync(int courseId);
         Task<List<ExamResponse>> GetExamsByUserIdAsync(int userId);
     }

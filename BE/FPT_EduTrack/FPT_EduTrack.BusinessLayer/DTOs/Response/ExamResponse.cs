@@ -24,5 +24,7 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
         public int? Duration { get; set; }
 
         public bool? IsDeleted { get; set; }
+        public ICollection<TestResponse> Test { get; set; } = new List<TestResponse>();
+
     }
 }
