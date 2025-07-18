@@ -95,5 +95,4 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .FirstOrDefaultAsync(r => r.StudentId == studentId && r.TestId == testId && r.IsDeleted != true);
         }
     }
-    }
 }

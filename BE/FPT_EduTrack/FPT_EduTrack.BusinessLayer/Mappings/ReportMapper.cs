@@ -28,14 +28,13 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 IsDeleted = report.IsDeleted ?? false,
                 StudentId = report.StudentId,
                 StudentName = report.Student?.Fullname ?? string.Empty,
+                StudentEmail = report.Student?.Email ?? string.Empty,
                 ReportStatusId = report.ReportStatusId,
                 TestId = report.TestId,
                 TestCode = report.Test?.Code ?? string.Empty,
                 TestTitle = report.Test?.Title ?? string.Empty,
                 TestContent = report.Test?.Content ?? string.Empty,
-                TestLink = report.Test?.Link ?? string.Empty,
-                LecturerId = lecturerDetail?.LecturerId,
-                LecturerName = lecturerDetail?.Lecturer?.Fullname ?? string.Empty
+                TestLink = report.Test?.Link ?? string.Empty
             };
         }
 
