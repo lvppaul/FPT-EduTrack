@@ -135,14 +135,17 @@ namespace FPT_EduTrack.Api.Controllers
         public async Task<IActionResult> DeleteEventAsync(int meetingId)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-
             if (string.IsNullOrEmpty(organizerEmail))
                 return Unauthorized("Email claim not found in token");
 
             var meeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
-            if (meeting == null) return NotFound("Meeting not found.");
+            if (meeting == null)
+                return NotFound("Meeting not found.");
 
-            await this.meetingService.DeleteMeetingAsync(meetingId, organizerEmail);
+            if (string.IsNullOrEmpty(meeting.GoogleMeetingId))
+                return BadRequest("GoogleMeetingId is missing. Cannot delete event from Google Calendar.");
+
+            await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail);
 
             var attendees = await meetingService.GetMeetingAttendees(meetingId);
             if (attendees != null && attendees.Any())
@@ -161,30 +164,6 @@ namespace FPT_EduTrack.Api.Controllers
                 }
             }
             return NoContent();
-        }
-
-        [HttpPost("send-to-attendees/{meetingId}")]
-        public async Task<IActionResult> SendEmailsToAttendees(int meetingId)
-        {
-            var attendees = await meetingService.GetMeetingAttendees(meetingId);
-
-            if (attendees == null || !attendees.Any())
-                return NotFound("Không có người tham dự nào cho cuộc họp này.");
-
-            foreach (var email in attendees)
-            {
-                if (!string.IsNullOrWhiteSpace(email))
-                {
-                    await _emailService.SendEmailAsync(new EmailDto
-                    {
-                        To = new List<string> { email },
-                        Subject = "Thông báo cuộc họp",
-                        Body = $"Bạn được mời tham dự cuộc họp (ID: {meetingId}). Vui lòng kiểm tra lịch."
-                    });
-                }
-            }
-
-            return Ok($"Đã gửi email tới {attendees.Count} người tham dự.");
         }
     }
 }

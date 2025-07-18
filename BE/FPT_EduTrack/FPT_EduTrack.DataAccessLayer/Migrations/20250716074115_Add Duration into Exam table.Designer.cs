@@ -4,6 +4,7 @@ using FPT_EduTrack.DataAccessLayer.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FPT_EduTrack.DataAccessLayer.Migrations
 {
     [DbContext(typeof(FptEduTrackContext))]
-    partial class FptEduTrackContextModelSnapshot : ModelSnapshot
+    [Migration("20250716074115_Add Duration into Exam table")]
+    partial class AddDurationintoExamtable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,12 +53,6 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                         .HasColumnType("int")
                         .HasColumnName("examiner_id");
 
-                    b.Property<bool?>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
@@ -86,10 +83,6 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                     b.Property<double?>("Score")
                         .HasColumnType("float")
                         .HasColumnName("score");
-
-                    b.Property<bool?>("isGrading")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_grading");
 
                     b.HasKey("TestId", "LecturerId")
                         .HasName("PK__Lecturer__FEB201A960272DB1");
@@ -414,10 +407,6 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("title");
-
-                    b.Property<bool?>("isDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("is_deleted");
 
                     b.HasKey("Id")
                         .HasName("PK__Tests__3213E83F3115D372");

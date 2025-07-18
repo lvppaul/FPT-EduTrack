@@ -11,6 +11,7 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         IMeetingRepository MeetingRepository { get; }
         IMeetingDetailRepository MeetingDetailRepository { get; }
         ITestRepository TestRepository { get; }
+        IExamRepository ExamRepository { get; }
 
         // Transaction management
         Task BeginTransactionAsync();

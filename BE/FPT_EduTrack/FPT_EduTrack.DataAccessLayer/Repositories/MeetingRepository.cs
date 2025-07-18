@@ -48,7 +48,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         public async Task<List<string>> GetMeetingAttendees(int meetingId)
         {
             return await _context.Meetings
-                .Where(m => m.Id == meetingId)
+                .Where(m => m.Id.Equals(meetingId))
                 .Include(m => m.MeetingDetails)
                     .ThenInclude(md => md.User)
                 .SelectMany(m => m.MeetingDetails.Select(md => md.User.Email))

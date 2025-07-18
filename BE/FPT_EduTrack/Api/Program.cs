@@ -11,6 +11,11 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+//Temporary license for Apose.Words
+var license = new Aspose.Words.License();
+license.SetLicense("Properties/Aspose.Wordsfor.NET.lic");
+
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -71,6 +76,7 @@ builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<IParseResponse, ParseResponse>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IExamService, ExamService>();
 
 builder.Services.AddCors(options =>
 {
