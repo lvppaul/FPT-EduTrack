@@ -1,122 +1,115 @@
-import React, { useState } from "react";
-import {
-  Plus,
-  Search,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import type { Exam } from "../../types/examType";
-
+import React, { useEffect, useState } from "react";
+import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
+import type { ExamResponse, Exam } from "../../types/examType";
+import { getExams } from "../../service/examService";
+import { ExamStatus } from "../../enum/examStatus";
+import ExamDetailView from "./ExamDetailView";
+import Pagination from "../Pagination";
 const ExamManagement: React.FC = () => {
-  const [exams] = useState<Exam[]>([
-    {
-      id: "1",
-      code: "SWD392_SP25_RE",
-      status: "In-Process",
-    },
-    {
-      id: "2",
-      code: "SWD392_SP25_FE",
-      status: "Completed",
-    },
-    {
-      id: "3",
-      code: "SWD392_FA24_RE",
-      status: "Completed",
-    },
-    {
-      id: "4",
-      code: "SWD392_FA25_FE",
-      status: "Completed",
-    },
-    {
-      id: "5",
-      code: "SWD392_SU24_RE",
-      status: "Completed",
-    },
-    {
-      id: "6",
-      code: "SWD392_SU24_FE",
-      status: "Completed",
-    },
-    {
-      id: "7",
-      code: "SWD392_SP24_RE",
-      status: "Completed",
-    },
-  ]);
-
-  const [selectedExams, setSelectedExams] = useState<string[]>([]);
+  const [examsResponse, setExamsResponse] = useState<ExamResponse | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const itemsPerPage = 10;
-  const totalExams = exams.length;
+  const fetchExams = async () => {
+    try {
+      const response = await getExams();
+      setExamsResponse(response);
+    } catch (error) {
+      console.error("Failed to fetch exams:", error);
+    }
+  };
 
-  const filteredExams = exams.filter((exam) => {
-    const matchesSearch = exam.id
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      statusFilter === "All" || exam.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    fetchExams();
+  }, []);
 
-  const totalPages = Math.ceil(filteredExams.length / itemsPerPage);
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case ExamStatus.InProgress:
+        return "Đang diễn ra";
+      case ExamStatus.Completed:
+        return "Đã hoàn thành";
+      case ExamStatus.Grading:
+        return "Đang chấm điểm";
+      case ExamStatus.ResultsPublished:
+        return "Kết quả đã công bố";
+      case ExamStatus.UnderReview:
+        return "Đang xem xét";
+      case ExamStatus.Postponed:
+        return "Đã hoãn";
+      case ExamStatus.Cancelled:
+        return "Đã hủy";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const handleViewExam = (exam: Exam) => {
+    setSelectedExam(exam);
+    setShowDetail(true);
+  };
+
+  const handleBackToList = () => {
+    setShowDetail(false);
+    setSelectedExam(null);
+  };
+
+  const filteredExams =
+    examsResponse?.data.filter((exam) => {
+      const matchesSearch =
+        exam.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exam.id.toString().includes(searchTerm);
+      const matchesStatus =
+        statusFilter === "Tất cả" || exam.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    }) || [];
+
+  // Pagination logic
+  const totalItems = filteredExams.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedExams = filteredExams.slice(
     startIndex,
     startIndex + itemsPerPage
   );
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedExams(paginatedExams.map((exam) => exam.id));
-    } else {
-      setSelectedExams([]);
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
-  const handleSelectExam = (examId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedExams([...selectedExams, examId]);
-    } else {
-      setSelectedExams(selectedExams.filter((id) => id !== examId));
-    }
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "In-Process":
-        return "bg-blue-100 text-blue-800";
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  // Exam Detail View
+  if (showDetail && selectedExam) {
+    return <ExamDetailView exam={selectedExam} onBack={handleBackToList} />;
+  }
 
+  // Main List View
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-white to-indigo-50 rounded-t-lg">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Exam Management
+                Quản Lý Kỳ Thi
               </h1>
-              <p className="text-gray-600 mt-1">Total: {totalExams} exams</p>
+              <p className="text-gray-600 mt-1">
+                Tổng: {examsResponse?.count || 0} kỳ thi
+              </p>
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200">
-              <Plus className="w-4 h-4" />
-              <span>New Exam</span>
+            <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo kỳ thi mới
             </button>
           </div>
 
@@ -126,180 +119,119 @@ const ExamManagement: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search exams..."
+                placeholder="Tìm kiếm kỳ thi..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
               />
             </div>
 
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Status:</span>
+              <span className="text-sm text-gray-600">Trạng thái:</span>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
               >
-                <option value="All">All</option>
-                <option value="In-Process">In-Process</option>
-                <option value="Completed">Completed</option>
+                <option value="Tất cả">Tất cả</option>
+                <option value="0">Đang diễn ra</option>
+                <option value="1">Đã hoàn thành</option>
+                <option value="2">Đang chấm điểm</option>
+                <option value="3">Kết quả đã công bố</option>
+                <option value="4">Đang xem xét</option>
+                <option value="5">Đã hoãn</option>
+                <option value="6">Đã hủy</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedExams.length === paginatedExams.length &&
-                      paginatedExams.length > 0
-                    }
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Code
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
+        <div className="p-6">
+          {filteredExams.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Eye className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500">Không có kỳ thi nào</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
               {paginatedExams.map((exam) => (
-                <tr
+                <div
                   key={exam.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
+                  className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                 >
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selectedExams.includes(exam.id)}
-                      onChange={(e) =>
-                        handleSelectExam(exam.id, e.target.checked)
-                      }
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {exam.code}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={getStatusColor(exam.status)}>
-                      {exam.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setShowActionMenu(
-                            showActionMenu === exam.id ? null : exam.id
-                          )
-                        }
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                      >
-                        <MoreHorizontal className="w-4 h-4 text-gray-600" />
-                      </button>
-
-                      {showActionMenu === exam.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                          <div className="py-1">
-                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                              <Eye className="w-4 h-4" />
-                              <span>View Details</span>
-                            </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                              <Edit className="w-4 h-4" />
-                              <span>Edit Exam</span>
-                            </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                              <Trash2 className="w-4 h-4" />
-                              <span>Delete Exam</span>
-                            </button>
-                          </div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        {exam.code}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-700">
+                            Mã kỳ thi
+                          </span>
+                          <span className="text-gray-600">{exam.code}</span>
                         </div>
-                      )}
+
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-700">
+                            Thời gian
+                          </span>
+                          <span className="text-gray-600">
+                            {exam.duration} phút
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-gray-700">
+                            Trạng thái
+                          </span>
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium w-fit ${
+                              exam.status === "In-Process"
+                                ? "bg-blue-100 text-blue-800"
+                                : exam.status === "Completed"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {getStatusText(exam.status)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </td>
-                </tr>
+                    <div className="flex items-center space-x-2 ml-4">
+                      <button
+                        onClick={() => handleViewExam(exam)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + itemsPerPage, filteredExams.length)} of{" "}
-            {filteredExams.length} results
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center space-x-1">
-              {[...Array(Math.min(5, totalPages))].map((_, index) => {
-                const pageNumber = index + 1;
-                return (
-                  <button
-                    key={pageNumber}
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      currentPage === pageNumber
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
-              {totalPages > 5 && (
-                <>
-                  <span className="px-2 text-gray-400">...</span>
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      currentPage === totalPages
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                </>
-              )}
-            </div>
-
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+        {filteredExams.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        )}
       </div>
     </div>
   );

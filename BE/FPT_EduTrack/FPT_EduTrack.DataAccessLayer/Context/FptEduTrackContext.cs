@@ -316,8 +316,10 @@ public partial class FptEduTrackContext : DbContext
                 .HasColumnName("code");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Link).HasColumnName("link");
+            entity.Property(e => e.Score).HasColumnName("score");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.ExamId).HasColumnName("exam_id");
+        
             entity.Property(e => e.isDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
