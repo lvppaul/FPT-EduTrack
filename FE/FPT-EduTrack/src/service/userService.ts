@@ -8,13 +8,36 @@ export async function userLogin(email: string, password: string) {
       return {
         accessToken: response.data.accessToken,
         refreshToken: response.data.refreshToken,
+        message: response.data.message,
       };
+    } else {
+      // Nếu success = false, throw error với message từ API
+      throw new Error(response.data.message || "Đăng nhập thất bại");
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Login error:", error);
-    throw new Error(
-      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
-    );
+
+    // Kiểm tra nếu có response từ server
+    if (error && typeof error === "object" && "response" in error) {
+      const axiosError = error as {
+        response?: { data?: { message?: string } };
+      };
+      if (axiosError.response?.data?.message) {
+        throw new Error(axiosError.response.data.message);
+      }
+    }
+
+    // Kiểm tra các trường hợp lỗi khác
+    if (
+      error instanceof Error &&
+      error.message &&
+      error.message !== "Network Error"
+    ) {
+      throw new Error(error.message);
+    }
+
+    // Lỗi mặc định
+    throw new Error("Lỗi kết nối. Vui lòng kiểm tra kết nối mạng và thử lại.");
   }
 }
 
@@ -36,10 +59,11 @@ export async function createUser(
       baseSalary: baseSalary,
     });
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -65,10 +89,11 @@ export async function updateUser(
       baseSalary,
     });
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -78,10 +103,11 @@ export async function getAllUsers(pageNumber: number, pageSize: number) {
       `user/get-users?pageNumber=${pageNumber}&pageSize=${pageSize}`
     );
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -89,10 +115,11 @@ export async function getUserByEmail(email: string) {
   try {
     const response = await http.get(`user/search-user-by-email?Email=${email}`);
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -106,10 +133,11 @@ export async function changePassword(
       newPassword,
     });
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -117,10 +145,11 @@ export async function getCurrentUser() {
   try {
     const response = await http.get("user/get-current-user");
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
 
@@ -131,9 +160,10 @@ export async function activateUser(email: string, newPassword: string) {
       newPassword,
     });
     return response.data;
-  } catch (error: any) {
-    throw error.response
-      ? error.response.data
-      : new Error("An unexpected error occurred");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
   }
 }
