@@ -1,8 +1,6 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.Interfaces;
-using FPT_EduTrack.BusinessLayer.Mappings;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -16,7 +14,7 @@ namespace FPT_EduTrack.Api.Controllers
         private readonly HttpClient _httpClient;
         private readonly ILogger<GradingController> _logger;
         private readonly IParseResponse _service;
-        private string URL = "http://langflow2025.gtcbaqfsdwfaf6ep.eastasia.azurecontainer.io:7860/api/v1/run/110c12fa-504b-469a-ab62-ff66af3bce73";
+        private string URL = "http://langflow2025.gtcbaqfsdwfaf6ep.eastasia.azurecontainer.io:7860/api/v1/run/9ae28e62-f044-4d78-b81d-969989442b0b";
 
 
 
@@ -193,7 +191,7 @@ namespace FPT_EduTrack.Api.Controllers
                 List<string> uploadedTestFileNames = new List<string>();
                 string gradingGuide = null;
                 string studentEssays = null;
-                
+
 
                 // Upload file nếu có và xử lý encoding cho GuidelineFiles
                 if (request.GuidelineFiles != null && request.GuidelineFiles.Any())
@@ -217,9 +215,9 @@ namespace FPT_EduTrack.Api.Controllers
                             return BadRequest(new { message = "Maximum size can be 5MB" });
                         }
 
-                        //string filename = Guid.NewGuid().ToString() + extension;
-                        //uploadedGuidelineFileNames.Add(filename);
-                         gradingGuide = await _service.ReadFileAsync(file);
+                        string filename = Guid.NewGuid().ToString() + extension;
+                        uploadedGuidelineFileNames.Add(filename);
+                        gradingGuide = await _service.ReadFileAsync(file);
 
 
                     }
@@ -247,9 +245,9 @@ namespace FPT_EduTrack.Api.Controllers
                             return BadRequest(new { message = "Maximum size can be 5MB" });
                         }
 
-                        //string filename = Guid.NewGuid().ToString() + extension;
-                        //uploadedTestFileNames.Add(filename);
-                         studentEssays = await _service.ReadFileAsync(file);
+                        string filename = Guid.NewGuid().ToString() + extension;
+                        uploadedTestFileNames.Add(filename);
+                        studentEssays = await _service.ReadFileAsync(file);
 
                     }
                 }
@@ -261,7 +259,7 @@ namespace FPT_EduTrack.Api.Controllers
                     //input_value =  "Grade this essay",
                     output_type = "text", // Thay đổi từ "chat" thành "text"
                     input_type = "text",  // Thay đổi từ "chat" thành "text"
-                    tweaks = new 
+                    tweaks = new
                     {
                         //// File component cho IELTS band descriptors (File-a1Ewg)
                         //FileBliAQ = new Dictionary<string, object>
@@ -278,13 +276,13 @@ namespace FPT_EduTrack.Api.Controllers
 
 
                         // Text Input cho grading description
-                        TextInputOnmpJ = new Dictionary<string, object>
+                        TextInput9i7Xs = new Dictionary<string, object>
                         {
                             ["input_value"] = gradingGuide ?? ""
                         },
 
                         // Text Input cho IELTS questions (TextInput-R5mPI)
-                        TextInputqoqrz = new Dictionary<string, object>
+                        TextInput43JFe = new Dictionary<string, object>
                         {
                             ["input_value"] = request.TextInputValue ?? "Please evaluate this essay according to the four criteria: Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9)."
                         },
@@ -303,19 +301,19 @@ namespace FPT_EduTrack.Api.Controllers
                         //},
 
                         // Text Input cho student essay
-                        TextInputchwei = new Dictionary<string, object>
+                        TextInput9MxMY = new Dictionary<string, object>
                         {
                             ["input_value"] = studentEssays ?? ""
                         },
 
                         //Prompt template(Prompt - dMGrl)
-                        PromptkL2AC = new Dictionary<string, object>
+                        PromptVo0PP = new Dictionary<string, object>
                         {
                             ["template"] = "You are an IELTS examiner. Evaluate the following Task 2 writing based on IELTS band descriptors and document.\nDocument:\n{docs}\nCriteria:\n- Task Response\n- Coherence and Cohesion\n- Lexical Resource\n- Grammatical Range and Accuracy\n\nGive a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9).\nQuestions:\n{questions}"
                         },
 
                         //OpenRouter AI model(OpenRouterComponent - v1VHI)
-                        OpenRouterComponenteF79c = new Dictionary<string, object>
+                        OpenRouterComponentpCawE = new Dictionary<string, object>
                         {
                             ["model_name"] = "deepseek/deepseek-r1-0528:free",
                             //["model_name"] = "deepseek/deepseek-r1-distill-llama-70b:free",
@@ -325,7 +323,7 @@ namespace FPT_EduTrack.Api.Controllers
                         },
 
                         // Text Output component (TextOutput-3ha4Y)
-                        TextOutputc0I0z = new Dictionary<string, object>
+                        TextOutputPsVZo = new Dictionary<string, object>
                         {
                             ["input_value"] = "" // Sẽ được fill bởi OpenRouter output
                         }
