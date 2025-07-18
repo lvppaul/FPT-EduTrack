@@ -21,29 +21,24 @@ namespace FPT_EduTrack.BusinessLayer.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ExamResponse> CreateAsync(ExamRequest request)
+        public async Task<ExamResponse?> CreateAsync(ExamRequest request)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
-
             var newExam = ExamMapper.ToEntity(request);
             await _unitOfWork.ExamRepository.CreateAsync(newExam);
-            await _unitOfWork.SaveAsync();
 
             var fullExam = await _unitOfWork.ExamRepository.GetByIdAsync(newExam.Id);
-            if (fullExam == null)
-                throw new Exception("Unexpected error: Exam created but not found in DB.");
 
-            return ExamMapper.MapToDTO(fullExam);
+            return fullExam == null ? null : ExamMapper.MapToDTO(fullExam);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             var exam = await _unitOfWork.ExamRepository.GetByIdAsync(id);
-            if (exam == null) throw new KeyNotFoundException($"Exam with ID {id} not found.");
+            if (exam == null) return false;
 
             exam.IsDeleted = true;
             await _unitOfWork.ExamRepository.UpdateAsync(exam);
-            await _unitOfWork.SaveAsync();
+            return true;
         }
 
         public async Task<List<ExamResponse>> GetAllAsync()
@@ -56,12 +51,10 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return exams.Select(ExamMapper.MapToDTO).ToList();
         }
 
-        public async Task<ExamResponse?> GetByIdAsync(int id)
+        public async Task<ExamResponse?> GetExamByIdAsync(int id)
         {
             var exam = await _unitOfWork.ExamRepository.GetByIdAsync(id);
-            if (exam == null) throw new KeyNotFoundException($"Exam with ID {id} not found.");
-
-            return ExamMapper.MapToDTO(exam);
+            return exam != null ? ExamMapper.MapToDTO(exam) : null;
         }
 
         public Task<List<ExamResponse>> GetExamsByCourseIdAsync(int courseId)
@@ -74,20 +67,14 @@ namespace FPT_EduTrack.BusinessLayer.Services
             throw new NotImplementedException();
         }
 
-        public async Task<ExamResponse> UpdateAsync(int id, ExamRequest request)
+        public async Task<ExamResponse?> UpdateExamAsync(int id, ExamRequest request)
         {
             var existingExam = await _unitOfWork.ExamRepository.GetByIdAsync(id);
 
-            if (existingExam == null) throw new KeyNotFoundException($"Exam with ID {id} not found.");
-
-            if (request == null) throw new ArgumentNullException(nameof(request));
-
             existingExam.ToUpdate(request);
             await _unitOfWork.ExamRepository.UpdateAsync(existingExam);
-            await _unitOfWork.SaveAsync();
 
             var updated = await _unitOfWork.ExamRepository.GetByIdAsync(id);
-
             return ExamMapper.MapToDTO(updated);
         }
     }

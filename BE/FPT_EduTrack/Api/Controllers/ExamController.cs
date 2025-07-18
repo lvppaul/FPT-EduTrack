@@ -54,7 +54,7 @@ namespace FPT_EduTrack.Api.Controllers
         {
             try
             {
-                var exam = await _examService.GetByIdAsync(id);
+                var exam = await _examService.GetExamByIdAsync(id);
                 if (exam == null)
                     return NotFound(new
                     {
@@ -83,16 +83,27 @@ namespace FPT_EduTrack.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ExamRequest request)
         {
-            var createdExam = await _examService.CreateAsync(request);
-            if (createdExam == null)
+            if (request == null)
             {
                 return BadRequest(new
                 {
                     success = false,
-                    message = "Failed to create exam."
+                    message = "Invalid exam request data."
                 });
             }
-            return Ok(new
+
+            var createdExam = await _examService.CreateAsync(request);
+
+            if (createdExam == null)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while creating the exam."
+                });
+            }
+
+            return CreatedAtAction(nameof(GetById), new { id = createdExam.Id }, new
             {
                 success = true,
                 message = "Exam created successfully",
@@ -103,8 +114,16 @@ namespace FPT_EduTrack.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ExamRequest request)
         {
-            var existingExam = await _examService.GetByIdAsync(id);
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Invalid exam data."
+                });
+            }
 
+            var existingExam = await _examService.GetExamByIdAsync(id);
             if (existingExam == null)
             {
                 return NotFound(new
@@ -114,21 +133,20 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
 
-            var updatedExam = await _examService.UpdateAsync(id, request);
-
+            var updatedExam = await _examService.UpdateExamAsync(id, request);
             if (updatedExam == null)
             {
-                return NotFound(new
+                return StatusCode(500, new
                 {
                     success = false,
-                    message = $"Fatled to update exam."
+                    message = "Failed to update exam."
                 });
             }
 
             return Ok(new
             {
                 success = true,
-                message = "Exam updated successfully",
+                message = "Exam updated successfully.",
                 data = updatedExam
             });
         }
@@ -136,8 +154,9 @@ namespace FPT_EduTrack.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var existingExam = await _examService.GetByIdAsync(id);
-            if (existingExam == null)
+            var success = await _examService.DeleteAsync(id);
+
+            if (!success)
             {
                 return NotFound(new
                 {
@@ -145,7 +164,7 @@ namespace FPT_EduTrack.Api.Controllers
                     message = $"Exam with ID {id} not found."
                 });
             }
-            await _examService.DeleteAsync(id);
+
             return NoContent();
         }
     }

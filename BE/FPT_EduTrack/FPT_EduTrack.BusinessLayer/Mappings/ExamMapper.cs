@@ -22,7 +22,8 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 ExaminerId = exam.ExaminerId,
                 ExaminerName = exam.Examiner?.Fullname,
                 Duration = exam.Duration,
-                IsDeleted = exam.IsDeleted
+                IsDeleted = exam.IsDeleted,
+                Test = exam.Tests?.Select(TestMapper.ToResponse).ToList() ?? new List<TestResponse>()
             };
         }
 
@@ -34,7 +35,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             exam.ExaminerId = examRequest.ExaminerId;
             exam.Duration = examRequest.Duration;
             exam.IsDeleted = false;
-            exam.CreatedAt = DateTime.UtcNow; // Assuming CreatedAt should be updated on edit
+            exam.CreatedAt = DateTime.UtcNow;
         }
 
         public static Exam ToEntity(this ExamRequest examRequest)

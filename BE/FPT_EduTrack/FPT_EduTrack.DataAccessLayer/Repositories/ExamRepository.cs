@@ -54,6 +54,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Exams
                 .Include(m => m.Examiner)
+                .Include(m => m.Tests)
+                        .ThenInclude(t => t.Student)
                 .Where(m => m.IsDeleted != true)
                 .ToListAsync();
         }
@@ -62,6 +64,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Exams
                 .Include(m => m.Examiner)
+                .Include(m => m.Tests)
+                    .ThenInclude(t => t.Student)
                 .FirstOrDefaultAsync(m => m.Id == id && m.IsDeleted != true);
         }
     }
