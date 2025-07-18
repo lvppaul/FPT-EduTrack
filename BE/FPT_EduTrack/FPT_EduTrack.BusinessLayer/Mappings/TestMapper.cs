@@ -11,7 +11,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
 {
     public static class TestMapper
     {
-        public static TestResponse ToResponse(Test test)
+        public static TestResponse ToResponse(this Test test)
         {
             if (test == null)
                 throw new ArgumentNullException(nameof(test));
@@ -27,7 +27,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 StudentId = test.StudentId,
                 StudentName = test.Student?.Fullname?.Trim() ?? "Unknown",
                 hasReport = test.Reports != null && test.Reports.Any(),
-                TestsScores = test.TestsScores?.FirstOrDefault()?.Score ?? 0.0,
+                TestsScores = (float)test.Score,
                 isDeleted = test.isDeleted ?? false,
                 LecturersTestsDetailResponse = test.LecturersTestsDetails?
                     .Select(detail => detail?.ToResponse()).ToList() ?? new List<LecturersTestsDetailResponse>()
