@@ -15,6 +15,9 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
         public static ReportDataResponse ToResponse(this Report report)
         {
             if (report == null) return null;
+
+            var lecturerDetail = report.Test?.LecturersTestsDetails.FirstOrDefault();
+
             return new ReportDataResponse
             {
                 Id = report.Id,
@@ -24,8 +27,15 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 IsSecond = report.IsSecond ?? false,
                 IsDeleted = report.IsDeleted ?? false,
                 StudentId = report.StudentId,
+                StudentName = report.Student?.Fullname ?? string.Empty,
                 ReportStatusId = report.ReportStatusId,
-                TestId = report.TestId
+                TestId = report.TestId,
+                TestCode = report.Test?.Code ?? string.Empty,
+                TestTitle = report.Test?.Title ?? string.Empty,
+                TestContent = report.Test?.Content ?? string.Empty,
+                TestLink = report.Test?.Link ?? string.Empty,
+                LecturerId = lecturerDetail?.LecturerId,
+                LecturerName = lecturerDetail?.Lecturer?.Fullname ?? string.Empty
             };
         }
 
@@ -54,18 +64,6 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             if (request == null || report == null) return;
             report.Title = request.Title;
             report.Content = request.Content;
-            //if (request.IsSecond.HasValue)
-            //{
-            //    report.IsSecond = request.IsSecond;
-            //}
-            //if (request.IsDeleted.HasValue)
-            //{
-            //    report.IsDeleted = request.IsDeleted;
-            //}
-            //if(request.ReportStatusId.HasValue)
-            //{
-            //    report.ReportStatusId = request.ReportStatusId;
-            //}
         }
     }
 }

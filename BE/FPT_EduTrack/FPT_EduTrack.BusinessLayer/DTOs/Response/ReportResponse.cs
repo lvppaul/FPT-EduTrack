@@ -21,6 +21,7 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
         public DateTime? CreatedAt { get; set; }
 
         public int? StudentId { get; set; }
+
         public string? StudentName { get; set; }
 
         public int? ReportStatusId { get; set; }
@@ -35,7 +36,9 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? TestLink { get; set; }
 
-        public DateTime? TestCreatedAt { get; set; }
+        public int? LecturerId { get; set; }
+
+        public string? LecturerName { get; set; }
     }
 
     public class ReportResponse 

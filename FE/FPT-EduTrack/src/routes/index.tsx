@@ -5,6 +5,7 @@ import AdminPage from "../pages/Examiner/AdminPage";
 import PrivateRoute from "../authentication/PrivateRoute";
 import HomePage from "../pages/HomePage";
 import LecturerPage from "../pages/Lecturer/LecturerPage";
+import HeadOfDepartmentPage from "../pages/HeadOfDepartment/HeadOfDepartmentPage";
 
 const AppRoutes = () => {
   return (
@@ -67,6 +68,20 @@ const AppRoutes = () => {
         {/* <Route path="grades" element={<LecturerGrades />} /> */}
 
         {/* Default redirect for /lecturer */}
+        <Route index element={<Navigate to="dashboard" replace />} />
+      </Route>
+
+      {/* Head of Department Protected Routes */}
+      <Route
+        path="/headofdepartment"
+        element={<PrivateRoute allowedRoles={["headofdepartment"]} />}
+      >
+        <Route path="dashboard" element={<HeadOfDepartmentPage />} />
+        {/* Add more head of department routes here */}
+        {/* <Route path="lecturers" element={<LecturerManagement />} /> */}
+        {/* <Route path="reports" element={<DepartmentReports />} /> */}
+
+        {/* Default redirect for /headofdepartment */}
         <Route index element={<Navigate to="dashboard" replace />} />
       </Route>
 

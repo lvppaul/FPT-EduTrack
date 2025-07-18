@@ -42,9 +42,19 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("(getdate())");
 
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int")
+                        .HasColumnName("duration");
+
                     b.Property<int?>("ExaminerId")
                         .HasColumnType("int")
                         .HasColumnName("examiner_id");
+
+                    b.Property<bool?>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
 
                     b.Property<string>("Name")
                         .HasMaxLength(100)
@@ -76,6 +86,10 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                     b.Property<double?>("Score")
                         .HasColumnType("float")
                         .HasColumnName("score");
+
+                    b.Property<bool?>("isGrading")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_grading");
 
                     b.HasKey("TestId", "LecturerId")
                         .HasName("PK__Lecturer__FEB201A960272DB1");
@@ -400,6 +414,10 @@ namespace FPT_EduTrack.DataAccessLayer.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)")
                         .HasColumnName("title");
+
+                    b.Property<bool?>("isDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("is_deleted");
 
                     b.HasKey("Id")
                         .HasName("PK__Tests__3213E83F3115D372");
