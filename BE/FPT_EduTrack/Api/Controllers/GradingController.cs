@@ -1,4 +1,5 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
+using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http.Headers;
@@ -11,21 +12,11 @@ namespace FPT_EduTrack.Api.Controllers
     [Route("api/[controller]")]
     public class GradingController : ControllerBase
     {
-        private readonly HttpClient _httpClient;
-        private readonly ILogger<GradingController> _logger;
-        private readonly IParseResponse _service;
-        private string URL = "http://langflow2025.gtcbaqfsdwfaf6ep.eastasia.azurecontainer.io:7860/api/v1/run/9ae28e62-f044-4d78-b81d-969989442b0b";
+        private readonly IGradingAIService _gradingAIService;
 
-
-
-
-
-
-        public GradingController(HttpClient httpClient, ILogger<GradingController> logger, IParseResponse service)
+        public GradingController(IGradingAIService gradingAIService)
         {
-            _httpClient = httpClient;
-            _logger = logger;
-            _service = service;
+            _gradingAIService = gradingAIService;
         }
 
         /*  [HttpPost("process")]
@@ -185,213 +176,15 @@ namespace FPT_EduTrack.Api.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> UploadAndProcess([FromForm] GradingFileRequest request)
         {
-            try
+            var result = await _gradingAIService.ProcessGradingAsync(request);
+            
+            if (result.Success)
             {
-                List<string> uploadedGuidelineFileNames = new List<string>();
-                List<string> uploadedTestFileNames = new List<string>();
-                string gradingGuide = null;
-                string studentEssays = null;
-
-
-                // Upload file nếu có và xử lý encoding cho GuidelineFiles
-                if (request.GuidelineFiles != null && request.GuidelineFiles.Any())
-                {
-                    foreach (var file in request.GuidelineFiles)
-                    {
-                        // Validation
-                        var validExtensions = new List<string> { ".txt", ".docx", ".pdf" };
-                        //Ví dụ: "document.pdf"     -> ".pdf"
-                        string extension = Path.GetExtension(file.FileName ?? "").ToLower();
-
-                        if (!validExtensions.Contains(extension))
-                        {
-                            return BadRequest(new { message = "File extension is not valid", validExtensions });
-                        }
-
-                        // File size validation (5MB)
-                        // 5* 1024 (KB) còn 5 *1024 *1024 (MB)
-                        if (file.Length > (5 * 1024 * 1024))
-                        {
-                            return BadRequest(new { message = "Maximum size can be 5MB" });
-                        }
-
-                        string filename = Guid.NewGuid().ToString() + extension;
-                        uploadedGuidelineFileNames.Add(filename);
-                        gradingGuide = await _service.ReadFileAsync(file);
-
-
-                    }
-                }
-
-                // Upload file nếu có và xử lý encoding cho TestFiles
-                if (request.TestFiles != null && request.TestFiles.Any())
-                {
-                    foreach (var file in request.TestFiles)
-                    {
-                        // Validation
-                        var validExtensions = new List<string> { ".txt", ".docx", ".pdf" };
-                        //Ví dụ: "document.pdf"     -> ".pdf"
-                        string extension = Path.GetExtension(file.FileName ?? "").ToLower();
-
-                        if (!validExtensions.Contains(extension))
-                        {
-                            return BadRequest(new { message = "File extension is not valid", validExtensions });
-                        }
-
-                        // File size validation (5MB)
-                        // 5* 1024 (KB) còn 5 *1024 *1024 (MB)
-                        if (file.Length > (5 * 1024 * 1024))
-                        {
-                            return BadRequest(new { message = "Maximum size can be 5MB" });
-                        }
-
-                        string filename = Guid.NewGuid().ToString() + extension;
-                        uploadedTestFileNames.Add(filename);
-                        studentEssays = await _service.ReadFileAsync(file);
-
-                    }
-                }
-
-
-                // Tạo payload theo đúng structure của flow
-                var payload = new
-                {
-                    //input_value =  "Grade this essay",
-                    output_type = "text", // Thay đổi từ "chat" thành "text"
-                    input_type = "text",  // Thay đổi từ "chat" thành "text"
-                    tweaks = new
-                    {
-                        //// File component cho IELTS band descriptors (File-a1Ewg)
-                        //FileBliAQ = new Dictionary<string, object>
-                        //{
-                        //    ["path"] = uploadedGuidelineFileNames.Any() ? uploadedGuidelineFileNames.ToArray() : new string[0]
-                        //},
-
-                        //// Parser cho band descriptors (ParserComponent-EOIat)
-                        //ParserComponentLpmjm = new Dictionary<string, object>
-                        //{
-                        //    ["mode"] = "Parser",
-                        //    ["pattern"] = "Guidelines: {text}"
-                        //},
-
-
-                        // Text Input cho grading description
-                        TextInput9i7Xs = new Dictionary<string, object>
-                        {
-                            ["input_value"] = gradingGuide ?? ""
-                        },
-
-                        // Text Input cho IELTS questions (TextInput-R5mPI)
-                        TextInput43JFe = new Dictionary<string, object>
-                        {
-                            ["input_value"] = request.TextInputValue ?? "Please evaluate this essay according to the four criteria: Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9)."
-                        },
-
-                        //// File component cho student essay (File-5h6bu)
-                        //FileJgFYS = new Dictionary<string, object>
-                        //{
-                        //    ["path"] = uploadedTestFileNames.Any() ? uploadedTestFileNames.ToArray() : new[] { "student-essay.docx" }
-                        //},
-
-                        //// Parser cho student essay (ParserComponent-Xu457)
-                        //ParserComponentXFWXq = new Dictionary<string, object>
-                        //{
-                        //    ["mode"] = "Parser",
-                        //    ["pattern"] = "Student Test: {text}"
-                        //},
-
-                        // Text Input cho student essay
-                        TextInput9MxMY = new Dictionary<string, object>
-                        {
-                            ["input_value"] = studentEssays ?? ""
-                        },
-
-                        //Prompt template(Prompt - dMGrl)
-                        PromptVo0PP = new Dictionary<string, object>
-                        {
-                            ["template"] = "You are an IELTS examiner. Evaluate the following Task 2 writing based on IELTS band descriptors and document.\nDocument:\n{docs}\nCriteria:\n- Task Response\n- Coherence and Cohesion\n- Lexical Resource\n- Grammatical Range and Accuracy\n\nGive a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9).\nQuestions:\n{questions}"
-                        },
-
-                        //OpenRouter AI model(OpenRouterComponent - v1VHI)
-                        OpenRouterComponentpCawE = new Dictionary<string, object>
-                        {
-                            ["model_name"] = "deepseek/deepseek-r1-0528:free",
-                            //["model_name"] = "deepseek/deepseek-r1-distill-llama-70b:free",
-                            //["model_name"] = "qwen/qwen3-30b-a3b:free",
-                            ["temperature"] = 0.7,
-                            ["max_tokens"] = 4000
-                        },
-
-                        // Text Output component (TextOutput-3ha4Y)
-                        TextOutputPsVZo = new Dictionary<string, object>
-                        {
-                            ["input_value"] = "" // Sẽ được fill bởi OpenRouter output
-                        }
-                    }
-                };
-
-
-                // Serialize với UTF-8 encoding explicit
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                    WriteIndented = true
-                };
-
-                var json = JsonSerializer.Serialize(payload, options);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                // Clear headers và set proper encoding
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Accept.Clear();
-                _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                var response = await _httpClient.PostAsync(URL, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    // Đọc response với UTF-8 encoding
-                    //ReadAsByteArrayAsync: Đọc dữ liệu nhị phân (file, media)
-                    // nếu response là text/JSON thì nên dùng ReadAsStringAsync
-                    //var responseBytes = await response.Content.ReadAsByteArrayAsync();
-                    // var responseContent = Encoding.UTF8.GetString(responseBytes);
-                    var responseContent = await response.Content.ReadAsStringAsync();
-
-                    var cleanedContent = _service.ParseLangflowResponse(responseContent);
-                    return Ok(new
-                    {
-                        success = true,
-                        grading = cleanedContent,
-                        guidelineFilesProcessed = uploadedGuidelineFileNames.Count,
-                        guidelineUploadedFiles = uploadedGuidelineFileNames,
-                        originalGuidelineFileNames = request.GuidelineFiles?.Select(f => f.FileName).ToArray() ?? new string[0],
-                        testFilesProcessed = uploadedTestFileNames.Count,
-                        testUploadedFiles = uploadedTestFileNames,
-                        originalTestFileNames = request.TestFiles?.Select(f => f.FileName).ToArray() ?? new string[0]
-                    });
-                }
-                else
-                {
-                    var errorBytes = await response.Content.ReadAsByteArrayAsync();
-                    var errorContent = Encoding.UTF8.GetString(errorBytes);
-                    _logger.LogError($"API Error: {response.StatusCode} - {errorContent}");
-                    return StatusCode((int)response.StatusCode, new
-                    {
-                        error = "API request failed",
-                        details = errorContent,
-                        statusCode = response.StatusCode
-                    });
-                }
+                return Ok(result);
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError(ex, "Error processing upload request");
-                return StatusCode(500, new
-                {
-                    error = "An error occurred while processing your request",
-                    details = ex.Message
-                });
+                return BadRequest(result);
             }
         }
 

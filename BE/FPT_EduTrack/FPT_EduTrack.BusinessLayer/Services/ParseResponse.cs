@@ -274,12 +274,40 @@ namespace FPT_EduTrack.BusinessLayer.Services
         //Read file
         public async Task<string> ReadFileAsync(IFormFile file)
         {
-
-            using var stream = file.OpenReadStream();
-            var doc = new Document(stream);
-            string content = doc.ToString(SaveFormat.Text);
-            return content;
-
+            try
+            {
+                string extension = Path.GetExtension(file.FileName ?? "").ToLower();
+                
+                // Nếu là file text thuần, đọc trực tiếp
+                if (extension == ".txt")
+                {
+                    using var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8);
+                    return await reader.ReadToEndAsync();
+                }
+                
+                // Nếu là file Word/PDF, dùng Aspose
+                using var stream = file.OpenReadStream();
+                var doc = new Document(stream);
+                string content = doc.ToString(SaveFormat.Text);
+                return content;
+            }
+            catch (Exception ex)
+            {
+                // Log error và thử fallback
+                Console.WriteLine($"Error reading file {file.FileName}: {ex.Message}");
+                
+                // Fallback: đọc như text file
+                try
+                {
+                    using var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8);
+                    return await reader.ReadToEndAsync();
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"Fallback also failed for {file.FileName}: {fallbackEx.Message}");
+                    return $"Error reading file: {file.FileName}";
+                }
+            }
         }
 
 
