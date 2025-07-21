@@ -37,13 +37,13 @@ namespace FPT_EduTrack.BusinessLayer.Services
             if (exam == null) return false;
 
             exam.IsDeleted = true;
-            await _unitOfWork.ExamRepository.UpdateAsync(exam);
-            return true;
+            int result = await _unitOfWork.ExamRepository.UpdateAsync(exam);
+            return result > 0;
         }
 
         public async Task<List<ExamResponse>> GetAllAsync()
         {
-            var exams = await _unitOfWork.ExamRepository.GetAllAsync(); // Consider using async/await properly
+            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
             if (exams == null || !exams.Any())
             {
                 return new List<ExamResponse>();
@@ -76,6 +76,23 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             var updated = await _unitOfWork.ExamRepository.GetByIdAsync(id);
             return ExamMapper.MapToDTO(updated);
+        }
+
+        public async Task<List<ExamResponse>> GetPaginatedAsync(int pageNumber)
+        {
+            int pageSize = 10;
+            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
+            var pagedExams = exams.Skip((pageNumber - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToList();
+            return pagedExams.Select(ExamMapper.MapToDTO).ToList();
+        }
+
+        public async Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status)
+        {
+            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
+            var filtered = exams.Where(e => e.Status == status.ToString());
+            return filtered.Select(ExamMapper.MapToDTO).ToList();
         }
     }
 }

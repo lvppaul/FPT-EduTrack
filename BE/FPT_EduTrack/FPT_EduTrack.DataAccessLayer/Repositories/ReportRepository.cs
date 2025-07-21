@@ -18,7 +18,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
         }
 
-        public override async Task<List<Report>> GetAllAsync()
+        public async Task<List<Report>> GetAllAsync(Pagination pagination)
         {
             return await _context.Reports
                 .Include(r => r.ReportStatus)
@@ -28,6 +28,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .ThenInclude(t => t.LecturersTestsDetails)
                         .ThenInclude(ld => ld.Lecturer)
                 .Where(r => r.IsDeleted == false)
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
                 .ToListAsync();
         }
 
@@ -77,10 +79,12 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId)
+        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId, Pagination pagination)
         {
             return await _context.Reports
                 .Where(r => r.StudentId == studentId && r.IsDeleted != true)
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
                 .ToListAsync();
         }
 

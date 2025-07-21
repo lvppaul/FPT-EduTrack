@@ -49,6 +49,40 @@ namespace FPT_EduTrack.Api.Controllers
             }
         }
 
+        [HttpGet("page/{pageNumber}")]
+        public async Task<IActionResult> GetPaginated(int pageNumber)
+        {
+            try
+            {
+                var exams = await _examService.GetPaginatedAsync(pageNumber);
+                if (exams == null || !exams.Any())
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"No exams found on page {pageNumber}."
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Exams retrieved successfully for page {pageNumber}",
+                    data = exams,
+                    page = pageNumber,
+                    count = exams.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"An error occurred while retrieving exams for page {pageNumber}",
+                    error = ex.Message
+                });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -166,6 +200,50 @@ namespace FPT_EduTrack.Api.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("status/{status}")]
+        public async Task<IActionResult> GetByStatus(string status)
+        {
+            try
+            {
+                if (!Enum.TryParse<ExamStatus>(status, true, out var enumStatus))
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"Invalid status value: {status}."
+                    });
+                }
+
+                var exams = await _examService.GetExamsByStatusAsync(enumStatus);
+                if (exams == null || !exams.Any())
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = $"No exams found with status {status}."
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Exams retrieved successfully for status {status}",
+                    data = exams,
+                    status = status,
+                    count = exams.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"An error occurred while retrieving exams with status {status}",
+                    error = ex.Message
+                });
+            }
         }
     }
 }

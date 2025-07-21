@@ -1,7 +1,6 @@
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Context;
-using FPT_EduTrack.DataAccessLayer.Interfaces;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -78,6 +77,7 @@ builder.Services.AddScoped<IParseResponse, ParseResponse>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IGradingAIService, GradingAIService>();
 
 builder.Services.AddCors(options =>
 {

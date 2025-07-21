@@ -4,6 +4,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +27,9 @@ namespace FPT_EduTrack.Api.Controllers
 
         [HttpGet]
         //[Authorize]
-        public async Task<ActionResult<ReportResponse>> GetAllReports()
+        public async Task<ActionResult<ReportResponse>> GetAllReports([FromQuery] Pagination pagination)
         {
-            var listReport = await _reportService.GetAllAsync();
+            var listReport = await _reportService.GetAllAsync(pagination);
             if (listReport == null || !listReport.Any())
             {
                 return NotFound(new
@@ -74,9 +75,9 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpGet("student-reports")]
-        public async Task<ActionResult<ReportResponse>> GetReportByStudentId(int studentId)
+        public async Task<ActionResult<ReportResponse>> GetReportByStudentId(int studentId, [FromQuery] Pagination pagination)
         {
-            var listReport = await _reportService.GetReportByStudentId(studentId);
+            var listReport = await _reportService.GetReportByStudentId(studentId, pagination);
             if(listReport == null)
             {
                 return NotFound(new

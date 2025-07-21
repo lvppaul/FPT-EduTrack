@@ -3,6 +3,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
 namespace FPT_EduTrack.BusinessLayer.Services
@@ -14,9 +15,9 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<IEnumerable<ReportDataResponse>> GetAllAsync()
+        public async Task<IEnumerable<ReportDataResponse>> GetAllAsync(Pagination pagination)
         {
-            var reports = await _unitOfWork.ReportRepository.GetAllAsync();
+            var reports = await _unitOfWork.ReportRepository.GetAllAsync(pagination);
             if (reports == null || !reports.Any())
             {
                 return new List<ReportDataResponse>();
@@ -64,9 +65,9 @@ namespace FPT_EduTrack.BusinessLayer.Services
             await _unitOfWork.SaveAsync();
         }
 
-        public async Task<IEnumerable<ReportDataResponse>> GetReportByStudentId(int studentId)
+        public async Task<IEnumerable<ReportDataResponse>> GetReportByStudentId(int studentId, Pagination pagination)
         {
-            var reports = await _unitOfWork.ReportRepository.GetReportsByStudentIdAsync(studentId);
+            var reports = await _unitOfWork.ReportRepository.GetReportsByStudentIdAsync(studentId, pagination);
             if (reports == null || !reports.Any())
             {
                 return new List<ReportDataResponse>();
