@@ -31,7 +31,6 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 isDeleted = test.isDeleted ?? false,
                 LecturersTestsDetailResponse = test.LecturersTestsDetails?
                     .Select(detail => detail?.ToResponse()).ToList() ?? new List<LecturersTestsDetailResponse>()
-               
             };
         }
     }
