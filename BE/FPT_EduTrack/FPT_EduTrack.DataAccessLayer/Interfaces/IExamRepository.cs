@@ -1,4 +1,5 @@
 ﻿using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,5 +13,6 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task AddAsync(Exam exam);
         Task EditAsync(int id, Exam exam);
         Task DeleteAsync(int id);
+        Task<List<Exam>> GetAllAsync(Pagination pagination);
     }
 }
