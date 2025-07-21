@@ -5,6 +5,7 @@ using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
 namespace FPT_EduTrack.BusinessLayer.Services
@@ -39,13 +40,23 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
         }
 
-        public async Task<IEnumerable<UserResponse>> GetAllAsync()
+        //public async Task<IEnumerable<UserResponse>> GetAllAsync()
+        //{
+        //    var users = await _unitOfWork.UserRepository.GetAllAsync();
+        //    if (users == null || !users.Any())
+        //        return Enumerable.Empty<UserResponse>();
+        //    return users.Select(UserMapper.ToResponse).ToList();
+        //}
+
+        public async Task<IEnumerable<UserResponse>> GetAllAsync(Pagination pagination)
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            var users = await _unitOfWork.UserRepository.GetAllAsync(pagination);
             if (users == null || !users.Any())
                 return Enumerable.Empty<UserResponse>();
             return users.Select(UserMapper.ToResponse).ToList();
         }
+
+
 
         public async Task<AuthenticationResponse?> LoginAsync(LoginRequest request)
         {
@@ -315,5 +326,12 @@ namespace FPT_EduTrack.BusinessLayer.Services
             user.GoogleAccessTokenExpiredAt = accessTokenExpiredAt;
             await _unitOfWork.UserRepository.UpdateAsync(user);
         }
+
+        public Task<IEnumerable<UserResponse>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        
     }
 }

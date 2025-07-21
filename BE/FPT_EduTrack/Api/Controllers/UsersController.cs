@@ -3,6 +3,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Exceptions;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,11 +22,11 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpGet("getUser")]
-        public async Task<IActionResult> GetAllUser()
+        public async Task<IActionResult> GetAllUser([FromQuery] Pagination pagination)
         {
             try
             {
-                var users = await _service.GetAllAsync();
+                var users = await _service.GetAllAsync(pagination);
                 if (users == null || !users.Any())
                     return NotFound(new
                     {
@@ -39,7 +40,6 @@ namespace FPT_EduTrack.Api.Controllers
                     message = "User retrieved successfully",
                     data = users,
                     cound = users.Count(),
-                    timestamp = DateTime.UtcNow
                 });
             }
             catch (Exception ex)
