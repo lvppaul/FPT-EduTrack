@@ -1,4 +1,5 @@
 ﻿using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +10,12 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
     public interface IReportRepository : IGenericRepository<Report>
     {
-        Task<List<Report>> GetAllAsync();
+        Task<List<Report>> GetAllAsync(Pagination pagination);
         Task<Report> GetByIdAsync(int id);
         Task AddAsync(Report report);
         Task EditAsync(int id, Report report);
         Task DeleteAsync(int id);
-        Task<List<Report>> GetReportsByStudentIdAsync(int studentId);
+        Task<List<Report>> GetReportsByStudentIdAsync(int studentId, Pagination pagination);
         Task<Report> GetReportByStudentAndTestAsync(int studentId, int testId);
     }
 }
