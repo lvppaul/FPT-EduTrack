@@ -1,4 +1,5 @@
-﻿using FPT_EduTrack.DataAccessLayer.Entities;
+﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +22,11 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? ExaminerName { get; set; }
 
+        public string? Status { get; set; }
+
         public int? Duration { get; set; }
 
         public bool? IsDeleted { get; set; }
         public ICollection<TestResponse> Test { get; set; } = new List<TestResponse>();
-
     }
 }

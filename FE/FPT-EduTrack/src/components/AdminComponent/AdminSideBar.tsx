@@ -47,7 +47,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
       id: "test",
       label: "Quản Lý Bài Test",
       icon: ClipboardCheck,
-      description: "Tạo và quản lý bài kiểm tra",
+      description: "Quản lý các bài test trong kỳ thi gần nhất",
     },
     {
       id: "request",

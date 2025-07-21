@@ -1,19 +1,6 @@
 import React, { useState } from "react";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Eye,
-  Edit,
-  User,
-  BookOpen,
-  ArrowLeft,
-  BarChart3,
-} from "lucide-react";
-import { getTestsByExamIdAndStudentId } from "../../service/testService";
+import { Eye, Edit, ArrowLeft } from "lucide-react";
+
 interface ExamPeriod {
   id: string;
   name: string;
@@ -177,61 +164,7 @@ const LecturerExams: React.FC = () => {
       totalQuestions: 20,
       examPeriodId: "2",
     },
-    {
-      id: "6",
-      title: "Kiểm tra thực hành - Java Programming",
-      subject: "PRN211",
-      studentName: "Nguyễn Thị F",
-      studentId: "SE170006",
-      submittedDate: "2025-07-14",
-      duration: 90,
-      maxScore: 100,
-      currentScore: 92,
-      status: "graded",
-      examType: "midterm",
-      answers: 25,
-      totalQuestions: 25,
-      examPeriodId: "1",
-    },
   ];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "text-orange-600 bg-orange-50 border-orange-200";
-      case "graded":
-        return "text-green-600 bg-green-50 border-green-200";
-      case "needs-review":
-        return "text-red-600 bg-red-50 border-red-200";
-      case "upcoming":
-        return "text-blue-600 bg-blue-50 border-blue-200";
-      case "ongoing":
-        return "text-purple-600 bg-purple-50 border-purple-200";
-      case "completed":
-        return "text-gray-600 bg-gray-50 border-gray-200";
-      default:
-        return "text-gray-600 bg-gray-50 border-gray-200";
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "pending":
-        return <AlertCircle className="w-4 h-4" />;
-      case "graded":
-        return <CheckCircle className="w-4 h-4" />;
-      case "needs-review":
-        return <XCircle className="w-4 h-4" />;
-      case "upcoming":
-        return <Clock className="w-4 h-4" />;
-      case "ongoing":
-        return <BarChart3 className="w-4 h-4" />;
-      case "completed":
-        return <CheckCircle className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -269,7 +202,6 @@ const LecturerExams: React.FC = () => {
       })
     : [];
 
-  // Chi tiết kỳ thi view
   if (selectedPeriod) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -277,185 +209,170 @@ const LecturerExams: React.FC = () => {
         <div className="mb-6">
           <button
             onClick={() => setSelectedPeriod(null)}
-            className="mb-4 flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors"
+            className="mb-4 inline-flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Quay lại danh sách kỳ thi</span>
+            <span>← Quay lại danh sách kỳ thi</span>
           </button>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {selectedPeriod.name}
-                </h1>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {formatDate(selectedPeriod.startDate)} -{" "}
-                      {formatDate(selectedPeriod.endDate)}
-                    </span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <BookOpen className="w-4 h-4" />
-                    <span>{selectedPeriod.subjects.length} môn học</span>
-                  </span>
-                </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              {selectedPeriod.name}
+            </h1>
+            <p className="text-gray-600 mb-4">{selectedPeriod.description}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-4">
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-gray-800">Thời gian:</span>
+                <span>
+                  {formatDate(selectedPeriod.startDate)} -{" "}
+                  {formatDate(selectedPeriod.endDate)}
+                </span>
               </div>
-              <div
-                className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                  selectedPeriod.status
-                )}`}
-              >
-                <div className="flex items-center space-x-1">
-                  {getStatusIcon(selectedPeriod.status)}
-                  <span>{getStatusText(selectedPeriod.status)}</span>
-                </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-gray-800">Trạng thái:</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                  {getStatusText(selectedPeriod.status)}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium text-gray-800">Môn học:</span>
+                <span>{selectedPeriod.subjects.join(", ")}</span>
               </div>
             </div>
 
-            <p className="text-gray-600 mb-4">{selectedPeriod.description}</p>
-
-            {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-blue-600 font-medium">
-                      Tổng bài thi
-                    </p>
-                    <p className="text-2xl font-bold text-blue-700">
-                      {selectedPeriod.totalExams}
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
+                <p className="text-sm font-medium text-blue-600 mb-1">
+                  Tổng bài thi
+                </p>
+                <p className="text-2xl font-bold text-blue-700">
+                  {selectedPeriod.totalExams}
+                </p>
               </div>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm text-green-600 font-medium">
-                      Đã chấm
-                    </p>
-                    <p className="text-2xl font-bold text-green-700">
-                      {selectedPeriod.gradedExams}
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
+                <p className="text-sm font-medium text-green-600 mb-1">
+                  Đã chấm
+                </p>
+                <p className="text-2xl font-bold text-green-700">
+                  {selectedPeriod.gradedExams}
+                </p>
               </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-orange-600 font-medium">
-                      Chờ chấm
-                    </p>
-                    <p className="text-2xl font-bold text-orange-700">
-                      {selectedPeriod.pendingExams}
-                    </p>
-                  </div>
-                </div>
+              <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 text-center border border-orange-200">
+                <p className="text-sm font-medium text-orange-600 mb-1">
+                  Chờ chấm
+                </p>
+                <p className="text-2xl font-bold text-orange-700">
+                  {selectedPeriod.pendingExams}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Danh sách bài thi */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        {/* Exams List */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="border-b border-gray-200 p-4 bg-gray-50 rounded-t-lg">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900">
+              <h2 className="text-lg font-bold text-gray-900">
                 Danh Sách Bài Thi
               </h2>
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Lọc:</span>
-                  <select
-                    value={filter}
-                    onChange={(e) =>
-                      setFilter(e.target.value as "all" | "pending" | "graded")
-                    }
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  >
-                    <option value="all">Tất cả</option>
-                    <option value="pending">Chờ chấm</option>
-                    <option value="graded">Đã chấm</option>
-                  </select>
-                </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Lọc:</span>
+                <select
+                  value={filter}
+                  onChange={(e) =>
+                    setFilter(e.target.value as "all" | "pending" | "graded")
+                  }
+                  className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                >
+                  <option value="all">Tất cả</option>
+                  <option value="pending">Chờ chấm</option>
+                  <option value="graded">Đã chấm</option>
+                </select>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4">
             {filteredExams.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Eye className="w-8 h-8 text-gray-400" />
+                </div>
                 <p className="text-gray-500">Không có bài thi nào</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {filteredExams.map((exam) => (
                   <div
                     key={exam.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 mb-2">
                           {exam.title}
                         </h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                          <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4 text-gray-500" />
-                            <div>
-                              <p className="font-medium">{exam.studentName}</p>
-                              <p className="text-xs text-gray-500">
-                                {exam.studentId}
-                              </p>
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-700">
+                              Sinh viên
+                            </span>
+                            <span className="text-gray-600">
+                              {exam.studentName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {exam.studentId}
+                            </span>
                           </div>
-                          <div>
-                            <span className="font-medium">Môn học:</span>
-                            <p>{exam.subject}</p>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-700">
+                              Môn học
+                            </span>
+                            <span className="text-gray-600">
+                              {exam.subject}
+                            </span>
                           </div>
-                          <div>
-                            <span className="font-medium">Thời gian:</span>
-                            <p>{exam.duration} phút</p>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-700">
+                              Thời gian
+                            </span>
+                            <span className="text-gray-600">
+                              {exam.duration} phút
+                            </span>
                           </div>
-                          <div>
-                            <span className="font-medium">Điểm:</span>
-                            <p>
-                              {exam.currentScore !== undefined ? (
-                                <span className="font-semibold text-green-600">
-                                  {exam.currentScore}/{exam.maxScore}
-                                </span>
-                              ) : (
-                                <span className="text-orange-600">
-                                  Chưa chấm
-                                </span>
-                              )}
-                            </p>
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-700">
+                              Điểm số
+                            </span>
+                            <span className="text-gray-600">
+                              {exam.currentScore !== undefined
+                                ? `${exam.currentScore}/${exam.maxScore}`
+                                : `--/${exam.maxScore}`}
+                            </span>
                           </div>
+                        </div>
+                        <div className="mt-2">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                              exam.status === "pending"
+                                ? "bg-orange-100 text-orange-800"
+                                : exam.status === "graded"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {getStatusText(exam.status)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                            exam.status
-                          )}`}
-                        >
-                          <div className="flex items-center space-x-1">
-                            {getStatusIcon(exam.status)}
-                            <span>{getStatusText(exam.status)}</span>
-                          </div>
-                        </div>
-                        <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                      <div className="flex items-center space-x-2 ml-4">
+                        <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
                           <Eye className="w-4 h-4" />
                         </button>
                         {exam.status === "pending" && (
-                          <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200">
                             <Edit className="w-4 h-4" />
                           </button>
                         )}
@@ -471,75 +388,111 @@ const LecturerExams: React.FC = () => {
     );
   }
 
-  // Danh sách kỳ thi view
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Quản Lý Kỳ Thi
+            Danh Sách Kỳ Thi
           </h1>
           <p className="text-gray-600">Quản lý và chấm điểm các kỳ thi</p>
         </div>
 
         <div className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
             {examPeriods.map((period) => (
               <div
                 key={period.id}
-                className="border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                className="bg-white border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-lg hover:border-blue-300 transition-all duration-200"
                 onClick={() => setSelectedPeriod(period)}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
                       {period.name}
                     </h3>
-                    <p className="text-sm text-gray-600">{period.code}</p>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                      period.status
-                    )}`}
-                  >
-                    <div className="flex items-center space-x-1">
-                      {getStatusIcon(period.status)}
-                      <span>{getStatusText(period.status)}</span>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {period.description}
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">Mã:</span>
+                        <span className="px-2 py-1 bg-gray-100 rounded text-gray-800">
+                          {period.code}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">
+                          Thời gian:
+                        </span>
+                        <span className="text-gray-600">
+                          {formatDate(period.startDate)} -{" "}
+                          {formatDate(period.endDate)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">
+                          Trạng thái:
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            period.status === "upcoming"
+                              ? "bg-blue-100 text-blue-800"
+                              : period.status === "ongoing"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {getStatusText(period.status)}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium text-gray-700">
+                          Môn học:
+                        </span>
+                        <span className="text-gray-600">
+                          {period.subjects.join(", ")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-6 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                        <span className="text-gray-600">
+                          Tổng:{" "}
+                          <span className="font-semibold">
+                            {period.totalExams}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                        <span className="text-gray-600">
+                          Đã chấm:{" "}
+                          <span className="font-semibold">
+                            {period.gradedExams}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                        <span className="text-gray-600">
+                          Chờ chấm:{" "}
+                          <span className="font-semibold">
+                            {period.pendingExams}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-4">
-                  {period.description}
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <p className="text-2xl font-bold text-gray-900">
-                      {period.totalExams}
-                    </p>
-                    <p className="text-xs text-gray-600">Tổng bài thi</p>
+                  <div className="text-right ml-6">
+                    <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                      Xem chi tiết
+                      <Eye className="w-4 h-4 ml-2" />
+                    </button>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <p className="text-2xl font-bold text-green-700">
-                      {period.gradedExams}
-                    </p>
-                    <p className="text-xs text-green-600">Đã chấm</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>
-                      {formatDate(period.startDate)} -{" "}
-                      {formatDate(period.endDate)}
-                    </span>
-                  </div>
-                  <button className="text-green-600 hover:text-green-700 font-medium text-sm flex items-center space-x-1">
-                    <span>Xem chi tiết</span>
-                    <Eye className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             ))}

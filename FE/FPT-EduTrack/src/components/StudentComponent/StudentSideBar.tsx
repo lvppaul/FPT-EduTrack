@@ -1,12 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FileText,
-  MessageSquare,
-  Video,
-  GraduationCap,
-  LogOut,
-} from "lucide-react";
+import { FileText, MessageSquare, GraduationCap, LogOut } from "lucide-react";
 import AuthUtils from "../../utils/authUtils";
 
 interface SidebarProps {
@@ -36,12 +30,6 @@ const StudentSidebar: React.FC<SidebarProps> = ({
       label: "Đơn Phúc Khảo",
       icon: FileText,
       description: "Đơn phúc khảo về bài thi",
-    },
-    {
-      id: "meetings",
-      label: "Cuộc Họp",
-      icon: Video,
-      description: "Google Meeting từ examiner",
     },
   ];
 

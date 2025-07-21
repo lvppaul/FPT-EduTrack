@@ -215,7 +215,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 //var criteria = JsonSerializer.Deserialize<Dictionary<string, Criterion>>(embeddedJson);
                 var embeddedJsonDoc = JsonDocument.Parse(embeddedJson);
                 var criteria = new Dictionary<string, Criterion>();
-                int overallBand = 0;
+                double overallBand = 0;
                 string? justification = null;
 
                 foreach (var property in embeddedJsonDoc.RootElement.EnumerateObject())
@@ -232,7 +232,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     }
                     else if (property.Name == "Overall Band" && property.Value.ValueKind == JsonValueKind.Number)
                     {
-                        overallBand = property.Value.GetInt32();
+                        overallBand = property.Value.GetDouble();
                     }
                     else if (property.Name == "Overall Feedback" && property.Value.ValueKind == JsonValueKind.String)
                     {
@@ -274,12 +274,40 @@ namespace FPT_EduTrack.BusinessLayer.Services
         //Read file
         public async Task<string> ReadFileAsync(IFormFile file)
         {
-
-            using var stream = file.OpenReadStream();
-            var doc = new Document(stream);
-            string content = doc.ToString(SaveFormat.Text);
-            return content;
-
+            try
+            {
+                string extension = Path.GetExtension(file.FileName ?? "").ToLower();
+                
+                // Nếu là file text thuần, đọc trực tiếp
+                if (extension == ".txt")
+                {
+                    using var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8);
+                    return await reader.ReadToEndAsync();
+                }
+                
+                // Nếu là file Word/PDF, dùng Aspose
+                using var stream = file.OpenReadStream();
+                var doc = new Document(stream);
+                string content = doc.ToString(SaveFormat.Text);
+                return content;
+            }
+            catch (Exception ex)
+            {
+                // Log error và thử fallback
+                Console.WriteLine($"Error reading file {file.FileName}: {ex.Message}");
+                
+                // Fallback: đọc như text file
+                try
+                {
+                    using var reader = new StreamReader(file.OpenReadStream(), Encoding.UTF8);
+                    return await reader.ReadToEndAsync();
+                }
+                catch (Exception fallbackEx)
+                {
+                    Console.WriteLine($"Fallback also failed for {file.FileName}: {fallbackEx.Message}");
+                    return $"Error reading file: {file.FileName}";
+                }
+            }
         }
 
 

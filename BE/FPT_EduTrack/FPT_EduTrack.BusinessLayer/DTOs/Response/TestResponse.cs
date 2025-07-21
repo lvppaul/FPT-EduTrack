@@ -19,6 +19,8 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? Link { get; set; }
 
+        public virtual float TestsScores { get; set; } 
+
         public int? ExamId { get; set; }
 
         public int? StudentId { get; set; }
@@ -27,7 +29,6 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
     
         public virtual bool hasReport { get; set; } = false;
         
-        public virtual double TestsScores { get; set; } = 0.0;
 
         public bool? isDeleted { get; set; } = false;
 

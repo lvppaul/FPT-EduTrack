@@ -73,6 +73,9 @@ public partial class FptEduTrackContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
             entity.Property(e => e.ExaminerId).HasColumnName("examiner_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
@@ -313,8 +316,10 @@ public partial class FptEduTrackContext : DbContext
                 .HasColumnName("code");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Link).HasColumnName("link");
+            entity.Property(e => e.Score).HasColumnName("score");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
             entity.Property(e => e.ExamId).HasColumnName("exam_id");
+        
             entity.Property(e => e.isDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)

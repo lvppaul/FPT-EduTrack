@@ -1,12 +1,12 @@
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Context;
-using FPT_EduTrack.DataAccessLayer.Interfaces;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,6 +77,7 @@ builder.Services.AddScoped<IParseResponse, ParseResponse>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IGradingAIService, GradingAIService>();
 
 builder.Services.AddCors(options =>
 {
@@ -106,6 +107,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

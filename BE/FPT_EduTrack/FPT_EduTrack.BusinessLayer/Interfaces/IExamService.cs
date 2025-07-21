@@ -12,10 +12,11 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
     {
         Task<List<ExamResponse>> GetAllAsync();
         Task<ExamResponse?> GetExamByIdAsync(int id);
-        Task<ExamResponse> CreateAsync(ExamRequest request);
-        Task<ExamResponse> UpdateExamAsync(int id, ExamRequest request);
+        Task<ExamResponse?> CreateAsync(ExamRequest request);
+        Task<ExamResponse?> UpdateExamAsync(int id, ExamRequest request);
         Task<bool> DeleteAsync(int id);
-        Task<List<ExamResponse>> GetExamsByCourseIdAsync(int courseId);
         Task<List<ExamResponse>> GetExamsByUserIdAsync(int userId);
+        Task<List<ExamResponse>> GetPaginatedAsync(int pageNumber);
+        Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status);
     }
 }

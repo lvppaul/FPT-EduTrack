@@ -232,21 +232,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             var userExist = await _unitOfWork.UserRepository.GetByIdAsync(user.Id);
             if (userExist == null)
-                return new UserResponse
-                {
-                    Id = 0,
-                    Email = "N/A",
-                    Fullname = "No user data",
-                    CreatedAt = null,
-                    IsActive = false,
-                    IsDeleted = false,
-                    RoleId = null,
-                    RoleName = "N/A"
-                };
-            userExist.Email = user.Email?.Trim();
-            userExist.Fullname = user.Fullname?.Trim();
-            userExist.RoleId = user.RoleId > 0 ? user.RoleId : null;
-            userExist.IsActive = user.IsActive;
+                throw new Exception("No user data");
+            UserMapper.ToUpdate(user, userExist);
 
             var isUpdated = await _unitOfWork.UserRepository.UpdateAsync(userExist);
             if (isUpdated == 0)

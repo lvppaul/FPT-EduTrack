@@ -12,7 +12,7 @@ const HeadOfDepartmentPage: React.FC = () => {
       case "overview":
         return "Tổng Quan Khoa";
       case "grade-approval":
-        return "Xác Nhận Điểm Chấm";
+        return "Các Đơn Đang Chờ Xác Nhận Điểm";
       case "exams":
         return "Quản Lý Kỳ Thi";
       default:

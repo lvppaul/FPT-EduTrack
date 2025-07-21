@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { Bell, Settings, User, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-interface HeaderProps {
-  title?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ title = "Dashboard Overview" }) => {
+const Header: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { user, handleLogout } = useAuth();
 
@@ -37,9 +33,7 @@ const Header: React.FC<HeaderProps> = ({ title = "Dashboard Overview" }) => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-        </div>
+        <div className="flex items-center space-x-4"></div>
 
         <div className="flex items-center space-x-4">
           {/* Notification Button */}
