@@ -215,7 +215,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 //var criteria = JsonSerializer.Deserialize<Dictionary<string, Criterion>>(embeddedJson);
                 var embeddedJsonDoc = JsonDocument.Parse(embeddedJson);
                 var criteria = new Dictionary<string, Criterion>();
-                int overallBand = 0;
+                double overallBand = 0;
                 string? justification = null;
 
                 foreach (var property in embeddedJsonDoc.RootElement.EnumerateObject())
@@ -232,7 +232,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     }
                     else if (property.Name == "Overall Band" && property.Value.ValueKind == JsonValueKind.Number)
                     {
-                        overallBand = property.Value.GetInt32();
+                        overallBand = property.Value.GetDouble();
                     }
                     else if (property.Name == "Overall Feedback" && property.Value.ValueKind == JsonValueKind.String)
                     {

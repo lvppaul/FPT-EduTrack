@@ -33,7 +33,14 @@ namespace FPT_EduTrack.Api.Controllers
                         message = "No users found",
                         timestamp = DateTime.UtcNow
                     });
-                return Ok(users);
+                return Ok( new
+                {
+                    success = true,
+                    message = "User retrieved successfully",
+                    data = users,
+                    cound = users.Count(),
+                    timestamp = DateTime.UtcNow
+                });
             }
             catch (Exception ex)
             {
@@ -64,7 +71,6 @@ namespace FPT_EduTrack.Api.Controllers
                 var updatedUser = await _service.UpdateAsync(userUpdate);
                 if (updatedUser == null || updatedUser.Id == 0)
                 {
-
                     return NotFound(new
                     {
                         success = false,
