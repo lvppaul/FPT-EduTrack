@@ -28,7 +28,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .ThenInclude(t => t.LecturersTestsDetails)
                         .ThenInclude(ld => ld.Lecturer)
                 .Where(r => r.IsDeleted == false)
-                .Skip(pagination.Skip)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize)
                 .ToListAsync();
         }
@@ -83,7 +83,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Reports
                 .Where(r => r.StudentId == studentId && r.IsDeleted != true)
-                .Skip(pagination.Skip)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize)
                 .ToListAsync();
         }

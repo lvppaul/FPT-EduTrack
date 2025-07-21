@@ -74,7 +74,7 @@ namespace FPT_EduTrack.Api.Controllers
             return Ok(response);
         }
 
-        [HttpGet("student-reports")]
+        [HttpGet("student-reports/{studentId}")]
         public async Task<ActionResult<ReportResponse>> GetReportByStudentId(int studentId, [FromQuery] Pagination pagination)
         {
             var listReport = await _reportService.GetReportByStudentId(studentId, pagination);
