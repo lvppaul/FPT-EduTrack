@@ -327,10 +327,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             await _unitOfWork.UserRepository.UpdateAsync(user);
         }
 
-        public Task<IEnumerable<UserResponse>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
+        
 
         
     }
