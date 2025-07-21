@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,11 +18,11 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] Pagination pagination)
         {
             try
             {
-                var exams = await _examService.GetAllAsync();
+                var exams = await _examService.GetAllAsync(pagination);
                 if (exams == null || !exams.Any())
                 {
                     return NotFound(new
@@ -44,40 +45,6 @@ namespace FPT_EduTrack.Api.Controllers
                 {
                     success = false,
                     message = $"An error occurred while retrieving exam",
-                    error = ex.Message
-                });
-            }
-        }
-
-        [HttpGet("page/{pageNumber}")]
-        public async Task<IActionResult> GetPaginated(int pageNumber)
-        {
-            try
-            {
-                var exams = await _examService.GetPaginatedAsync(pageNumber);
-                if (exams == null || !exams.Any())
-                {
-                    return NotFound(new
-                    {
-                        success = false,
-                        message = $"No exams found on page {pageNumber}."
-                    });
-                }
-                return Ok(new
-                {
-                    success = true,
-                    message = $"Exams retrieved successfully for page {pageNumber}",
-                    data = exams,
-                    page = pageNumber,
-                    count = exams.Count
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new
-                {
-                    success = false,
-                    message = $"An error occurred while retrieving exams for page {pageNumber}",
                     error = ex.Message
                 });
             }

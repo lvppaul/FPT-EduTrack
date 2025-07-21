@@ -3,6 +3,7 @@ using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Interfaces;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using System;
 using System.Collections.Generic;
@@ -41,9 +42,9 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return result > 0;
         }
 
-        public async Task<List<ExamResponse>> GetAllAsync()
+        public async Task<List<ExamResponse>> GetAllAsync(Pagination pagination)
         {
-            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
+            var exams = await _unitOfWork.ExamRepository.GetAllAsync(pagination);
             if (exams == null || !exams.Any())
             {
                 return new List<ExamResponse>();
