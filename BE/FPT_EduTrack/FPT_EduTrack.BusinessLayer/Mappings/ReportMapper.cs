@@ -16,8 +16,6 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
         {
             if (report == null) return null;
 
-            var lecturerDetail = report.Test?.LecturersTestsDetails.FirstOrDefault();
-
             return new ReportDataResponse
             {
                 Id = report.Id,

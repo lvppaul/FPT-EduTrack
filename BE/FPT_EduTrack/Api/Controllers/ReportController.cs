@@ -50,7 +50,7 @@ namespace FPT_EduTrack.Api.Controllers
             return Ok(response);
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         //[Authorize]
         public async Task<ActionResult<ReportResponse>> GetReportByID(int id)
         {
