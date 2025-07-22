@@ -55,8 +55,8 @@ namespace FPT_EduTrack.Api.Controllers
 
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateUser([FromBody] UserUpdate userUpdate)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdate userUpdate)
         {
             try
             {
@@ -68,8 +68,8 @@ namespace FPT_EduTrack.Api.Controllers
                         Message = "Invalid user update information input",
                         timestamp = DateTime.UtcNow
                     });
-                var updatedUser = await _service.UpdateAsync(userUpdate);
-                if (updatedUser == null || updatedUser.Id == 0)
+                var userExist = await _service.GetByIdAsync(id);
+                if (userExist == null || userExist.Id == 0)
                 {
                     return NotFound(new
                     {
@@ -80,7 +80,23 @@ namespace FPT_EduTrack.Api.Controllers
                 }
                 else
                 {
-                    return Ok(updatedUser);
+                    var updateUser = await _service.UpdateAsync(userUpdate);
+                    if(updateUser == null)
+                    {
+                        return StatusCode(500, new
+                        {
+                            success = false,
+                            message = "Failed to update exam."
+                        });
+                    }else
+                    {
+                        return Ok(new
+                        {
+                            success = true,
+                            message = "User updated successfully.",
+                            data = updateUser
+                        });
+                    }                  
                 }
             }
             catch (Exception ex)
