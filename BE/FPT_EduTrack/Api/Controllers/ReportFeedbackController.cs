@@ -1,5 +1,6 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
+using FPT_EduTrack.BusinessLayer.DTOs.Update;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Repositories;
@@ -72,6 +73,51 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
             return CreatedAtAction(nameof(GetReportFeedbackById), new { id = feedback.Id }, feedback);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ReportFeedbackResponse>> UpdateReportFeedback(int id, [FromBody] ReportFeedbackUpdate request)
+        {
+            var existingFeedback = await _reportFeedbackService.GetByIdAsync(id);
+            if(existingFeedback == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Feedback not existed"
+                });
+            }
+
+            var updateFeedback = await _reportFeedbackService.UpdateAsync(id, request);
+            if(updateFeedback == null)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Cannot update feedback"
+                });
+            }
+            return Ok(updateFeedback);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteReportFeedback(int id)
+        {
+            var existingFeedback = await _reportFeedbackService.GetByIdAsync(id);
+            if (existingFeedback == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Feedback not existed"
+                });
+            }
+            await _reportFeedbackService.DeleteAsync(id);
+            return Ok(new
+            {
+                success = true,
+                message = "Delete feedback successfully"
+            });
         }
     }
 }
