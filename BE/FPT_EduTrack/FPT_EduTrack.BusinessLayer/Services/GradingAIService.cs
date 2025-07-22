@@ -62,6 +62,14 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         string filename = Guid.NewGuid().ToString() + extension;
                         uploadedGuidelineFileNames.Add(filename);
                         gradingGuide = await _parseService.ReadFileAsync(file);
+                        if (string.IsNullOrWhiteSpace(gradingGuide))
+                        {
+                            return new GradingAIResponse
+                            {
+                                Success = false,
+                                Grading = new GradingResponse { Justification = "Error reading guideline file" }
+                            };
+                        }
                     }
                 }
 
@@ -102,6 +110,11 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         if (string.IsNullOrWhiteSpace(studentEssays))
                         {
                             _logger.LogWarning($"Student essay content is empty for file: {file.FileName}");
+                            return new GradingAIResponse
+                            {
+                                Success = false,
+                                Grading = new GradingResponse { Justification = "Error reading test file" }
+                            };
                         }
                     }
                 }
