@@ -139,25 +139,6 @@ public partial class FptEduTrackContext : DbContext
             entity.HasOne(d => d.MeetingStatus).WithMany(p => p.Meetings)
                 .HasForeignKey(d => d.MeetingStatusId)
                 .HasConstraintName("FK__Meetings__meetin__797309D9");
-
-            //entity.HasMany(d => d.Users).WithMany(p => p.Meetings)
-            //    .UsingEntity<Dictionary<string, object>>(
-            //        "MeetingsDetail",
-            //        r => r.HasOne<User>().WithMany()
-            //            .HasForeignKey("UserId")
-            //            .OnDelete(DeleteBehavior.ClientSetNull)
-            //            .HasConstraintName("FK__Meetings___user___7D439ABD"),
-            //        l => l.HasOne<Meeting>().WithMany()
-            //            .HasForeignKey("MeetingId")
-            //            .OnDelete(DeleteBehavior.ClientSetNull)
-            //            .HasConstraintName("FK__Meetings___meeti__7C4F7684"),
-            //        j =>
-            //        {
-            //            j.HasKey("MeetingId", "UserId").HasName("PK__Meetings__2C22FFDB6A6F7074");
-            //            j.ToTable("Meetings_Detail");
-            //            j.IndexerProperty<int>("MeetingId").HasColumnName("meeting_id");
-            //            j.IndexerProperty<int>("UserId").HasColumnName("user_id");
-            //        });
             entity.HasMany(e => e.MeetingDetails)
             .WithOne(md => md.Meeting)
             .HasForeignKey(md => md.MeetingId);

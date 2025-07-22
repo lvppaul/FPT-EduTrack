@@ -79,16 +79,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return ExamMapper.MapToDTO(updated);
         }
 
-        public async Task<List<ExamResponse>> GetPaginatedAsync(int pageNumber)
-        {
-            int pageSize = 10;
-            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
-            var pagedExams = exams.Skip((pageNumber - 1) * pageSize)
-                                  .Take(pageSize)
-                                  .ToList();
-            return pagedExams.Select(ExamMapper.MapToDTO).ToList();
-        }
-
         public async Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status)
         {
             var exams = await _unitOfWork.ExamRepository.GetAllAsync();
