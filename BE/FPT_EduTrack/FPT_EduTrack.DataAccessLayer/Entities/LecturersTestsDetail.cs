@@ -13,6 +13,8 @@ public partial class LecturersTestsDetail
 
     public string? Reason { get; set; }
 
+    public bool? isGrading { get; set; } = true;
+
     public virtual User Lecturer { get; set; } = null!;
 
     public virtual Test Test { get; set; } = null!;

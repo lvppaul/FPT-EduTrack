@@ -22,7 +22,6 @@ public partial class FptEduTrackContext : DbContext
     public virtual DbSet<LecturersTestsDetail> LecturersTestsDetails { get; set; }
 
     public virtual DbSet<Meeting> Meetings { get; set; }
-
     public virtual DbSet<MeetingsStatus> MeetingsStatuses { get; set; }
 
     public virtual DbSet<Report> Reports { get; set; }
@@ -41,10 +40,6 @@ public partial class FptEduTrackContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
-    //    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    //#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-    //        => optionsBuilder.UseSqlServer("Data Source=MINQAN141104\\SQLEXPRESS;Initial Catalog= FPT_EduTrack;Persist Security Info=True;User ID=sa;Password=12345;Encrypt=False");
-
     private string GetConnectionString()
     {
         IConfiguration configuration = new ConfigurationBuilder()
@@ -60,20 +55,27 @@ public partial class FptEduTrackContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Exam>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Exams__3213E83FEB161B15");
+            entity.HasKey(e => e.Id).HasName("PK__Exams__3213E83FFCBF6A48");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
+            entity.Property(e => e.Duration).HasColumnName("duration");
+            entity.Property(e => e.IsDeleted)
+                .HasDefaultValue(false)
+                .HasColumnName("is_deleted");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("created_at");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasColumnName("status");
             entity.Property(e => e.ExaminerId).HasColumnName("examiner_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
@@ -86,7 +88,7 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<LecturersTestsDetail>(entity =>
         {
-            entity.HasKey(e => new { e.TestId, e.LecturerId }).HasName("PK__Lecturer__FEB201A93F23EBBF");
+            entity.HasKey(e => new { e.TestId, e.LecturerId }).HasName("PK__Lecturer__FEB201A960272DB1");
 
             entity.ToTable("Lecturers_Tests_Detail");
 
@@ -94,6 +96,7 @@ public partial class FptEduTrackContext : DbContext
             entity.Property(e => e.LecturerId).HasColumnName("lecturer_id");
             entity.Property(e => e.Reason).HasColumnName("reason");
             entity.Property(e => e.Score).HasColumnName("score");
+            entity.Property(e => e.isGrading).HasColumnName("is_grading");
 
             entity.HasOne(d => d.Lecturer).WithMany(p => p.LecturersTestsDetails)
                 .HasForeignKey(d => d.LecturerId)
@@ -108,11 +111,9 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<Meeting>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Meetings__3213E83F1F62A409");
+            entity.HasKey(e => e.Id).HasName("PK__Meetings__3213E83FDDFCD55F");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -121,6 +122,15 @@ public partial class FptEduTrackContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
             entity.Property(e => e.Link).HasColumnName("link");
+            entity.Property(e => e.GoogleMeetingId)
+                .HasMaxLength(100)
+                .HasColumnName("meeting_gg_id");
+            entity.Property(e => e.StartTime)
+            .HasColumnType("datetime")
+                .HasColumnName("start_time");
+            entity.Property(e => e.EndTime)
+                .HasColumnType("datetime")
+                .HasColumnName("end_time");
             entity.Property(e => e.MeetingStatusId).HasColumnName("meeting_status_id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
@@ -130,35 +140,53 @@ public partial class FptEduTrackContext : DbContext
                 .HasForeignKey(d => d.MeetingStatusId)
                 .HasConstraintName("FK__Meetings__meetin__797309D9");
 
-            entity.HasMany(d => d.Users).WithMany(p => p.Meetings)
-                .UsingEntity<Dictionary<string, object>>(
-                    "MeetingsDetail",
-                    r => r.HasOne<User>().WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Meetings___user___7D439ABD"),
-                    l => l.HasOne<Meeting>().WithMany()
-                        .HasForeignKey("MeetingId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__Meetings___meeti__7C4F7684"),
-                    j =>
-                    {
-                        j.HasKey("MeetingId", "UserId").HasName("PK__Meetings__2C22FFDB591DD0A7");
-                        j.ToTable("Meetings_Detail");
-                        j.IndexerProperty<int>("MeetingId").HasColumnName("meeting_id");
-                        j.IndexerProperty<int>("UserId").HasColumnName("user_id");
-                    });
+            //entity.HasMany(d => d.Users).WithMany(p => p.Meetings)
+            //    .UsingEntity<Dictionary<string, object>>(
+            //        "MeetingsDetail",
+            //        r => r.HasOne<User>().WithMany()
+            //            .HasForeignKey("UserId")
+            //            .OnDelete(DeleteBehavior.ClientSetNull)
+            //            .HasConstraintName("FK__Meetings___user___7D439ABD"),
+            //        l => l.HasOne<Meeting>().WithMany()
+            //            .HasForeignKey("MeetingId")
+            //            .OnDelete(DeleteBehavior.ClientSetNull)
+            //            .HasConstraintName("FK__Meetings___meeti__7C4F7684"),
+            //        j =>
+            //        {
+            //            j.HasKey("MeetingId", "UserId").HasName("PK__Meetings__2C22FFDB6A6F7074");
+            //            j.ToTable("Meetings_Detail");
+            //            j.IndexerProperty<int>("MeetingId").HasColumnName("meeting_id");
+            //            j.IndexerProperty<int>("UserId").HasColumnName("user_id");
+            //        });
+            entity.HasMany(e => e.MeetingDetails)
+            .WithOne(md => md.Meeting)
+            .HasForeignKey(md => md.MeetingId);
+        });
+
+        modelBuilder.Entity<MeetingDetail>(entity =>
+        {
+            entity.ToTable("Meetings_Detail");
+
+            entity.HasKey(md => new { md.MeetingId, md.UserId });
+
+            entity.HasOne(md => md.Meeting)
+                .WithMany(m => m.MeetingDetails)
+                .HasForeignKey(md => md.MeetingId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(md => md.User)
+                .WithMany(u => u.MeetingDetails)
+                .HasForeignKey(md => md.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<MeetingsStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Meetings__3213E83FA0EEBA06");
+            entity.HasKey(e => e.Id).HasName("PK__Meetings__3213E83F10968B67");
 
             entity.ToTable("Meetings_Status");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -169,13 +197,11 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<Report>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Report__3213E83FC3963FDA");
+            entity.HasKey(e => e.Id).HasName("PK__Report__3213E83F976C4D9F");
 
             entity.ToTable("Report");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -209,13 +235,11 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<ReportFeedback>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Report_F__3213E83FF3548D39");
+            entity.HasKey(e => e.Id).HasName("PK__Report_F__3213E83F321DE8A4");
 
             entity.ToTable("Report_Feedbacks");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -241,13 +265,11 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<ReportFeedbackStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Report_F__3213E83F007109C9");
+            entity.HasKey(e => e.Id).HasName("PK__Report_F__3213E83F98424F8C");
 
             entity.ToTable("Report_Feedback_Status");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -258,13 +280,11 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<ReportStatus>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Report_S__3213E83F06C65F9C");
+            entity.HasKey(e => e.Id).HasName("PK__Report_S__3213E83FA0238267");
 
             entity.ToTable("Report_Status");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -275,11 +295,9 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Roles__3213E83F339AF7C0");
+            entity.HasKey(e => e.Id).HasName("PK__Roles__3213E83F8AFA5467");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsDeleted)
                 .HasDefaultValue(false)
                 .HasColumnName("is_deleted");
@@ -290,17 +308,19 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<Test>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tests__3213E83F52B570FE");
+            entity.HasKey(e => e.Id).HasName("PK__Tests__3213E83F3115D372");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Code)
                 .HasMaxLength(50)
                 .HasColumnName("code");
             entity.Property(e => e.Content).HasColumnName("content");
             entity.Property(e => e.Link).HasColumnName("link");
+            entity.Property(e => e.Score).HasColumnName("score");
             entity.Property(e => e.StudentId).HasColumnName("student_id");
+            entity.Property(e => e.ExamId).HasColumnName("exam_id");
+        
+            entity.Property(e => e.isDeleted).HasColumnName("is_deleted");
             entity.Property(e => e.Title)
                 .HasMaxLength(200)
                 .HasColumnName("title");
@@ -308,17 +328,18 @@ public partial class FptEduTrackContext : DbContext
             entity.HasOne(d => d.Student).WithMany(p => p.Tests)
                 .HasForeignKey(d => d.StudentId)
                 .HasConstraintName("FK__Tests__student_i__571DF1D5");
+            entity.HasOne(d => d.Exam).WithMany(p => p.Tests)
+                .HasForeignKey(d => d.ExamId)
+                .HasConstraintName("FK__Tests__exam_id__5AEE82B9");
         });
 
         modelBuilder.Entity<TestsScore>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tests_Sc__3213E83F7537D64A");
+            entity.HasKey(e => e.Id).HasName("PK__Tests_Sc__3213E83F455B4163");
 
             entity.ToTable("Tests_Score");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IsFinal)
                 .HasDefaultValue(false)
                 .HasColumnName("is_final");
@@ -332,13 +353,11 @@ public partial class FptEduTrackContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Users__3213E83FCCBFCA57");
+            entity.HasKey(e => e.Id).HasName("PK__Users__3213E83FAF6D8416");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__AB6E616489ADF442").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__AB6E6164A295357C").IsUnique();
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")

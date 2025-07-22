@@ -1,65 +1,236 @@
 import React from "react";
-import { TextField, Button, Typography, Paper } from "@mui/material";
-
+import { useState } from "react";
+import { TextField, Button } from "@mui/material";
+import { userLogin } from "../service/userService";
+import { useAuth } from "../context/AuthContext";
+import { validateLogin } from "../utils/validation";
 export default function SignInPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {}
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const { handleLogin } = useAuth();
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Ngăn chặn reload trang
+    setError(null);
+    setLoading(true);
+    const trimmedEmail = email.trim();
+    const validationErrors = validateLogin(trimmedEmail, password);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      setLoading(false);
+      return;
+    }
+
+    setErrors({});
+
+    try {
+      const { accessToken, refreshToken } = await userLogin(
+        trimmedEmail,
+        password
+      );
+
+      handleLogin(accessToken, refreshToken);
+    } catch (error: unknown) {
+      // Hiển thị message từ API hoặc error message
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Đăng nhập thất bại. Vui lòng thử lại.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Paper elevation={3} className="w-full max-w-4xl flex">
-        {/* Left Side - Form */}
-        <div className="w-1/2 p-10">
-          <Typography variant="h4" className="font-semibold mb-6 text-center">
-            Sign In
-          </Typography>
-          <form className="flex flex-col space-y-4">
-            <TextField label="Email" variant="outlined" fullWidth />
-            <TextField
-              label="Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-            />
-            <div className="text-sm text-gray-500 grid grid-cols-2 gap-2">
-              <div>• Use 8 or more characters</div>
-              <div>• Use upper and lower case letters (e.g. Aa)</div>
-              <div>• Use a number (e.g. 1234)</div>
-              <div>• Use a symbol (e.g. #$%)</div>
-            </div>
-            <Button
-              type="submit"
-              variant="contained"
-              className="!bg-black hover:!bg-gray-800 text-white rounded-full py-2"
-            >
-              Sign in
-            </Button>
-          </form>
-          <Typography variant="body2" className="mt-4 text-center">
-            Already have an account?{" "}
-            <span className="text-black font-semibold cursor-pointer">
-              Sign in
-            </span>
-          </Typography>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand Section */}
+        <div className="text-center mb-8">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <span className="text-white text-2xl font-bold">FPT</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-600">Sign in to your FPT EduTrack account</p>
         </div>
 
-        {/* Right Side - Features */}
-        <div className="w-1/2 bg-gray-50 p-10 flex flex-col justify-center">
-          <img
-            src="https://via.placeholder.com/300x150.png?text=Illustration"
-            alt="illustration"
-            className="mx-auto mb-6"
-          />
-          <Typography variant="h6" className="mb-4 font-semibold">
-            Some features:
-          </Typography>
-          <ul className="text-gray-700 space-y-2 text-sm list-disc pl-5">
-            <li>The system provides a tool to help grade assignment.</li>
-            <li>The system provides user-friendly interface.</li>
-            <li>The system provides convenient management features.</li>
-            <li>
-              The system provides the contact between students and lecturers.
-            </li>
-          </ul>
+        {/* Login Card */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className="p-8">
+            <form onSubmit={onSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div className="space-y-2">
+                <TextField
+                  label="Email Address"
+                  variant="outlined"
+                  fullWidth
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError(null); // Clear error khi user nhập lại
+                  }}
+                  error={!!errors.email}
+                  helperText={errors.email}
+                  autoFocus
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc",
+                      "&:hover": {
+                        backgroundColor: "#f1f5f9",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <TextField
+                  label="Password"
+                  type="password"
+                  variant="outlined"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError(null); // Clear error khi user nhập lại
+                  }}
+                  fullWidth
+                  error={!!errors.password}
+                  helperText={errors.password}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "12px",
+                      backgroundColor: "#f8fafc",
+                      "&:hover": {
+                        backgroundColor: "#f1f5f9",
+                      },
+                      "&.Mui-focused": {
+                        backgroundColor: "white",
+                      },
+                    },
+                  }}
+                />
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  />
+                  <label
+                    htmlFor="rememberMe"
+                    className="ml-2 text-sm text-gray-700 select-none"
+                  >
+                    Remember me
+                  </label>
+                </div>
+                <a
+                  href="/forgot-password"
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                >
+                  Forgot password?
+                </a>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)",
+                  borderRadius: "12px",
+                  padding: "12px 0",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  textTransform: "none",
+                  boxShadow: "0 4px 14px 0 rgba(59, 130, 246, 0.3)",
+                  "&:hover": {
+                    background:
+                      "linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)",
+                    boxShadow: "0 6px 20px 0 rgba(59, 130, 246, 0.4)",
+                  },
+                  "&:disabled": {
+                    background: "#d1d5db",
+                    boxShadow: "none",
+                  },
+                }}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Signing in...
+                  </div>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="w-5 h-5 text-red-400 mt-0.5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-red-800">
+                      Đăng nhập thất bại
+                    </h3>
+                    <p className="text-sm text-red-700 mt-1">{error}</p>
+                  </div>
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Footer */}
+          <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
+            <p className="text-center text-sm text-gray-600">
+              Need help? Contact{" "}
+              <a
+                href="#"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                IT Support
+              </a>
+            </p>
+          </div>
         </div>
-      </Paper>
+
+        {/* Additional Info */}
+        <div className="text-center mt-6">
+          <p className="text-xs text-gray-500">
+            © 2025 FPT Education. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
