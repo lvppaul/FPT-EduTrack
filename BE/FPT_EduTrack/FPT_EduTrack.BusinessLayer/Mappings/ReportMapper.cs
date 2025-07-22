@@ -16,8 +16,6 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
         {
             if (report == null) return null;
 
-            var lecturerDetail = report.Test?.LecturersTestsDetails.FirstOrDefault();
-
             return new ReportDataResponse
             {
                 Id = report.Id,
@@ -63,6 +61,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             if (request == null || report == null) return;
             report.Title = request.Title;
             report.Content = request.Content;
+            report.ReportStatusId = request.ReportStatusId;
         }
     }
 }

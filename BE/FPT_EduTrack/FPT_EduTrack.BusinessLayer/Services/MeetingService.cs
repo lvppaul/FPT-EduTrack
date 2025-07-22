@@ -1,4 +1,5 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
+using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
 using FPT_EduTrack.DataAccessLayer.Entities;
@@ -174,7 +175,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return eventResponse;
         }
 
-        public async Task<List<EventResponse>> GetEventsOrganizeAsync(string organizerEmail)
+        public async Task<List<MeetingResponse>> GetEventsOrganizeAsync(string organizerEmail)
         {
             try
             {
@@ -197,7 +198,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
                 if (string.IsNullOrEmpty(itemsJson))
                 {
-                    return new List<EventResponse>();
+                    return new List<MeetingResponse>();
                 }
 
                 var allEvents = JsonConvert.DeserializeObject<List<EventResponse>>(itemsJson);
@@ -213,23 +214,34 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
                 if (!googleEventIds.Any())
                 {
-                    return new List<EventResponse>();
+                    return new List<MeetingResponse>();
                 }
 
                 var meetingsInDb = await _unitOfWork.MeetingRepository.GetMeetingsByGoogleIdsAsync(googleEventIds);
                 var meetingIdSet = new HashSet<string>(meetingsInDb.Select(m => m.GoogleMeetingId));
 
-                var listEvent = organizerEvents
-                    .Where(e => meetingIdSet.Contains(e.Id))
+                var validMeetings = meetingsInDb
+                    .Where(m => meetingIdSet.Contains(m.GoogleMeetingId))
                     .ToList();
 
-                return listEvent;
+                var meetingResponses = validMeetings.Select(m => new MeetingResponse
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    CreatedAt = m.CreatedAt,
+                    Link = m.Link,
+                    MeetingStatusId = m.MeetingStatusId,
+                    MeetingStatusName = m.MeetingStatus?.Name
+                }).ToList();
+
+                return meetingResponses;
             }
             catch (Exception ex)
             {
                 throw new Exception($"Error retrieving events for organizer '{organizerEmail}': {ex.Message}", ex);
             }
         }
+
 
         public async Task<bool> DeleteMeetingAsync(string meetingId, string organizerEmail)
         {
