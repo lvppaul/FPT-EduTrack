@@ -50,7 +50,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-        public override async Task<List<Exam>> GetAllAsync()
+        public async Task<List<Exam>> GetAllAsync(Pagination pagination)
         {
             return await _context.Exams
                 .Include(m => m.Examiner)
@@ -59,6 +59,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                         .Include(e => e.Tests)
                 .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(ltd => ltd.Lecturer).ThenInclude(l => l.Role)
                 .Where(m => m.IsDeleted != true)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
                 .ToListAsync();
         }
 
