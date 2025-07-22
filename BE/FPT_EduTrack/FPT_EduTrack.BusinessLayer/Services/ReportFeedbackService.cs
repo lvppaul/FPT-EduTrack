@@ -25,7 +25,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             var feedback = ReportFeedbackMapper.ToEntity(request);
             await _unitOfWork.ReportFeedbackRepository.CreateAsync(feedback);
-            await _unitOfWork.SaveAsync();
             return feedback.ToResponse();
         }
 
@@ -36,8 +35,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
             {
                 throw new KeyNotFoundException($"Feedback with ID {id} not found.");
             }
-            await _unitOfWork.ReportFeedbackRepository.UpdateAsync(feedback);
-            await _unitOfWork.SaveAsync();
+            await _unitOfWork.ReportFeedbackRepository.DeleteAsync(id);
         }
 
         public async Task<IEnumerable<ReportFeedbackResponse>> GetAllAsync(Pagination pagination)
@@ -69,7 +67,6 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
             update.ToUpdate(existingFeedback);
             await _unitOfWork.ReportFeedbackRepository.UpdateAsync(existingFeedback);
-            await _unitOfWork.SaveAsync();
             return existingFeedback.ToResponse();
         }
     }
