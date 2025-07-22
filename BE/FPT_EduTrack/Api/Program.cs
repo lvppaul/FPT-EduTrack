@@ -70,6 +70,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IReportFeedbackService, ReportFeedbackService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IMeetingService, MeetingService>();
 builder.Services.AddScoped<ITestService, TestService>();
