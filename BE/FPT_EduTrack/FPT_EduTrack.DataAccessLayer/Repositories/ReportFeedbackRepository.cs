@@ -23,7 +23,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task DeleteAsync(int id)
         {
-            var feedback = GetByIdAsync(id);
+            var feedback = await GetByIdAsync(id);
             if(feedback != null)
             {
                 _context.Remove(feedback);
@@ -33,7 +33,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task EditAsync(int id, ReportFeedback reportFeedback)
         {
-            var feedback = GetByIdAsync(id);
+            var feedback = await GetByIdAsync(id);
             if (feedback != null)
             {
                 reportFeedback.Id = id;

@@ -61,6 +61,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
             if (request == null || report == null) return;
             report.Title = request.Title;
             report.Content = request.Content;
+            report.ReportStatusId = request.ReportStatusId;
         }
     }
 }

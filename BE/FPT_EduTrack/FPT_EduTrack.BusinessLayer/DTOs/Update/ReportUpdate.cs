@@ -12,5 +12,6 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Update
         [Required(ErrorMessage = "Title is required")]
         public string? Title { get; set; }
         public string? Content { get; set; }
+        public int? ReportStatusId { get; set; }
     }
 }
