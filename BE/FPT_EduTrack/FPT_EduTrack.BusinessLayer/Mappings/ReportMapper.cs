@@ -12,11 +12,11 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
 {
     public static class ReportMapper
     {
-        public static ReportDataResponse ToResponse(this Report report)
+        public static ReportResponse ToResponse(this Report report)
         {
             if (report == null) return null;
 
-            return new ReportDataResponse
+            return new ReportResponse
             {
                 Id = report.Id,
                 Title = report.Title ?? string.Empty,
@@ -25,20 +25,16 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 IsSecond = report.IsSecond ?? false,
                 IsDeleted = report.IsDeleted ?? false,
                 StudentId = report.StudentId,
-                StudentName = report.Student?.Fullname ?? string.Empty,
-                StudentEmail = report.Student?.Email ?? string.Empty,
-                ReportStatusId = report.ReportStatusId,
+                Student = report.Student.ToResponse(),
                 TestId = report.TestId,
-                TestCode = report.Test?.Code ?? string.Empty,
-                TestTitle = report.Test?.Title ?? string.Empty,
-                TestContent = report.Test?.Content ?? string.Empty,
-                TestLink = report.Test?.Link ?? string.Empty
+                Test = report.Test.ToResponse(),
+                ReportStatusId = report.ReportStatusId
             };
         }
 
-        public static List<ReportDataResponse> ToDtoList(this IEnumerable<Report> reports)
+        public static List<ReportResponse> ToDtoList(this IEnumerable<Report> reports)
         {
-            return reports?.Select(r => r.ToResponse()).ToList() ?? new List<ReportDataResponse>();
+            return reports?.Select(r => r.ToResponse()).ToList() ?? new List<ReportResponse>();
         }
 
         public static Report ToEntity(this ReportRequest request)

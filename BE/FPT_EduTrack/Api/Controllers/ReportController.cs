@@ -41,15 +41,13 @@ namespace FPT_EduTrack.Api.Controllers
 
             var listReport = await _reportService.GetAllAsync();
 
-            var response = new ReportResponse
+            return Ok(new
             {
-
-                Success = true,
-                Message = "Reports retrieved successfully.",
-                Data = listReportPagination,
-                Count = listReport.Count()
-            };
-            return Ok(response);
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
+            });
         }
 
         [HttpGet("{id}")]
@@ -65,22 +63,20 @@ namespace FPT_EduTrack.Api.Controllers
                     message = $"Report with ID {id} not found."
                 });
             }
-            var response = new ReportResponse
+            return Ok(new
             {
-
-                Success = true,
-                Message = "Reports retrieved successfully.",
-                Data = new List<ReportDataResponse> { report },
-                Count = 1
-            };
-            return Ok(response);
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = report,
+                count = 1
+            });
         }
 
         [HttpGet("student-reports/{studentId}")]
         public async Task<ActionResult<ReportResponse>> GetReportByStudentId(int studentId, [FromQuery] Pagination pagination)
         {
-            var listReport = await _reportService.GetReportByStudentId(studentId, pagination);
-            if(listReport == null)
+            var listReportPagination = await _reportService.GetReportByStudentIdPaginationAsync(studentId, pagination);
+            if(listReportPagination == null)
             {
                 return NotFound(new
                 {
@@ -88,21 +84,46 @@ namespace FPT_EduTrack.Api.Controllers
                     message = $"Student hasn't create any report"
                 });
             }
-            var response = new ReportResponse
+
+            var listReport = await _reportService.GetReportByStudentIdAsync(studentId);
+
+            return Ok(new
             {
-                Success = true,
-                Message = "Reports retrieved successfully.",
-                Data = listReport,
-                Count = listReport.Count()
-            };
-            return Ok(response);
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
+            });
+        }
+
+        [HttpGet("report/{statusId}")]
+        public async Task<ActionResult<ReportResponse>> GetReportByStatusPaginationAsync(int statusId, [FromQuery] Pagination pagination)
+        {
+            var listReportPagination = await _reportService.GetReportByStatusPaginationAsync(statusId, pagination);
+            if (listReportPagination == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"No report of status"
+                });
+            }
+            var listReport = await _reportService.GetReportByStatusAsync(statusId);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
+            });
         }
 
         [HttpPost("student-report-exam")]
-        public async Task<ActionResult<ReportResponse>> GetStudentReportExam([FromBody] GetReportInExam reportForm)
+        public async Task<ActionResult<ReportResponse>> GetStudentReportExam([FromBody] GetReportInExam reportForm, [FromQuery]Pagination pagination)
         {
-            var report = await _reportService.GetReportByStudentAndTest(reportForm.StudentId, reportForm.TestId);
-            if (report == null)
+            var listReportPagination = await _reportService.GetReportByStudentAndTestPaginationAsync(reportForm.StudentId, reportForm.TestId, pagination);
+            if (listReportPagination == null)
             {
                 return NotFound(new
                 {
@@ -110,15 +131,16 @@ namespace FPT_EduTrack.Api.Controllers
                     message = $"No report found!"
                 });
             }
-            var response = new ReportResponse
-            {
 
-                Success = true,
-                Message = "Reports retrieved successfully.",
-                Data = new List<ReportDataResponse> { report },
-                Count = 1
-            };
-            return Ok(response);
+            var listReport = await _reportService.GetReportByStudentAndTestAsync(reportForm.StudentId, reportForm.TestId);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = 1
+            });
         }
 
         [HttpPost]

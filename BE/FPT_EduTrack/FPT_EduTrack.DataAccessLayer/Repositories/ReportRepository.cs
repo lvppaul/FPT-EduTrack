@@ -92,7 +92,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId, Pagination pagination)
+        public async Task<List<Report>> GetReportsByStudentIdPaginationAsync(int studentId, Pagination pagination)
         {
             return await _context.Reports
                 .Where(r => r.StudentId == studentId && r.IsDeleted != true)
@@ -110,6 +110,52 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .ThenInclude(t => t.LecturersTestsDetails)
                         .ThenInclude(ld => ld.Lecturer)
                 .FirstOrDefaultAsync(r => r.StudentId == studentId && r.TestId == testId && r.IsDeleted != true);
+        }
+
+        public async Task<List<Report>> GetReportsByStudentIdAsync(int studentId)
+        {
+            return await _context.Reports
+                .Where(r => r.StudentId == studentId && r.IsDeleted != true)
+                .ToListAsync();
+        }
+
+        public async Task<Report> GetReportByStudentAndTestPaginationAsync(int studentId, int testId, Pagination pagination)
+        {
+            return await _context.Reports
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .FirstOrDefaultAsync(r => r.StudentId == studentId && r.TestId == testId && r.IsDeleted != true);
+        }
+
+        public async Task<List<Report>> GetReportByStatusAsync(int statusId)
+        {
+            return await _context.Reports
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
+                .Where(r => r.ReportStatus.Id == statusId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Report>> GetReportByStatusPaginationAsync(int statusId, Pagination pagination)
+        {
+            return await _context.Reports
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails)
+                        .ThenInclude(ld => ld.Lecturer)
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .Where(r => r.ReportStatus.Id == statusId)
+                .ToListAsync();
         }
     }
 }

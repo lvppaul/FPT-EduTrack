@@ -15,27 +15,27 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<IEnumerable<ReportDataResponse>> GetAllPaginationAsync(Pagination pagination)
+        public async Task<IEnumerable<ReportResponse>> GetAllPaginationAsync(Pagination pagination)
         {
             var reports = await _unitOfWork.ReportRepository.GetAllPaginationAsync(pagination);
             if (reports == null || !reports.Any())
             {
-                return new List<ReportDataResponse>();
+                return new List<ReportResponse>();
             }
             return reports.Select(ReportMapper.ToResponse).ToList();
         }
 
-        public async Task<IEnumerable<ReportDataResponse>> GetAllAsync()
+        public async Task<IEnumerable<ReportResponse>> GetAllAsync()
         {
             var reports = await _unitOfWork.ReportRepository.GetAllAsync();
             if (reports == null || !reports.Any())
             {
-                return new List<ReportDataResponse>();
+                return new List<ReportResponse>();
             }
             return reports.Select(ReportMapper.ToResponse).ToList();
         }
 
-        public async Task<ReportDataResponse> GetByIdAsync(int id)
+        public async Task<ReportResponse> GetByIdAsync(int id)
         {
             var report = await _unitOfWork.ReportRepository.GetByIdAsync(id);
             if (report == null)
@@ -44,14 +44,14 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
             return report.ToResponse();
         }
-        public async Task<ReportDataResponse> CreateAsync(ReportRequest reportRequest)
+        public async Task<ReportResponse> CreateAsync(ReportRequest reportRequest)
         {
             var report = ReportMapper.ToEntity(reportRequest);
             await _unitOfWork.ReportRepository.CreateAsync(report);
             await _unitOfWork.SaveAsync();
             return report.ToResponse();
         }
-        public async Task<ReportDataResponse> EditAsync(int id, ReportUpdate report)
+        public async Task<ReportResponse> EditAsync(int id, ReportUpdate report)
         {
             var existingReport = await _unitOfWork.ReportRepository.GetByIdAsync(id);
             if (existingReport == null)
@@ -76,17 +76,27 @@ namespace FPT_EduTrack.BusinessLayer.Services
             await _unitOfWork.SaveAsync();
         }
 
-        public async Task<IEnumerable<ReportDataResponse>> GetReportByStudentId(int studentId, Pagination pagination)
+        public async Task<IEnumerable<ReportResponse>> GetReportByStudentIdAsync(int studentId)
         {
-            var reports = await _unitOfWork.ReportRepository.GetReportsByStudentIdAsync(studentId, pagination);
+            var reports = await _unitOfWork.ReportRepository.GetReportsByStudentIdAsync(studentId);
             if (reports == null || !reports.Any())
             {
-                return new List<ReportDataResponse>();
+                return new List<ReportResponse>();
             }
             return reports.Select(ReportMapper.ToResponse).ToList();
         }
 
-        public async Task<ReportDataResponse> GetReportByStudentAndTest(int studentId, int testId)
+        public async Task<IEnumerable<ReportResponse>> GetReportByStudentIdPaginationAsync(int studentId, Pagination pagination)
+        {
+            var reports = await _unitOfWork.ReportRepository.GetReportsByStudentIdPaginationAsync(studentId, pagination);
+            if (reports == null || !reports.Any())
+            {
+                return new List<ReportResponse>();
+            }
+            return reports.Select(ReportMapper.ToResponse).ToList();
+        }
+
+        public async Task<ReportResponse> GetReportByStudentAndTestAsync(int studentId, int testId)
         {
             var report = await _unitOfWork.ReportRepository.GetReportByStudentAndTestAsync(studentId, testId);
             if(report == null)
@@ -94,6 +104,36 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw new KeyNotFoundException($"Report not found.");
             }
             return report.ToResponse();
+        }
+
+        public async Task<ReportResponse> GetReportByStudentAndTestPaginationAsync(int studentId, int testId, Pagination pagination)
+        {
+            var report = await _unitOfWork.ReportRepository.GetReportByStudentAndTestPaginationAsync(studentId, testId, pagination);
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report not found.");
+            }
+            return report.ToResponse();
+        }
+
+        public async Task<IEnumerable<ReportResponse>> GetReportByStatusAsync(int statusId)
+        {
+            var listReport = await _unitOfWork.ReportRepository.GetReportByStatusAsync(statusId);
+            if (listReport == null)
+            {
+                throw new KeyNotFoundException($"Reports not found.");
+            }
+            return listReport.ToDtoList();
+        }
+
+        public async Task<IEnumerable<ReportResponse>> GetReportByStatusPaginationAsync(int statusId, Pagination pagination)
+        {
+            var listReport = await _unitOfWork.ReportRepository.GetReportByStatusPaginationAsync(statusId, pagination);
+            if (listReport == null)
+            {
+                throw new KeyNotFoundException($"Report not found.");
+            }
+            return listReport.ToDtoList();
         }
     }
 }
