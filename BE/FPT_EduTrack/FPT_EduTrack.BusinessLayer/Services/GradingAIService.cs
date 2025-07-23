@@ -205,19 +205,29 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var cleanedContent = _parseService.ParseLangflowResponse(responseContent);
-
-                    return new GradingAIResponse
+                    var gradingResponse = _parseService.ParseLangflowResponse(responseContent);
+                    if (gradingResponse == null)
                     {
-                        Success = true,
-                        Grading = cleanedContent,
-                        GuidelineFilesProcessed = uploadedGuidelineFileNames.Count,
-                        GuidelineUploadedFiles = uploadedGuidelineFileNames,
-                        OriginalGuidelineFileNames = request.GuidelineFiles?.Select(f => f.FileName).ToArray() ?? new string[0],
-                        TestFilesProcessed = uploadedTestFileNames.Count,
-                        TestUploadedFiles = uploadedTestFileNames,
-                        OriginalTestFileNames = request.TestFiles?.Select(f => f.FileName).ToArray() ?? new string[0]
-                    };
+                        return new GradingAIResponse
+                        {
+                            Success = false,
+                            Grading = new GradingResponse { Justification = $"Parsing Response failed" }
+                        };
+                    }
+                    else
+                    {
+                        return new GradingAIResponse
+                        {
+                            Success = true,
+                            Grading = gradingResponse,
+                            GuidelineFilesProcessed = uploadedGuidelineFileNames.Count,
+                            GuidelineUploadedFiles = uploadedGuidelineFileNames,
+                            OriginalGuidelineFileNames = request.GuidelineFiles?.Select(f => f.FileName).ToArray() ?? new string[0],
+                            TestFilesProcessed = uploadedTestFileNames.Count,
+                            TestUploadedFiles = uploadedTestFileNames,
+                            OriginalTestFileNames = request.TestFiles?.Select(f => f.FileName).ToArray() ?? new string[0]
+                        };
+                    }
                 }
                 else
                 {
