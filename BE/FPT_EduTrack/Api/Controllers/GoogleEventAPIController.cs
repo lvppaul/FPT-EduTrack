@@ -29,16 +29,16 @@ namespace FPT_EduTrack.Api.Controllers
             _templateService = templateService;
         }
 
-        [HttpGet("event/{eventId}")]
-        public async Task<IActionResult> GetEventById(string eventId)
+        [HttpGet("event/{meetingId}")]
+        public async Task<IActionResult> GetEventById(int meetingId)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(organizerEmail))
                 return Unauthorized("Email claim not found in token");
 
-            var response = await this.meetingService.GetEventByIdAsync(organizerEmail, eventId);
+            var response = await this.meetingService.GetEventByMeetingIdAsync(organizerEmail, meetingId);
             if (response == null)
-                return NotFound(new { success = false, message = $"Event {eventId} not found." });
+                return NotFound(new { success = false, message = $"Meeting id {meetingId} not found." });
             return Ok(new { success = true, data = response });
         }
 

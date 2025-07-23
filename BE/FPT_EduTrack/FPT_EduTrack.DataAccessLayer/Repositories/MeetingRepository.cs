@@ -63,5 +63,14 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Meeting?> GetMeetingByIdAsync(int id)
+        {
+            return await _context.Meetings
+                .Where(m => m.Id == id && m.IsDeleted != true)
+                .Include(m => m.MeetingDetails)
+                    .ThenInclude(md => md.User)
+                .Include(m => m.MeetingStatus)
+                .FirstOrDefaultAsync();
+        }
     }
 }

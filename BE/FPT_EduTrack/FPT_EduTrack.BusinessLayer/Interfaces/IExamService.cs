@@ -18,5 +18,6 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<bool> DeleteAsync(int id);
         Task<List<ExamResponse>> GetExamsByUserIdAsync(int userId);
         Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status);
+        Task<int> GetTotalExamCountAsync();
     }
 }
