@@ -533,5 +533,47 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw new Exception($"Error retrieving tests for exam ID {examId} and lecturer ID {lecturerId}", ex);
             }
         }
+
+        public async Task<List<TestResponse>> GetCurrentExamTestAsync(int status, int pageSize, int pageNumber)
+        {
+            try
+            {
+                if (pageSize <= 0)
+                    throw new ArgumentException("Page size must be greater than 0");
+                
+                if (pageNumber <= 0)
+                    throw new ArgumentException("Page number must be greater than 0");
+
+                // Get all tests with their exams
+                var tests = await _unitOfWork.TestRepository.GetTestsAsync();
+                if (tests == null || !tests.Any())
+                    return new List<TestResponse>();
+
+                // Filter tests based on exam status - exclude Cancelled, Postponed, Completed
+                var excludedStatuses = new List<string>
+                {
+                    ExamStatus.Cancelled.ToString(),
+                    ExamStatus.Postponed.ToString(),
+                    ExamStatus.Completed.ToString()
+                };
+
+                var filteredTests = tests
+                    .Where(t => t.Exam != null && 
+                               !t.isDeleted.GetValueOrDefault() &&
+                               !string.IsNullOrEmpty(t.Exam.Status) &&
+                               !excludedStatuses.Contains(t.Exam.Status))
+                    .OrderBy(t => t.Exam.CreatedAt ?? DateTime.MinValue) // Order by exam creation date, then by test ID
+                    .ThenBy(t => t.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return filteredTests.Select(TestMapper.ToResponse).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving current exam tests with pagination (PageSize: {pageSize}, PageNumber: {pageNumber})", ex);
+            }
+        }
     }
 }

@@ -17,10 +17,14 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<List<TestResponse>> GetTestResponsesByExamIdAndStudentIdAsync(int examId,int studentId);
         Task<List<TestResponse>> GetTestResponsesByExamIdAndLecturerIdIsGradingAsync(int examId, int lecturerId);
         Task<List<TestResponse>> GetTestsByStudentIdAsync(int studentId);
+      
         Task<TestResponse?> GetTestByIdAsync(int testId);
         Task<TestFileUploadResponse> UploadTestFilesAsync(TestFileUploadRequest request);
         Task<TestResponse> CreateTestWithFilesAsync(TestFileUploadRequest request);
         Task<TestUpdateResponse> UpdateTestAsync(TestUpdateRequest request);
         Task<bool> DeleteTestAsync(int testId);
+
+        //---------Examiner     ---------//
+        Task<List<TestResponse>> GetCurrentExamTestAsync(int status, int pageSize, int pageNumber);
     }
 }

@@ -604,6 +604,89 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         /// <summary>
+        /// Get current active exam tests with pagination
+        /// Returns tests from exams that are not Cancelled, Postponed, or Completed
+        /// </summary>
+        /// <param name="pageSize">Number of items per page (default: 10)</param>
+        /// <param name="pageNumber">Page number starting from 1 (default: 1)</param>
+        /// <returns>Paginated list of tests from active exams</returns>
+        [HttpGet]
+        [Route("tests/current-exams")]
+        public async Task<IActionResult> GetCurrentExamTests([FromQuery] int pageSize = 10, [FromQuery] int pageNumber = 1)
+        {
+            try
+            {
+                if (pageSize <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Page size must be greater than 0"
+                    });
+                }
+
+                if (pageNumber <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Page number must be greater than 0"
+                    });
+                }
+
+                var tests = await _testService.GetCurrentExamTestAsync(0, pageSize, pageNumber);
+
+                if (!tests.Any())
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "No tests found for current active exams",
+                        data = new List<object>(),
+                        pagination = new
+                        {
+                            pageNumber,
+                            pageSize,
+                            count = 0
+                        }
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Current exam tests retrieved successfully",
+                    data = tests,
+                    pagination = new
+                    {
+                        pageNumber,
+                        pageSize,
+                        count = tests.Count,
+                        hasMore = tests.Count == pageSize // Indicates if there might be more pages
+                    }
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving current exam tests with pagination (PageSize: {PageSize}, PageNumber: {PageNumber})", pageSize, pageNumber);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving current exam tests",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Validate document files without uploading
         /// </summary>
         /// <param name="files">Files to validate</param>
