@@ -74,5 +74,10 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(ltd => ltd.Lecturer).ThenInclude(l => l.Role)
                 .FirstOrDefaultAsync(m => m.Id == id && m.IsDeleted != true);
         }
+
+        public async Task<int> CountAsync()
+        {
+            return await _context.Exams.CountAsync(e => e.IsDeleted != true);
+        }
     }
 }

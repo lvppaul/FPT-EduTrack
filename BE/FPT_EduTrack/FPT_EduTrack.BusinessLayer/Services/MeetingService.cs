@@ -272,5 +272,16 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             return await _unitOfWork.MeetingRepository.GetMeetingAttendees(meetingId);
         }
+
+        public async Task<EventResponse> GetEventByMeetingIdAsync(string organizerEmail, int meetingId)
+        {
+            var meeting = await _unitOfWork.MeetingRepository.GetMeetingByIdAsync(meetingId);
+            if (meeting == null || string.IsNullOrEmpty(meeting.GoogleMeetingId))
+                throw new Exception($"Meeting with ID {meetingId} not found or has no Google Calendar event.");
+
+            var eventResponse = await GetEventByIdAsync(organizerEmail, meeting.GoogleMeetingId);
+
+            return eventResponse;
+        }
     }
 }

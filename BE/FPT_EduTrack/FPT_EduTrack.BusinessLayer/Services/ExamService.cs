@@ -52,6 +52,11 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return exams.Select(ExamMapper.MapToDTO).ToList();
         }
 
+        public async Task<int> GetTotalExamCountAsync()
+        {
+            return await _unitOfWork.ExamRepository.CountAsync();
+        }
+
         public async Task<ExamResponse?> GetExamByIdAsync(int id)
         {
             var exam = await _unitOfWork.ExamRepository.GetByIdAsync(id);
