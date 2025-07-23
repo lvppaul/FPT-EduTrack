@@ -18,9 +18,25 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   onItemsPerPageChange,
 }) => {
+  // Debug logging for server-side pagination
+  console.log("===== Pagination Component (Server-Side) =====");
+  console.log("Props received:", {
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    totalItems,
+  });
+  console.log("==============================================");
+
   const renderPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
+
+    console.log("renderPageNumbers called with:", {
+      currentPage,
+      totalPages,
+      maxVisiblePages,
+    });
 
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
@@ -28,6 +44,8 @@ const Pagination: React.FC<PaginationProps> = ({
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
+
+    console.log("Page calculation:", { startPage, endPage, totalPages });
 
     // First page
     if (startPage > 1) {
@@ -86,6 +104,8 @@ const Pagination: React.FC<PaginationProps> = ({
       );
     }
 
+    console.log("Final pages array will have", pages.length, "elements");
+    console.log("=====================================");
     return pages;
   };
 

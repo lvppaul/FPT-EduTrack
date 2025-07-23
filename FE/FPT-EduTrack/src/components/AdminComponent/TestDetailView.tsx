@@ -19,15 +19,6 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({ test, onBack }) => {
   // Pagination states for lecturers grading
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return "text-green-600";

@@ -1,33 +1,57 @@
-import React, { useEffect, useState } from "react";
-import { Plus, Search, Edit, Trash2, Eye } from "lucide-react";
-import type { ExamResponse, Exam } from "../../types/examType";
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  Plus,
+  CheckCircle,
+  AlertCircle,
+  X,
+} from "lucide-react";
+import type {
+  ExamResponse,
+  Exam,
+  ExamCreateRequest,
+} from "../../types/examType";
 import { getExams } from "../../service/examService";
 import { ExamStatus } from "../../enum/examStatus";
 import ExamDetailView from "./ExamDetailView";
+import CreateExamModal from "./CreateExamModal";
 import Pagination from "../Pagination";
+
 const ExamManagement: React.FC = () => {
   const [examsResponse, setExamsResponse] = useState<ExamResponse | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Tất cả");
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
   const [showDetail, setShowDetail] = useState(false);
 
-  // Pagination states
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  // Pagination states - server-side pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const fetchExams = async () => {
+  const fetchExams = useCallback(async () => {
     try {
-      const response = await getExams();
+      setIsLoading(true);
+      const response = await getExams(currentPage, itemsPerPage);
       setExamsResponse(response);
     } catch (error) {
       console.error("Failed to fetch exams:", error);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
     fetchExams();
-  }, []);
+  }, [fetchExams]);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -60,24 +84,53 @@ const ExamManagement: React.FC = () => {
     setSelectedExam(null);
   };
 
-  const filteredExams =
-    examsResponse?.data.filter((exam) => {
-      const matchesSearch =
-        exam.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exam.id.toString().includes(searchTerm);
-      const matchesStatus =
-        statusFilter === "Tất cả" || exam.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    }) || [];
+  // Modal handlers
+  const handleCreateExam = async (examData: ExamCreateRequest) => {
+    try {
+      setIsCreating(true);
+      // TODO: Replace with actual API call
+      console.log("Creating exam:", examData);
 
-  // Pagination logic
-  const totalItems = filteredExams.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedExams = filteredExams.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Show success notification
+      setNotification({
+        type: "success",
+        message: "Kỳ thi đã được tạo thành công!",
+      });
+
+      // Close modal and refresh data
+      setIsCreateModalOpen(false);
+      fetchExams();
+
+      // Auto hide notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      console.error("Failed to create exam:", error);
+      setNotification({
+        type: "error",
+        message: "Có lỗi xảy ra khi tạo kỳ thi. Vui lòng thử lại.",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  // Server-side pagination - no client-side filtering needed
+  const allExams = examsResponse?.data || [];
+
+  // For server-side pagination, get total from API response
+  const totalItems = examsResponse?.count || allExams.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+  // Display all exams from current page
+  const displayExams = allExams;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -107,47 +160,24 @@ const ExamManagement: React.FC = () => {
                 Tổng: {examsResponse?.count || 0} kỳ thi
               </p>
             </div>
-            <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Tạo kỳ thi mới
             </button>
           </div>
-
-          {/* Filters */}
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm kỳ thi..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Trạng thái:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-              >
-                <option value="Tất cả">Tất cả</option>
-                <option value="0">Đang diễn ra</option>
-                <option value="1">Đã hoàn thành</option>
-                <option value="2">Đang chấm điểm</option>
-                <option value="3">Kết quả đã công bố</option>
-                <option value="4">Đang xem xét</option>
-                <option value="5">Đã hoãn</option>
-                <option value="6">Đã hủy</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         <div className="p-6">
-          {filteredExams.length === 0 ? (
+          {/* Loading state */}
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+            </div>
+          ) : allExams.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Eye className="w-8 h-8 text-gray-400" />
@@ -156,7 +186,7 @@ const ExamManagement: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {paginatedExams.map((exam) => (
+              {displayExams.map((exam: Exam) => (
                 <div
                   key={exam.id}
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
@@ -188,10 +218,20 @@ const ExamManagement: React.FC = () => {
                           </span>
                           <span
                             className={`inline-flex px-2 py-1 rounded-full text-xs font-medium w-fit ${
-                              exam.status === "In-Process"
+                              exam.status === "InProgress"
                                 ? "bg-blue-100 text-blue-800"
                                 : exam.status === "Completed"
                                 ? "bg-green-100 text-green-800"
+                                : exam.status === "Grading"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : exam.status === "ResultsPublished"
+                                ? "bg-purple-100 text-purple-800"
+                                : exam.status === "UnderReview"
+                                ? "bg-orange-100 text-orange-800"
+                                : exam.status === "Postponed"
+                                ? "bg-gray-100 text-gray-800"
+                                : exam.status === "Cancelled"
+                                ? "bg-red-100 text-red-800"
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
@@ -222,7 +262,7 @@ const ExamManagement: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {filteredExams.length > 0 && (
+        {!isLoading && totalItems > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -233,6 +273,40 @@ const ExamManagement: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Notification */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-50">
+          <div
+            className={`flex items-center p-4 rounded-lg shadow-lg border-l-4 ${
+              notification.type === "success"
+                ? "bg-green-50 border-green-500 text-green-800"
+                : "bg-red-50 border-red-500 text-red-800"
+            }`}
+          >
+            {notification.type === "success" ? (
+              <CheckCircle className="w-5 h-5 mr-3" />
+            ) : (
+              <AlertCircle className="w-5 h-5 mr-3" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Exam Modal */}
+      <CreateExamModal
+        isOpen={isCreateModalOpen}
+        onClose={handleCloseCreateModal}
+        onSubmit={handleCreateExam}
+        isLoading={isCreating}
+      />
     </div>
   );
 };

@@ -22,3 +22,33 @@ export async function getTestsByExamIdAndStudentId(
     );
   }
 }
+
+export async function getTestsByTestId(id: number) {
+  try {
+    const response = await http.get(`tests/${id}`);
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("Login error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
+
+export async function getTestsByStudentId(id: number) {
+  try {
+    const response = await http.get(`student/${id}/tests`);
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("getTestsByStudentId error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
