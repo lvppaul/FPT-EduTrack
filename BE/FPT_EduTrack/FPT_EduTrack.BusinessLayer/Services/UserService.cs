@@ -23,18 +23,42 @@ namespace FPT_EduTrack.BusinessLayer.Services
         public async Task<bool> DeleteAsync(int userId)
         {
             var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-            if (user == null)
+            if (user == null || user.IsDeleted == true)
                 return false;
             try
             {
+                await _unitOfWork.BeginTransactionAsync();  
                 await _unitOfWork.UserRepository.DeleteAsync(user);
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
 
             }
-            catch
+            catch(Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
+                Console.WriteLine($"Error deleting user: {ex.Message}");
+                throw;
+            }
+
+        }
+
+
+        public async Task<bool> SetActive(int userId)
+        {
+            var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+            if (user == null)
+                return false;
+            try
+            {
+                await _unitOfWork.UserRepository.SetActive(user);
+                await _unitOfWork.CommitTransactionAsync();
+                return true;
+
+            }
+            catch(Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                Console.WriteLine($"Error deleting user: {ex.Message}");
                 throw;
             }
 
