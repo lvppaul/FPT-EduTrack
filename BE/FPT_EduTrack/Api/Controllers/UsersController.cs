@@ -25,8 +25,9 @@ namespace FPT_EduTrack.Api.Controllers
         public async Task<IActionResult> GetAllUser([FromQuery] Pagination pagination)
         {
             try
-            {
-                var users = await _service.GetAllAsync(pagination);
+            { 
+                var users = await _service.GetAllAsyncWithPagination(pagination);
+                var totalUser = await _service.GetAllAsync();
                 if (users == null || !users.Any())
                     return NotFound(new
                     {
@@ -39,7 +40,7 @@ namespace FPT_EduTrack.Api.Controllers
                     success = true,
                     message = "User retrieved successfully",
                     data = users,
-                    cound = users.Count(),
+                    cound = totalUser.Count(),
                 });
             }
             catch (Exception ex)
