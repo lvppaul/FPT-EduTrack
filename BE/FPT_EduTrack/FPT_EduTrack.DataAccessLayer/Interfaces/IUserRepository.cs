@@ -11,6 +11,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task<bool> VerifyPasswordAsync(User user, string password);
         Task<User?> GetByRefreshTokenAsync(string refreshToken);
         Task<List<User>> GetAllAsyncWithPagination(Pagination pagination);
+        Task<List<User>> GetAllAsync();
 
 
     }

@@ -1,5 +1,6 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Repositories;
 using System;
 using System.Collections.Generic;
@@ -19,5 +20,6 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<List<ExamResponse>> GetExamsByUserIdAsync(int userId);
         Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status);
         Task<int> GetTotalExamCountAsync();
+        Task<List<ExamResponse>> GetAllAsync();
     }
 }

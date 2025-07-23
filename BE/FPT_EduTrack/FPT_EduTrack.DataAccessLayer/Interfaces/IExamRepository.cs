@@ -15,5 +15,6 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task DeleteAsync(int id);
         Task<List<Exam>> GetAllAsync(Pagination pagination);
         Task<int> CountAsync();
+        Task<List<Exam>> GetAllAsync();
     }
 }

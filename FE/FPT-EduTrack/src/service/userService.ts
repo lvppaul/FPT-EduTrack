@@ -89,11 +89,26 @@ export async function updateUser(
   }
 }
 
-export async function getAllUsers(pageNumber: number, pageSize: number) {
+export async function getAllUsersPagination(
+  pageNumber: number,
+  pageSize: number
+) {
   try {
     const response = await http.get(
       `Users/getUser?pageNumber=${pageNumber}&pageSize=${pageSize}`
     );
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
+export async function getAllUsers() {
+  try {
+    const response = await http.get(`Users`);
     return response.data;
   } catch (error: unknown) {
     if (error instanceof Error) {

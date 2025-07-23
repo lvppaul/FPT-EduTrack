@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Plus,
-  Search,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -14,6 +13,8 @@ import type { UserResponse } from "../../types/userType";
 import { getAllUsers, createUser } from "../../service/userService";
 import CreateUserModal from "./CreateUserModal";
 import Pagination from "../Pagination";
+import SearchAndFilterMultiple from "../SearchAndFilterMultiple";
+import { useUserPagination } from "../../hooks/useUserPagination";
 
 interface UserCreateRequest {
   fullname: string;
@@ -33,14 +34,36 @@ const UserManagement: React.FC = () => {
     message: string;
   } | null>(null);
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5); // Set to 5 to ensure multiple pages with current data
+  // Use user pagination hook
+  const allUsers = users?.data || [];
+  const {
+    currentPage,
+    itemsPerPage,
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    filteredUsers,
+    paginatedUsers: displayUsers,
+    totalPages,
+    totalFilteredItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+    handleSearchChange,
+    handleStatusFilterChange,
+    handleRoleFilterChange,
+    clearFilters,
+  } = useUserPagination({
+    users: allUsers,
+    itemsPerPage: 10,
+    defaultSearchTerm: "",
+    defaultStatusFilter: "all",
+    defaultRoleFilter: "all",
+  });
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await getAllUsers(currentPage, itemsPerPage);
+      const response = await getAllUsers();
       console.log("API Response:", response); // Debug log
       setUsers(response);
     } catch (error) {
@@ -48,7 +71,7 @@ const UserManagement: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage]);
+  };
 
   const handleCreateUser = async (userData: UserCreateRequest) => {
     try {
@@ -97,29 +120,10 @@ const UserManagement: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState("All");
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
-
-  const totalPages = Math.ceil(users?.count / itemsPerPage);
-
-  const effectiveTotalPages = totalPages > 0 ? Math.max(totalPages, 1) : 1;
-
-  const filteredUsers =
-    users?.data?.filter((user) => {
-      const matchesSearch =
-        searchTerm === "" ||
-        user.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRole =
-        roleFilter === "All" || user.roleId.toString() === roleFilter;
-      return matchesSearch && matchesRole;
-    }) || [];
-
-  const displayUsers = filteredUsers;
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -205,7 +209,8 @@ const UserManagement: React.FC = () => {
                 Quản Lý Người Dùng
               </h1>
               <p className="text-gray-600 mt-1">
-                Tổng số: {totalUsers} người dùng
+                Tổng: {allUsers.length} người dùng | Hiển thị:{" "}
+                {totalFilteredItems} kết quả
               </p>
             </div>
             <button
@@ -217,34 +222,31 @@ const UserManagement: React.FC = () => {
             </button>
           </div>
 
-          {/* Filters */}
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Role:</span>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="All">All</option>
-                <option value="1">Examiner</option>
-                <option value="2">Lecturer</option>
-                <option value="3">Head</option>
-                <option value="4">Student</option>
-              </select>
-            </div>
-          </div>
+          {/* Search and Filter Section */}
+          <SearchAndFilterMultiple
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Tìm kiếm theo tên hoặc email..."
+            filterValue={statusFilter}
+            onFilterChange={handleStatusFilterChange}
+            filterOptions={[
+              { value: "active", label: "Hoạt động" },
+              { value: "inactive", label: "Không hoạt động" },
+            ]}
+            filterLabel="Trạng thái"
+            filterPlaceholder="Tất cả trạng thái"
+            secondaryFilterValue={roleFilter}
+            onSecondaryFilterChange={handleRoleFilterChange}
+            secondaryFilterOptions={[
+              { value: "1", label: "Examiner" },
+              { value: "2", label: "Lecturer" },
+              { value: "3", label: "Head" },
+              { value: "4", label: "Student" },
+            ]}
+            secondaryFilterLabel="Vai trò"
+            secondaryFilterPlaceholder="Tất cả vai trò"
+            onClearFilters={clearFilters}
+          />
         </div>
 
         {/* Table */}
@@ -291,6 +293,31 @@ const UserManagement: React.FC = () => {
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                       <span>Đang tải dữ liệu...</span>
                     </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
+                    {searchTerm ||
+                    statusFilter !== "all" ||
+                    roleFilter !== "all" ? (
+                      <div>
+                        <p className="mb-2">
+                          Không tìm thấy người dùng nào phù hợp
+                        </p>
+                        <button
+                          onClick={clearFilters}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          Xóa bộ lọc để xem tất cả
+                        </button>
+                      </div>
+                    ) : (
+                      "Không có người dùng nào"
+                    )}
                   </td>
                 </tr>
               ) : displayUsers && displayUsers.length > 0 ? (
@@ -386,17 +413,14 @@ const UserManagement: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {!isLoading && totalUsers > 0 && (
+        {!isLoading && totalFilteredItems > 0 && (
           <Pagination
             currentPage={currentPage}
-            totalPages={effectiveTotalPages}
+            totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={totalUsers}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(newItemsPerPage) => {
-              setItemsPerPage(newItemsPerPage);
-              setCurrentPage(1); // Reset to first page when changing items per page
-            }}
+            totalItems={totalFilteredItems}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
           />
         )}
       </div>

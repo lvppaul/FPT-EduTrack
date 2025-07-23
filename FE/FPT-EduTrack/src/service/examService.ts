@@ -1,6 +1,6 @@
 import http from "./axios";
 
-export async function getExams(pageNumber = 1, pageSize = 10) {
+export async function getPaginateExams(pageNumber = 1, pageSize = 10) {
   try {
     const response = await http.get(`Exam`, {
       params: {
@@ -9,6 +9,24 @@ export async function getExams(pageNumber = 1, pageSize = 10) {
       },
     });
 
+    if (response.data?.success) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data?.message || "Không lấy được dữ liệu từ máy chủ."
+      );
+    }
+  } catch (error: unknown) {
+    console.error("Lỗi khi gọi API getExams:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối mạng và thử lại."
+    );
+  }
+}
+
+export async function getExams() {
+  try {
+    const response = await http.get(`Exam`);
     if (response.data?.success) {
       return response.data;
     } else {

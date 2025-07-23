@@ -17,7 +17,7 @@ namespace FPT_EduTrack.Api.Controllers
             _examService = examService;
         }
 
-        [HttpGet]
+        [HttpGet("pagination")]
         public async Task<IActionResult> GetAll([FromQuery] Pagination pagination)
         {
             try
@@ -209,6 +209,40 @@ namespace FPT_EduTrack.Api.Controllers
                 {
                     success = false,
                     message = $"An error occurred while retrieving exams with status {status}",
+                    error = ex.Message
+                });
+            }
+
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var exams = await _examService.GetAllAsync();
+
+                if (exams == null || !exams.Any())
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "No exams found."
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Exams retrieved successfully",
+                    data = exams,
+                    count = _examService.GetTotalExamCountAsync().Result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"An error occurred while retrieving exam",
                     error = ex.Message
                 });
             }

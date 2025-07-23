@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Edit,
   Trash2,
@@ -18,6 +18,8 @@ import { ExamStatus } from "../../enum/examStatus";
 import ExamDetailView from "./ExamDetailView";
 import CreateExamModal from "./CreateExamModal";
 import Pagination from "../Pagination";
+import SearchAndFilter from "../SearchAndFilter";
+import { useExamPagination } from "../../hooks/useExamPagination";
 
 const ExamManagement: React.FC = () => {
   const [examsResponse, setExamsResponse] = useState<ExamResponse | null>(null);
@@ -33,25 +35,44 @@ const ExamManagement: React.FC = () => {
     message: string;
   } | null>(null);
 
-  // Pagination states - server-side pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // Use exam pagination hook
+  const allExams = examsResponse?.data || [];
+  const {
+    currentPage,
+    itemsPerPage,
+    searchTerm,
+    statusFilter,
+    filteredExams,
+    paginatedExams: displayExams,
+    totalPages,
+    totalFilteredItems,
+    handlePageChange,
+    handleItemsPerPageChange,
+    handleSearchChange,
+    handleStatusFilterChange,
+    clearFilters,
+  } = useExamPagination({
+    exams: allExams,
+    itemsPerPage: 10,
+    defaultSearchTerm: "",
+    defaultStatusFilter: "all",
+  });
 
-  const fetchExams = useCallback(async () => {
+  const fetchExams = async () => {
     try {
       setIsLoading(true);
-      const response = await getExams(currentPage, itemsPerPage);
+      const response = await getExams();
       setExamsResponse(response);
     } catch (error) {
       console.error("Failed to fetch exams:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, itemsPerPage]);
+  };
 
   useEffect(() => {
     fetchExams();
-  }, [fetchExams]);
+  }, []);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -122,25 +143,6 @@ const ExamManagement: React.FC = () => {
     setIsCreateModalOpen(false);
   };
 
-  // Server-side pagination - no client-side filtering needed
-  const allExams = examsResponse?.data || [];
-
-  // For server-side pagination, get total from API response
-  const totalItems = examsResponse?.count || allExams.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-
-  // Display all exams from current page
-  const displayExams = allExams;
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1); // Reset to first page when changing items per page
-  };
-
   // Exam Detail View
   if (showDetail && selectedExam) {
     return <ExamDetailView exam={selectedExam} onBack={handleBackToList} />;
@@ -151,13 +153,14 @@ const ExamManagement: React.FC = () => {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-white to-indigo-50 rounded-t-lg">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 Quản Lý Kỳ Thi
               </h1>
               <p className="text-gray-600 mt-1">
-                Tổng: {examsResponse?.count || 0} kỳ thi
+                Tổng: {examsResponse?.data?.length || 0} kỳ thi | Hiển thị:{" "}
+                {totalFilteredItems} kết quả
               </p>
             </div>
             <button
@@ -168,6 +171,26 @@ const ExamManagement: React.FC = () => {
               Tạo kỳ thi mới
             </button>
           </div>
+
+          {/* Search and Filter Section */}
+          <SearchAndFilter
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Tìm kiếm theo mã hoặc tên kỳ thi..."
+            filterValue={statusFilter}
+            onFilterChange={handleStatusFilterChange}
+            filterOptions={[
+              { value: "InProgress", label: "Đang diễn ra" },
+              { value: "Completed", label: "Đã hoàn thành" },
+              { value: "Grading", label: "Đang chấm điểm" },
+              { value: "ResultsPublished", label: "Kết quả đã công bố" },
+              { value: "UnderReview", label: "Đang xem xét" },
+              { value: "Postponed", label: "Đã hoãn" },
+              { value: "Cancelled", label: "Đã hủy" },
+            ]}
+            filterPlaceholder="Tất cả trạng thái"
+            onClearFilters={clearFilters}
+          />
         </div>
 
         <div className="p-6">
@@ -177,12 +200,26 @@ const ExamManagement: React.FC = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
             </div>
-          ) : allExams.length === 0 ? (
+          ) : filteredExams.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Eye className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-gray-500">Không có kỳ thi nào</p>
+              {searchTerm || statusFilter !== "all" ? (
+                <div>
+                  <p className="text-gray-500 mb-2">
+                    Không tìm thấy kỳ thi nào phù hợp
+                  </p>
+                  <button
+                    onClick={clearFilters}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    Xóa bộ lọc để xem tất cả
+                  </button>
+                </div>
+              ) : (
+                <p className="text-gray-500">Không có kỳ thi nào</p>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -262,12 +299,12 @@ const ExamManagement: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {!isLoading && totalItems > 0 && (
+        {!isLoading && totalFilteredItems > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             itemsPerPage={itemsPerPage}
-            totalItems={totalItems}
+            totalItems={totalFilteredItems}
             onPageChange={handlePageChange}
             onItemsPerPageChange={handleItemsPerPageChange}
           />
