@@ -40,17 +40,17 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
         }
 
-        //public async Task<IEnumerable<UserResponse>> GetAllAsync()
-        //{
-        //    var users = await _unitOfWork.UserRepository.GetAllAsync();
-        //    if (users == null || !users.Any())
-        //        return Enumerable.Empty<UserResponse>();
-        //    return users.Select(UserMapper.ToResponse).ToList();
-        //}
-
-        public async Task<IEnumerable<UserResponse>> GetAllAsync(Pagination pagination)
+        public async Task<IEnumerable<UserResponse>> GetAllAsync()
         {
-            var users = await _unitOfWork.UserRepository.GetAllAsync(pagination);
+            var users = await _unitOfWork.UserRepository.GetAllAsync();
+            if (users == null || !users.Any())
+                return Enumerable.Empty<UserResponse>();
+            return users.Select(UserMapper.ToResponse).ToList();
+        }
+
+        public async Task<IEnumerable<UserResponse>> GetAllAsyncWithPagination(Pagination pagination)
+        {
+            var users = await _unitOfWork.UserRepository.GetAllAsyncWithPagination(pagination);
             if (users == null || !users.Any())
                 return Enumerable.Empty<UserResponse>();
             return users.Select(UserMapper.ToResponse).ToList();

@@ -13,13 +13,17 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
 {
     public interface IReportService 
     {
-        Task<IEnumerable<ReportDataResponse>> GetAllPaginationAsync(Pagination pagination);
-        Task<IEnumerable<ReportDataResponse>> GetAllAsync();
-        Task<ReportDataResponse> GetByIdAsync(int id);
-        Task<ReportDataResponse> CreateAsync(ReportRequest report);
-        Task<ReportDataResponse> EditAsync(int id, ReportUpdate report);
-        Task<IEnumerable<ReportDataResponse>> GetReportByStudentId(int studentId, Pagination pagination);
+        Task<IEnumerable<ReportResponse>> GetAllPaginationAsync(Pagination pagination);
+        Task<IEnumerable<ReportResponse>> GetAllAsync();
+        Task<ReportResponse> GetByIdAsync(int id);
+        Task<ReportResponse> CreateAsync(ReportRequest report);
+        Task<ReportResponse> EditAsync(int id, ReportUpdate report);
+        Task<IEnumerable<ReportResponse>> GetReportByStudentIdPaginationAsync(int studentId, Pagination pagination);
+        Task<IEnumerable<ReportResponse>> GetReportByStudentIdAsync(int studentId);
         Task DeleteAsync(int id);
-        Task<ReportDataResponse> GetReportByStudentAndTest(int studentId, int testId);
+        Task<ReportResponse> GetReportByStudentAndTestAsync(int studentId, int testId);
+        Task<ReportResponse> GetReportByStudentAndTestPaginationAsync(int studentId, int testId, Pagination pagination);
+        Task<IEnumerable<ReportResponse>> GetReportByStatusAsync(int statusId);
+        Task<IEnumerable<ReportResponse>> GetReportByStatusPaginationAsync(int statusId, Pagination pagination);
     }
 }
