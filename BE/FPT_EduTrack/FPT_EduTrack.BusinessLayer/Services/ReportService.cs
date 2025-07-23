@@ -15,15 +15,26 @@ namespace FPT_EduTrack.BusinessLayer.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<IEnumerable<ReportDataResponse>> GetAllAsync(Pagination pagination)
+        public async Task<IEnumerable<ReportDataResponse>> GetAllPaginationAsync(Pagination pagination)
         {
-            var reports = await _unitOfWork.ReportRepository.GetAllAsync(pagination);
+            var reports = await _unitOfWork.ReportRepository.GetAllPaginationAsync(pagination);
             if (reports == null || !reports.Any())
             {
                 return new List<ReportDataResponse>();
             }
             return reports.Select(ReportMapper.ToResponse).ToList();
         }
+
+        public async Task<IEnumerable<ReportDataResponse>> GetAllAsync()
+        {
+            var reports = await _unitOfWork.ReportRepository.GetAllAsync();
+            if (reports == null || !reports.Any())
+            {
+                return new List<ReportDataResponse>();
+            }
+            return reports.Select(ReportMapper.ToResponse).ToList();
+        }
+
         public async Task<ReportDataResponse> GetByIdAsync(int id)
         {
             var report = await _unitOfWork.ReportRepository.GetByIdAsync(id);
