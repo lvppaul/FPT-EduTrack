@@ -159,6 +159,53 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
 
+
+        [HttpDelete("setActive/{userID}")]
+        public async Task<IActionResult> SetActive(int userID)
+        {
+            try
+            {
+                if (userID <= 0)
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Invalid user id",
+                        timestamp = DateTime.UtcNow
+                    });
+                var isDeleted = await _service.SetActive(userID);
+
+                if (!isDeleted)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Delete failed",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Delete successfully",
+                        timestamp = DateTime.UtcNow
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Something wrong when deleting User",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+        }
+
+
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {

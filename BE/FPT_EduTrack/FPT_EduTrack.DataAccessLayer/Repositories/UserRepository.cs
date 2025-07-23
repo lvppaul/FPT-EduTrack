@@ -14,7 +14,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task DeleteAsync(User user)
         {
-            user.IsDeleted = true;
+            user.IsDeleted = !user.IsDeleted;
             await UpdateAsync(user);
         }
 
@@ -22,7 +22,6 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Users
                 .Include(u => u.Role)
-                .Where(u => u.IsDeleted == false)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
