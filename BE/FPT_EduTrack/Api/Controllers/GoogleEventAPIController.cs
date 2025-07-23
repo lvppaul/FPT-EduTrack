@@ -18,31 +18,28 @@ namespace FPT_EduTrack.Api.Controllers
         private readonly IMeetingService meetingService;
         private readonly IEmailService _emailService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailTemplateService _templateService;
 
-        public GoogleEventAPIController(ITokenProvider tokenProvider, IMeetingService meetingService, IUnitOfWork unitOfWork, IEmailService emailService)
+        public GoogleEventAPIController(ITokenProvider tokenProvider, IMeetingService meetingService, IUnitOfWork unitOfWork, IEmailService emailService, IEmailTemplateService templateService)
         {
             this.tokenProvider = tokenProvider;
             this.meetingService = meetingService;
             _emailService = emailService;
             _unitOfWork = unitOfWork;
+            _templateService = templateService;
         }
 
-        //[HttpGet("token")]
-        //public async Task<string> GetAccessTokenAsync()
-        //{
-        //    return await this.tokenService.GetAccessTokenAsync();
-        //}
-
-        //[HttpPost("event/create")]
-        //public async Task<EventResponse> CreateEventAsync([FromBody]EventRequest eventRequest)
-        //{
-        //    return await this.meetingService.CreateEventAsync(eventRequest);
-        //}
-
-        [HttpPost("event/{meetingId}")]
-        public async Task<EventResponse> GetEventById([FromQuery] string organizerEmail, string eventId)
+        [HttpGet("event/{eventId}")]
+        public async Task<IActionResult> GetEventById(string eventId)
         {
-            return await this.meetingService.GetEventByIdAsync(organizerEmail, eventId);
+            var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(organizerEmail))
+                return Unauthorized("Email claim not found in token");
+
+            var response = await this.meetingService.GetEventByIdAsync(organizerEmail, eventId);
+            if (response == null)
+                return NotFound(new { success = false, message = $"Event {eventId} not found." });
+            return Ok(new { success = true, data = response });
         }
 
         [HttpPost("create-meeting")]
@@ -55,15 +52,8 @@ namespace FPT_EduTrack.Api.Controllers
 
             var response = await meetingService.CreateMeetingAsync(organizerEmail, request);
 
-            var subject = "Lời mời tham gia cuộc họp Google Meet";
-
-            var body = $"Xin chào,<br/><br/>" +
-            $"Bạn được mời tham gia cuộc họp \"{response.Summary}\" do {organizerEmail} tổ chức.<br/><br/>" +
-            $"- 🗓 **Thời gian**: {response.Start.DateTime:dd/MM/yyyy HH:mm} - {response.End.DateTime:HH:mm}<br/>" +
-            $"- 📍 **Hình thức họp**: Trực tuyến qua Google Meet<br/>" +
-            $"- 🔗 **Link tham gia**: {response.HangoutLink}<br/><br/>" +
-            $"Vui lòng tham gia đúng giờ và kiểm tra thiết bị trước cuộc họp.<br/><br/>" +
-            $"Trân trọng,<br/>Đội ngũ hỗ trợ";
+            var subject = _templateService.GetMeetingInvitationSubject();
+            var body = _templateService.GetMeetingInvitationBody(response, organizerEmail);
 
             foreach (var attendee in request.AttendeeEmails)
             {
@@ -94,6 +84,11 @@ namespace FPT_EduTrack.Api.Controllers
             var updatedMeeting = await this.meetingService.UpdateEventAsync(meetingGG.GoogleMeetingId, eventRequest, organizerEmail);
 
             var attendees = await meetingService.GetMeetingAttendees(meetingId);
+            
+            var subject = _templateService.GetMeetingUpdateSubject();
+
+            var body = _templateService.GetMeetingUpdateBody(updatedMeeting, organizerEmail);
+
             if (attendees != null && attendees.Any())
             {
                 foreach (var email in attendees)
@@ -103,14 +98,8 @@ namespace FPT_EduTrack.Api.Controllers
                         await _emailService.SendEmailAsync(new EmailDto
                         {
                             To = new List<string> { email },
-                            Subject = "Thông báo cập nhật lịch họp",
-                            Body = $"Xin chào,<br/><br/>" +
-                                   $"Lịch họp \"{updatedMeeting.Summary}\" mà bạn tham gia đã được cập nhật với thông tin mới như sau:<br/><br/>" +
-                                   $"- 🗓 **Thời gian mới**: {updatedMeeting.Start.DateTime:dd/MM/yyyy HH:mm} - {updatedMeeting.End.DateTime:HH:mm}<br/>" +
-                                   $"- 📍 **Hình thức họp**: Trực tuyến qua Google Meet<br/>" +
-                                   $"- 🔗 **Link tham gia**: {updatedMeeting.HangoutLink}<br/><br/>" +
-                                   $"Vui lòng kiểm tra lại lịch trình cá nhân và tham gia đúng giờ.<br/><br/>" +
-                                   $"Trân trọng,<br/>Đội ngũ hỗ trợ"
+                            Subject = subject,
+                            Body = body
                         });
                     }
                 }
