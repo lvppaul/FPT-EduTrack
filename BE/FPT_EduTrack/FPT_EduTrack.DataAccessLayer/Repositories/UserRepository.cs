@@ -26,13 +26,13 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
-        //public override async Task<List<User>> GetAllAsync()
-        //{
-        //    return await _context.Users
-        //        .Include(u => u.Role)
-        //        .Where(u => u.IsDeleted == false)
-        //        .ToListAsync();
-        //}
+        public override async Task<List<User>> GetAllAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false)
+                .ToListAsync();
+        }
 
         public async Task<User?> GetByEmailAsync(string email)
         {
@@ -63,7 +63,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             return await Task.FromResult(BCrypt.Net.BCrypt.Verify(password, user.Password));
         }
 
-        public async Task<List<User>> GetAllAsync(Pagination pagination)
+        public async Task<List<User>> GetAllAsyncWithPagination(Pagination pagination)
         {
             return await _context.Users
                 .Include(u => u.Role)

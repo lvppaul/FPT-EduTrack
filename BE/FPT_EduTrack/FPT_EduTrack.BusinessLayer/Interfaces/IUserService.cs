@@ -11,7 +11,8 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<AuthenticationResponse?> LoginAsync(LoginRequest request);
         Task<AuthenticationResponse?> RefreshTokenAsync(string refreshToken);
         Task<UserResponse> GetByIdAsync(int id);
-        Task<IEnumerable<UserResponse>> GetAllAsync(Pagination pagination);
+        Task<IEnumerable<UserResponse>> GetAllAsync();
+        Task<IEnumerable<UserResponse>> GetAllAsyncWithPagination(Pagination pagination);
         Task<UserResponse> UpdateAsync(UserUpdate user);
         Task<bool> DeleteAsync(int userId);
         Task<UserResponse?> GetByEmailAsync(string email);
