@@ -10,7 +10,8 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
     public interface IReportRepository : IGenericRepository<Report>
     {
-        Task<List<Report>> GetAllAsync(Pagination pagination);
+        Task<List<Report>> GetAllPaginationAsync(Pagination pagination);
+        Task<List<Report>> GetAllAsync();
         Task<Report> GetByIdAsync(int id);
         Task AddAsync(Report report);
         Task EditAsync(int id, Report report);

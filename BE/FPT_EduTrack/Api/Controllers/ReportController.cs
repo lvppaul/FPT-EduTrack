@@ -29,8 +29,8 @@ namespace FPT_EduTrack.Api.Controllers
         //[Authorize]
         public async Task<ActionResult<ReportResponse>> GetAllReports([FromQuery] Pagination pagination)
         {
-            var listReport = await _reportService.GetAllAsync(pagination);
-            if (listReport == null || !listReport.Any())
+            var listReportPagination = await _reportService.GetAllPaginationAsync(pagination);
+            if (listReportPagination == null || !listReportPagination.Any())
             {
                 return NotFound(new
                 {
@@ -39,12 +39,14 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
 
+            var listReport = await _reportService.GetAllAsync();
+
             var response = new ReportResponse
             {
 
                 Success = true,
                 Message = "Reports retrieved successfully.",
-                Data = listReport,
+                Data = listReportPagination,
                 Count = listReport.Count()
             };
             return Ok(response);
