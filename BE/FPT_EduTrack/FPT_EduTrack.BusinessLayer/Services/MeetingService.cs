@@ -273,22 +273,15 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return await _unitOfWork.MeetingRepository.GetMeetingAttendees(meetingId);
         }
 
-        public async Task<MeetingResponse> GetEventByMeetingIdAsync(string organizerEmail, int meetingId)
+        public async Task<EventResponse> GetEventByMeetingIdAsync(string organizerEmail, int meetingId)
         {
             var meeting = await _unitOfWork.MeetingRepository.GetMeetingByIdAsync(meetingId);
             if (meeting == null || string.IsNullOrEmpty(meeting.GoogleMeetingId))
                 throw new Exception($"Meeting with ID {meetingId} not found or has no Google Calendar event.");
-            var response = new MeetingResponse
-            {
-                Id = meeting.Id,
-                Name = meeting.Name,
-                CreatedAt = meeting.CreatedAt,
-                Link = meeting.Link,
-                MeetingStatusId = meeting.MeetingStatusId,
-                MeetingStatusName = meeting.MeetingStatus?.Name
-            };
 
-            return response;
+            var eventResponse = await GetEventByIdAsync(organizerEmail, meeting.GoogleMeetingId);
+
+            return eventResponse;
         }
     }
 }
