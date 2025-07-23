@@ -14,7 +14,13 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task DeleteAsync(User user)
         {
-            user.IsDeleted = true;
+            user.IsDeleted = !user.IsDeleted;
+            await UpdateAsync(user);
+        }
+
+        public async Task SetActive(User user)
+        {
+            user.IsActive = !user.IsActive;
             await UpdateAsync(user);
         }
 
