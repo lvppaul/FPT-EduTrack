@@ -23,6 +23,7 @@ namespace FPT_EduTrack.Api.Controllers
             try
             {
                 var exams = await _examService.GetAllAsync(pagination);
+
                 if (exams == null || !exams.Any())
                 {
                     return NotFound(new
@@ -36,7 +37,7 @@ namespace FPT_EduTrack.Api.Controllers
                     success = true,
                     message = "Exams retrieved successfully",
                     data = exams,
-                    count = exams.Count
+                    count = _examService.GetTotalExamCountAsync().Result
                 });
             }
             catch (Exception ex)

@@ -16,5 +16,6 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         public Task<List<Meeting>> GetMeetingsByStatusAsync(int statusId);
         public Task<List<Meeting>> GetMeetingsByDateAsync(DateTime date);
         public Task<List<string>> GetMeetingAttendees(int meetingId);
+        public Task<Meeting?> GetMeetingByIdAsync(int id);
     }
 }
