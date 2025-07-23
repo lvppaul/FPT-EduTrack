@@ -172,14 +172,14 @@ namespace FPT_EduTrack.Api.Controllers
                         message = "Invalid user id",
                         timestamp = DateTime.UtcNow
                     });
-                var isDeleted = await _service.SetActive(userID);
+                var isAcitve = await _service.SetActive(userID);
 
-                if (!isDeleted)
+                if (!isAcitve)
                 {
                     return NotFound(new
                     {
                         success = false,
-                        message = "Delete failed",
+                        message = "Set active failed",
                         timestamp = DateTime.UtcNow
                     });
                 }
@@ -188,7 +188,7 @@ namespace FPT_EduTrack.Api.Controllers
                     return Ok(new
                     {
                         success = true,
-                        message = "Delete successfully",
+                        message = "Set active successfully",
                         timestamp = DateTime.UtcNow
                     });
                 }
@@ -198,7 +198,7 @@ namespace FPT_EduTrack.Api.Controllers
                 return StatusCode(500, new
                 {
                     success = false,
-                    message = "Something wrong when deleting User",
+                    message = "Something wrong when set active User",
                     error = ex.Message,
                     timestamp = DateTime.UtcNow
                 });

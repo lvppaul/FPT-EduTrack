@@ -50,7 +50,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 return false;
             try
             {
-                await _unitOfWork.UserRepository.DeleteAsync(user);
+                await _unitOfWork.UserRepository.SetActive(user);
                 await _unitOfWork.CommitTransactionAsync();
                 return true;
 

@@ -18,10 +18,17 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             await UpdateAsync(user);
         }
 
+        public async Task SetActive(User user)
+        {
+            user.IsActive = !user.IsActive;
+            await UpdateAsync(user);
+        }
+
         public override async Task<User?> GetByIdAsync(int id)
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
