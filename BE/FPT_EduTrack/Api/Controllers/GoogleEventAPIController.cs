@@ -2,6 +2,7 @@
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using GoogleCalendarAPI;
 using Microsoft.AspNetCore.Http;
@@ -109,18 +110,26 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpGet("events-organized")]
-        public async Task<IActionResult> GetEventsOrganizeAsync()
+        public async Task<IActionResult> GetEventsOrganizeAsync([FromQuery]Pagination pagination)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
             if (string.IsNullOrEmpty(organizerEmail))
                 return Unauthorized("Email claim not found in token");
 
-            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
-            if (listEvent == null || !listEvent.Any())
+            var listEventPagination = await this.meetingService.GetEventsOrganizePaginationAsync(organizerEmail, pagination);
+            if (listEventPagination == null || !listEventPagination.Any())
                 return NotFound("No events found for the organizer.");
 
-            return Ok(listEvent);
+            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Meeting retrieved true",
+                data = listEventPagination,
+                count = listEvent.Count
+            });
         }
 
         [HttpDelete("event/{meetingId}/delete")]

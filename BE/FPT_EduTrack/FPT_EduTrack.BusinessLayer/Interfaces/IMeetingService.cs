@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using GoogleCalendarAPI;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<List<EventResponse>> GetEventsAsync();
         Task<EventResponse> CreateMeetingAsync(string organizerEmail, MeetingRequest request);
         Task<List<MeetingResponse>> GetEventsOrganizeAsync(string organizerEmail);
+        Task<List<MeetingResponse>> GetEventsOrganizePaginationAsync(string organizerEmail, Pagination pagination);
         Task<bool> DeleteMeetingAsync(string meetingId, string organizerEmail);
         Task<List<string>> GetMeetingAttendees(int meetingId);
         Task<EventResponse> GetEventByMeetingIdAsync(string organizerEmail, int meetingId);
