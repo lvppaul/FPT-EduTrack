@@ -78,6 +78,20 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .Take(pagination.PageSize)
                 .ToListAsync();
         }
-     
+        public  async Task<List<User>> GetAllLecturersAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false).Where(d => d.RoleId==2)
+                .ToListAsync();
+        }
+        public async Task<List<User>> GetAllStudentsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.IsDeleted == false).Where(d => d.RoleId == 4)
+                .ToListAsync();
+        }
+
     }
 }

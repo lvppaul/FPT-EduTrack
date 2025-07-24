@@ -10,7 +10,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
     public interface ITestRepository : IGenericRepository<Test>
     {
         Task<List<Test>> GetTestsAsync();
-        Task<List<Test>> UploadTestFileAsync();
+      
 
     }
 }

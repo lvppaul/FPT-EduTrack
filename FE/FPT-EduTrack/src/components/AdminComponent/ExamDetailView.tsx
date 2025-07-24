@@ -1,23 +1,46 @@
 import React, { useState } from "react";
-import { ArrowLeft, Calendar, Clock, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Eye,
+  Upload,
+  CheckCircle,
+  AlertCircle,
+  X,
+} from "lucide-react";
 import type { Exam, Test } from "../../types/examType";
 import { ExamStatus } from "../../enum/examStatus";
 import TestCard from "./TestCard";
 import TestDetailView from "./TestDetailView";
 import Pagination from "../Pagination";
-
+import UploadTestModal from "./UploadTestModal";
+import { upLoadTest } from "../../service/testService";
 interface ExamDetailViewProps {
   exam: Exam;
   onBack: () => void;
+  onRefreshExam?: () => void;
 }
 
-const ExamDetailView: React.FC<ExamDetailViewProps> = ({ exam, onBack }) => {
+const ExamDetailView: React.FC<ExamDetailViewProps> = ({
+  exam,
+  onBack,
+  onRefreshExam,
+}) => {
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [showTestDetail, setShowTestDetail] = useState(false);
 
+  // Upload modal states
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
   // Pagination states for tests
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
 
   const handleViewTest = (test: Test) => {
     setSelectedTest(test);
@@ -43,6 +66,41 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({ exam, onBack }) => {
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
+  };
+
+  // Upload handlers
+  const handleUploadTest = async (formData: FormData) => {
+    setIsUploading(true);
+    try {
+      await upLoadTest(exam.id, formData);
+      console.log("Uploading test with exam id:", exam.id);
+      console.log("Uploading test with formData:", formData);
+
+      // Simulate API call - Remove this when using real API
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setNotification({
+        type: "success",
+        message: "Upload test thành công!",
+      });
+
+      // Refresh exam data after successful upload
+      if (onRefreshExam) {
+        onRefreshExam();
+      }
+
+      // Auto hide notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      console.error("Error uploading test:", error);
+      setNotification({
+        type: "error",
+        message: "Có lỗi xảy ra khi upload test. Vui lòng thử lại.",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Show test detail view if a test is selected
@@ -135,12 +193,23 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({ exam, onBack }) => {
       {/* Tests List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="border-b border-gray-200 p-4 bg-gray-50 rounded-t-lg">
-          <h2 className="text-lg font-bold text-gray-900">
-            Danh Sách Bài Test
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Tổng: {exam.test?.length || 0} bài test
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">
+                Danh Sách Bài Test
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Tổng: {exam.test?.length || 0} bài test
+              </p>
+            </div>
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Test
+            </button>
+          </div>
         </div>
 
         <div className="p-4">
@@ -176,6 +245,41 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({ exam, onBack }) => {
           />
         )}
       </div>
+
+      {/* Notification */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-50">
+          <div
+            className={`flex items-center p-4 rounded-lg shadow-lg border-l-4 ${
+              notification.type === "success"
+                ? "bg-green-50 border-green-500 text-green-800"
+                : "bg-red-50 border-red-500 text-red-800"
+            }`}
+          >
+            {notification.type === "success" ? (
+              <CheckCircle className="w-5 h-5 mr-3" />
+            ) : (
+              <AlertCircle className="w-5 h-5 mr-3" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Test Modal */}
+      <UploadTestModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSubmit={handleUploadTest}
+        examId={exam.id}
+        isLoading={isUploading}
+      />
     </div>
   );
 };

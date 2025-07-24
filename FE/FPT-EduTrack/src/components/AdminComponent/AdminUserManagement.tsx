@@ -54,7 +54,7 @@ const UserManagement: React.FC = () => {
     clearFilters,
   } = useUserPagination({
     users: allUsers,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
     defaultSearchTerm: "",
     defaultStatusFilter: "all",
     defaultRoleFilter: "all",

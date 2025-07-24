@@ -52,3 +52,22 @@ export async function getTestsByStudentId(id: number) {
     );
   }
 }
+
+export async function upLoadTest(id: number, formData: FormData) {
+  try {
+    const response = await http.post(`exams/${id}/tests/upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("upLoadTest error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}

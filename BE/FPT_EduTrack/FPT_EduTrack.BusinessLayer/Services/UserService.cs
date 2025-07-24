@@ -351,8 +351,20 @@ namespace FPT_EduTrack.BusinessLayer.Services
             await _unitOfWork.UserRepository.UpdateAsync(user);
         }
 
-        
+        public async Task<IEnumerable<UserResponse>> GetAllLecturersAsync()
+        {
+            var users = await _unitOfWork.UserRepository.GetAllLecturersAsync();
+            if (users == null || !users.Any())
+                return Enumerable.Empty<UserResponse>();
+            return users.Select(UserMapper.ToResponse).ToList();
+        }
 
-        
+        public async Task<IEnumerable<UserResponse>> GetAllStudentsAsync()
+        {
+            var users = await _unitOfWork.UserRepository.GetAllStudentsAsync();
+            if (users == null || !users.Any())
+                return Enumerable.Empty<UserResponse>();
+            return users.Select(UserMapper.ToResponse).ToList();
+        }
     }
 }

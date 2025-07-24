@@ -13,6 +13,8 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task<List<User>> GetAllAsyncWithPagination(Pagination pagination);
         Task<List<User>> GetAllAsync();
 
+        Task<List<User>> GetAllLecturersAsync();
+        Task<List<User>> GetAllStudentsAsync();
 
     }
 }

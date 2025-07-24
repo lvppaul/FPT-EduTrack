@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ArrowLeft,
   User,
@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import type { Test } from "../../types/examType";
 import Pagination from "../Pagination";
-
+import type { User as UserType } from "../../types/userType";
+import { getAllLecturers } from "../../service/userService";
 interface TestDetailViewProps {
   test: Test;
   onBack: () => void;
@@ -19,6 +20,19 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({ test, onBack }) => {
   // Pagination states for lecturers grading
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [lecturers, setLecturers] = useState<UserType[]>([]);
+
+  const fetchLecturers = async () => {
+    try {
+      const response = await getAllLecturers();
+      setLecturers(response.data);
+    } catch (error) {
+      console.error("Failed to fetch lecturers:", error);
+    }
+  };
+  useEffect(() => {
+    fetchLecturers();
+  }, []);
 
   const getScoreColor = (score: number) => {
     if (score >= 8) return "text-green-600";
@@ -82,9 +96,14 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({ test, onBack }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
             <div className="flex items-center space-x-2">
               <User className="w-4 h-4 text-gray-500" />
+              <span className="font-medium text-gray-700">Mã sinh viên:</span>
+              <span className="text-gray-600">{test.studentId}</span>
+            </div>
+            <div className="flex items-center space-x-2">
               <span className="font-medium text-gray-700">Sinh viên:</span>
               <span className="text-gray-600">{test.studentName}</span>
             </div>
+
             <div className="flex items-center space-x-2">
               <FileText className="w-4 h-4 text-gray-500" />
               <span className="font-medium text-gray-700">
@@ -109,10 +128,6 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({ test, onBack }) => {
                   </>
                 )}
               </span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="font-medium text-gray-700">Student ID:</span>
-              <span className="text-gray-600">#{test.studentId}</span>
             </div>
           </div>
 

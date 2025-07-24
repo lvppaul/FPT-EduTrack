@@ -26,7 +26,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .Include(t => t.Reports)
                     .Include(t => t.LecturersTestsDetails)
                         .ThenInclude(ltd => ltd.Lecturer).ThenInclude(s => s.Role)
-                    .Include(t => t.Exam)
+                    .Include(t => t.Exam).OrderByDescending(t => t.Id)
                     .ToListAsync();
             }
             catch (Exception e)
@@ -36,14 +36,6 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-        public Task<List<Test>> UploadTestFileAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<List<Test>> ITestRepository.UploadTestFileAsync()
-        {
-            throw new NotImplementedException();
-        }
+      
     }
 }

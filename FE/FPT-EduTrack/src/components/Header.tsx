@@ -59,7 +59,7 @@ const Header: React.FC = () => {
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.sub || "User"}
+                  {user?.email || "User"}
                 </p>
                 <p className="text-xs text-gray-500">
                   {getRoleDisplayName(user?.Role || "")}

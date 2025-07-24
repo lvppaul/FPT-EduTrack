@@ -53,7 +53,7 @@ const ExamManagement: React.FC = () => {
     clearFilters,
   } = useExamPagination({
     exams: allExams,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
     defaultSearchTerm: "",
     defaultStatusFilter: "all",
   });
@@ -105,6 +105,20 @@ const ExamManagement: React.FC = () => {
     setSelectedExam(null);
   };
 
+  const handleRefreshExam = async () => {
+    await fetchExams();
+    // Update selectedExam with fresh data if it exists
+    if (selectedExam) {
+      const updatedExamsResponse = await getExams();
+      const updatedExam = updatedExamsResponse.data.find(
+        (exam: Exam) => exam.id === selectedExam.id
+      );
+      if (updatedExam) {
+        setSelectedExam(updatedExam);
+      }
+    }
+  };
+
   // Modal handlers
   const handleCreateExam = async (examData: ExamCreateRequest) => {
     try {
@@ -145,7 +159,13 @@ const ExamManagement: React.FC = () => {
 
   // Exam Detail View
   if (showDetail && selectedExam) {
-    return <ExamDetailView exam={selectedExam} onBack={handleBackToList} />;
+    return (
+      <ExamDetailView
+        exam={selectedExam}
+        onBack={handleBackToList}
+        onRefreshExam={handleRefreshExam}
+      />
+    );
   }
 
   // Main List View

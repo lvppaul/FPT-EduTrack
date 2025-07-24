@@ -174,3 +174,27 @@ export async function activateUser(email: string, newPassword: string) {
     throw new Error("An unexpected error occurred");
   }
 }
+
+export async function getAllLecturers() {
+  try {
+    const response = await http.get(`Users/lecturers`);
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
+export async function getAllStudents() {
+  try {
+    const response = await http.get(`Users/students`);
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}

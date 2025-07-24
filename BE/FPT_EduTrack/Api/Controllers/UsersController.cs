@@ -334,13 +334,83 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
         }
-        [HttpGet("")]
+        [HttpGet]
         public async Task<IActionResult> GetAllUser()
         {
             try
             {
                 var users = await _service.GetAllAsync();
                 var totalUser = await _service.GetAllAsync();
+                if (users == null || !users.Any())
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "No users found",
+                        timestamp = DateTime.UtcNow
+                    });
+                return Ok(new
+                {
+                    success = true,
+                    message = "User retrieved successfully",
+                    data = users,
+                    cound = totalUser.Count(),
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving users",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+
+        }
+
+        [HttpGet("lecturers")]
+        public async Task<IActionResult> GetAllLecturers()
+        {
+            try
+            {
+                var users = await _service.GetAllLecturersAsync();
+                var totalUser = await _service.GetAllLecturersAsync();
+                if (users == null || !users.Any())
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "No users found",
+                        timestamp = DateTime.UtcNow
+                    });
+                return Ok(new
+                {
+                    success = true,
+                    message = "User retrieved successfully",
+                    data = users,
+                    cound = totalUser.Count(),
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving users",
+                    error = ex.Message,
+                    timestamp = DateTime.UtcNow
+                });
+            }
+
+        }
+
+        [HttpGet("students")]
+        public async Task<IActionResult> GetAllStudents()
+        {
+            try
+            {
+                var users = await _service.GetAllStudentsAsync();
+                var totalUser = await _service.GetAllStudentsAsync();
                 if (users == null || !users.Any())
                     return NotFound(new
                     {

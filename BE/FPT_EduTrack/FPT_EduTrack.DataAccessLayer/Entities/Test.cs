@@ -15,7 +15,7 @@ public partial class Test
 
     public string? Link { get; set; }
 
-    public float? Score { get; set; }
+    public float? Score { get; set; } = 0;  
 
     public int? StudentId { get; set; }
 
