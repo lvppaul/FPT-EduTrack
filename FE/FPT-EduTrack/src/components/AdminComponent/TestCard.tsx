@@ -20,8 +20,10 @@ const TestCard: React.FC<TestCardProps> = ({ test, onViewTest }) => {
           <h3 className="font-semibold text-gray-900 mb-2">{test.title}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
             <div className="flex flex-col">
-              <span className="font-medium text-gray-700">Mã test</span>
-              <span className="text-gray-600">{test.code}</span>
+              <span className="font-medium text-gray-700">ID - Mã test</span>
+              <span className="text-gray-600">
+                {test.id} - {test.code}
+              </span>
             </div>
             <div className="flex flex-col">
               <span className="font-medium text-gray-700">Sinh viên</span>

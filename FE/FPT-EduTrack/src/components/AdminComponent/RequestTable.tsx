@@ -1,18 +1,11 @@
 import React, { useState } from "react";
-import {
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import type { Request } from "../../types/requestType";
+import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import type { Report } from "../../types/requestType";
 
 interface RequestTableProps {
-  requests: Request[];
+  requests: Report[];
   onDelete: (id: string) => void;
-  onUpdateStatus: (id: string, status: Request["status"]) => void;
+  onUpdateStatus: (id: string, status: string) => void;
 }
 
 const RequestTable: React.FC<RequestTableProps> = ({
@@ -20,32 +13,40 @@ const RequestTable: React.FC<RequestTableProps> = ({
   onDelete,
   onUpdateStatus,
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const itemsPerPage = 10;
 
-  const totalPages = Math.ceil(requests.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRequests = requests.slice(startIndex, endIndex);
-
-  const getStatusColor = (status: Request["status"]) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      case "In Process":
-        return "bg-blue-100 text-blue-800";
-      case "Pending":
+  const getStatusColor = (statusId: number) => {
+    switch (statusId) {
+      case 1: // Pending
         return "bg-yellow-100 text-yellow-800";
-      case "Rejected":
+      case 2: // In Process
+        return "bg-blue-100 text-blue-800";
+      case 3: // Completed
+        return "bg-green-100 text-green-800";
+      case 4: // Rejected
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const handleStatusChange = (id: string, newStatus: Request["status"]) => {
-    onUpdateStatus(id, newStatus);
+  const getStatusText = (statusId: number) => {
+    switch (statusId) {
+      case 1:
+        return "Chờ xử lý";
+      case 2:
+        return "Đang xử lý";
+      case 3:
+        return "Hoàn thành";
+      case 4:
+        return "Từ chối";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const handleStatusChange = (id: string, newStatusId: number) => {
+    onUpdateStatus(id, newStatusId.toString());
     setActiveDropdown(null);
   };
 
@@ -85,7 +86,7 @@ const RequestTable: React.FC<RequestTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {currentRequests.map((request) => (
+            {requests.map((request) => (
               <tr
                 key={request.id}
                 className="hover:bg-gray-50 transition-colors"
@@ -98,37 +99,42 @@ const RequestTable: React.FC<RequestTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {request.student}
+                    {request.studentName}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {request.studentEmail}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900 max-w-xs truncate">
-                    {request.purpose}
+                    {request.title}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {request.createdDate}
+                  {new Date(request.createdAt).toLocaleDateString("vi-VN")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {request.processNote}
+                  {request.content || "-"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                      request.status
+                      request.reportStatusId
                     )}`}
                   >
-                    {request.status}
+                    {getStatusText(request.reportStatusId)}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {request.responseDate}
+                  -
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap relative">
                   <button
                     onClick={() =>
                       setActiveDropdown(
-                        activeDropdown === request.id ? null : request.id
+                        activeDropdown === request.id.toString()
+                          ? null
+                          : request.id.toString()
                       )
                     }
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -136,7 +142,7 @@ const RequestTable: React.FC<RequestTableProps> = ({
                     <MoreHorizontal className="w-4 h-4 text-gray-500" />
                   </button>
 
-                  {activeDropdown === request.id && (
+                  {activeDropdown === request.id.toString() && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                       <div className="py-2">
                         <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
@@ -153,29 +159,29 @@ const RequestTable: React.FC<RequestTableProps> = ({
                             Change Status:
                           </p>
                           {[
-                            "Pending",
-                            "In Process",
-                            "Completed",
-                            "Rejected",
+                            { id: 1, name: "Chờ xử lý" },
+                            { id: 2, name: "Đang xử lý" },
+                            { id: 3, name: "Hoàn thành" },
+                            { id: 4, name: "Từ chối" },
                           ].map((status) => (
                             <button
-                              key={status}
+                              key={status.id}
                               onClick={() =>
                                 handleStatusChange(
-                                  request.id,
-                                  status as Request["status"]
+                                  request.id.toString(),
+                                  status.id
                                 )
                               }
                               className="w-full px-2 py-1 text-left text-sm text-gray-700 hover:bg-gray-100 rounded"
                             >
-                              {status}
+                              {status.name}
                             </button>
                           ))}
                         </div>
                         <hr className="my-2" />
                         <button
                           onClick={() => {
-                            onDelete(request.id);
+                            onDelete(request.id.toString());
                             setActiveDropdown(null);
                           }}
                           className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
@@ -191,69 +197,6 @@ const RequestTable: React.FC<RequestTableProps> = ({
             ))}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-        <div className="text-sm text-gray-600">
-          Showing {startIndex + 1} to{" "}
-          {Math.min(startIndex + itemsPerPage, requests.length)} of{" "}
-          {requests.length} results
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-
-          <div className="flex items-center space-x-1">
-            {[...Array(Math.min(5, totalPages))].map((_, index) => {
-              const pageNumber = index + 1;
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => setCurrentPage(pageNumber)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    currentPage === pageNumber
-                      ? "bg-purple-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            })}
-            {totalPages > 5 && (
-              <>
-                <span className="px-2 text-gray-400">...</span>
-                <button
-                  onClick={() => setCurrentPage(totalPages)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    currentPage === totalPages
-                      ? "bg-purple-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  {totalPages}
-                </button>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
       </div>
     </div>
   );

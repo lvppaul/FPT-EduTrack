@@ -90,5 +90,14 @@ namespace FPT_EduTrack.BusinessLayer.Services
             var filtered = exams.Where(e => e.Status == status.ToString());
             return filtered.Select(ExamMapper.MapToDTO).ToList();
         }
+        public async Task<List<ExamResponse>> GetAllAsync()
+        {
+            var exams = await _unitOfWork.ExamRepository.GetAllAsync();
+            if (exams == null || !exams.Any())
+            {
+                return new List<ExamResponse>();
+            }
+            return exams.Select(ExamMapper.MapToDTO).ToList();
+        }
     }
 }

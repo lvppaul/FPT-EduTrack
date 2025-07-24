@@ -59,7 +59,7 @@ const Header: React.FC = () => {
               </div>
               <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.sub || "User"}
+                  {user?.email || "User"}
                 </p>
                 <p className="text-xs text-gray-500">
                   {getRoleDisplayName(user?.Role || "")}
@@ -83,16 +83,6 @@ const Header: React.FC = () => {
 
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-20">
                   <div className="py-2">
-                    {/* User Info */}
-                    <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.sub || "User"}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {getRoleDisplayName(user?.Role || "")}
-                      </p>
-                    </div>
-
                     {/* Menu Items */}
                     <button className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200">
                       <User className="w-4 h-4 mr-3" />

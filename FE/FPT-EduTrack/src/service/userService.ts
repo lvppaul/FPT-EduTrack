@@ -44,19 +44,17 @@ export async function userLogin(email: string, password: string) {
 export async function createUser(
   email: string,
   fullName: string,
-  departmentId: string,
-  role: number,
-  rank: number,
-  baseSalary: number
+  password: string,
+  confirmPassword: string,
+  role: number
 ) {
   try {
-    const response = await http.post("user/create", {
+    const response = await http.post("Users/create", {
       email: email,
       fullName: fullName,
-      department: departmentId,
-      role: role,
-      rank: rank,
-      baseSalary: baseSalary,
+      password: password,
+      roleId: role,
+      confirmPassword: confirmPassword,
     });
     return response.data;
   } catch (error: unknown) {
@@ -68,25 +66,19 @@ export async function createUser(
 }
 
 export async function updateUser(
-  id: string,
+  id: number,
   email: string,
-  fullName: string,
-  departmentId: string,
-  role: number,
-  rank: number,
-  status: number,
-  baseSalary: number
+  fullname: string,
+  isActive: boolean,
+  roleId: number
 ) {
   try {
-    const response = await http.put(`user/update-users`, {
-      userId: id,
-      fullName,
+    const response = await http.put(`/api/Users/${id}`, {
+      id,
       email,
-      departmentId,
-      role,
-      rank,
-      status,
-      baseSalary,
+      fullname,
+      roleId,
+      isActive,
     });
     return response.data;
   } catch (error: unknown) {
@@ -97,11 +89,26 @@ export async function updateUser(
   }
 }
 
-export async function getAllUsers(pageNumber: number, pageSize: number) {
+export async function getAllUsersPagination(
+  pageNumber: number,
+  pageSize: number
+) {
   try {
     const response = await http.get(
-      `user/get-users?pageNumber=${pageNumber}&pageSize=${pageSize}`
+      `Users/getUser?pageNumber=${pageNumber}&pageSize=${pageSize}`
     );
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
+export async function getAllUsers() {
+  try {
+    const response = await http.get(`Users`);
     return response.data;
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -159,6 +166,30 @@ export async function activateUser(email: string, newPassword: string) {
       email,
       newPassword,
     });
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
+export async function getAllLecturers() {
+  try {
+    const response = await http.get(`Users/lecturers`);
+    return response.data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw new Error(error.message);
+    }
+    throw new Error("An unexpected error occurred");
+  }
+}
+
+export async function getAllStudents() {
+  try {
+    const response = await http.get(`Users/students`);
     return response.data;
   } catch (error: unknown) {
     if (error instanceof Error) {

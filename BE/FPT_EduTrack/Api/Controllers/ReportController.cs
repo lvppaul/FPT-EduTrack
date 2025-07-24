@@ -25,7 +25,7 @@ namespace FPT_EduTrack.Api.Controllers
             _testService = testService;
         }
 
-        [HttpGet]
+        [HttpGet("pagination")]
         //[Authorize]
         public async Task<ActionResult<ReportResponse>> GetAllReports([FromQuery] Pagination pagination)
         {
@@ -49,6 +49,8 @@ namespace FPT_EduTrack.Api.Controllers
                 count = listReport.Count()
             });
         }
+
+
 
         [HttpGet("{id}")]
         //[Authorize]
@@ -267,6 +269,30 @@ namespace FPT_EduTrack.Api.Controllers
             {
                 success = true,
                 message = "Report deleted successfully."
+            });
+        }
+        [HttpGet]
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> GetAllReports()
+        {
+            var listReportPagination = await _reportService.GetAllAsync();
+            if (listReportPagination == null || !listReportPagination.Any())
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "No reports found."
+                });
+            }
+
+            var listReport = await _reportService.GetAllAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
             });
         }
     }

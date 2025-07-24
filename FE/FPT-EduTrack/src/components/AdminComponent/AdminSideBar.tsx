@@ -1,15 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  ClipboardCheck,
-  MessageSquare,
-  Building,
-  UserCog,
-  LogOut,
-} from "lucide-react";
+import { Users, FileText, MessageSquare, Building, LogOut } from "lucide-react";
 import AuthUtils from "../../utils/authUtils";
 
 interface SidebarProps {
@@ -26,12 +17,6 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
   };
   const menuItems = [
     {
-      id: "overview",
-      label: "Tổng Quan",
-      icon: LayoutDashboard,
-      description: "Dashboard và thống kê tổng quát",
-    },
-    {
       id: "account",
       label: "Quản Lý Người Dùng",
       icon: Users,
@@ -43,12 +28,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
       icon: FileText,
       description: "Tạo và quản lý các kỳ thi",
     },
-    {
-      id: "test",
-      label: "Quản Lý Bài Test",
-      icon: ClipboardCheck,
-      description: "Quản lý các bài test trong kỳ thi gần nhất",
-    },
+
     {
       id: "request",
       label: "Quản Lý Yêu Cầu",
@@ -114,38 +94,27 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
         </nav>
 
         {/* Help Section */}
-        <div className="mt-8 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
-          <div className="flex items-start space-x-3">
-            <MessageSquare className="w-5 h-5 text-purple-600 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-medium text-purple-900">
-                Cần hỗ trợ?
-              </h4>
-              <p className="text-xs text-purple-700 mt-1">
-                Liên hệ với bộ phận kỹ thuật để được hỗ trợ
-              </p>
-              <button className="mt-2 text-xs text-purple-600 hover:text-purple-800 font-medium">
-                Liên hệ hỗ trợ →
-              </button>
-            </div>
+        <div className="flex items-start space-x-3">
+          <MessageSquare className="w-5 h-5 text-purple-600 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-medium text-purple-900">Cần hỗ trợ?</h4>
+            <p className="text-xs text-purple-700 mt-1">
+              Liên hệ với bộ phận kỹ thuật để được hỗ trợ
+            </p>
+            <a
+              href="https://daihoc.fpt.edu.vn/en/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs text-purple-600 hover:text-purple-800 font-medium"
+            >
+              Liên hệ hỗ trợ →
+            </a>
           </div>
         </div>
       </div>
 
       {/* User Info Section */}
       <div className="p-6 border-t border-gray-200 bg-gray-50 space-y-3">
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-            <UserCog className="w-5 h-5 text-gray-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">
-              Admin Name
-            </p>
-            <p className="text-xs text-gray-500 truncate">admin@fpt.edu.vn</p>
-          </div>
-        </div>
-
         {/* Logout Button */}
         <button
           onClick={handleLogout}

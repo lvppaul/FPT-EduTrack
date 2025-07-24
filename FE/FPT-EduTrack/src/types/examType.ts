@@ -51,3 +51,13 @@ export interface ExamResponse {
   data: Exam[];
   count: number;
 }
+
+export interface ExamCreateRequest {
+  code: string;
+  duration: number;
+  description?: string;
+  startTime?: string;
+  endTime?: string;
+  maxAttempts?: number;
+  passingScore?: number;
+}

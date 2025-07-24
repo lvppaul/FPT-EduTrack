@@ -26,7 +26,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .Include(t => t.Reports)
                     .Include(t => t.LecturersTestsDetails)
                         .ThenInclude(ltd => ltd.Lecturer).ThenInclude(s => s.Role)
-                    .Include(t => t.Exam)
+                    .Include(t => t.Exam).OrderByDescending(t => t.Id)
                     .ToListAsync();
             }
             catch (Exception e)
@@ -36,14 +36,17 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-        public Task<List<Test>> UploadTestFileAsync()
+        public async Task<bool> IsLecturerAssigned(int lecturerId, int testId)
         {
-            throw new NotImplementedException();
-        }
-
-        Task<List<Test>> ITestRepository.UploadTestFileAsync()
-        {
-            throw new NotImplementedException();
+            try
+            {
+                return await _context.LecturersTestsDetails
+                    .AnyAsync(ltd => ltd.LecturerId == lecturerId && ltd.TestId == testId);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error at IsLecturerAssigned at TestRepository", e);
+            }
         }
     }
 }

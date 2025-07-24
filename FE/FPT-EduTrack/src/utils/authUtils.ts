@@ -2,6 +2,8 @@ import { jwtDecode } from "jwt-decode";
 
 export interface DecodedToken {
   sub: string;
+  name?: string;
+  email?: string;
   Role: string;
   exp?: number;
   iat?: number;
@@ -9,6 +11,8 @@ export interface DecodedToken {
 
 export interface UserToken {
   sub: string;
+  name?: string;
+  email?: string;
   Role: string;
 }
 
@@ -52,6 +56,8 @@ export class AuthUtils {
       const decoded = jwtDecode<DecodedToken>(token);
       return {
         sub: decoded.sub,
+        name: decoded.name,
+        email: decoded.email,
         Role: decoded.Role,
       };
     } catch (error) {
@@ -88,6 +94,19 @@ export class AuthUtils {
     return this.getValidToken() !== null;
   }
 
+  // Get saved user data from localStorage
+  static getSavedUserData(): UserToken | null {
+    try {
+      const userData = localStorage.getItem("userData");
+      if (!userData) return null;
+
+      return JSON.parse(userData) as UserToken;
+    } catch (error) {
+      console.error("Error parsing saved user data:", error);
+      return null;
+    }
+  }
+
   // Save authentication data
   static saveAuthData(
     accessToken: string,
@@ -97,6 +116,8 @@ export class AuthUtils {
       const decoded = jwtDecode<DecodedToken>(accessToken);
       const userData: UserToken = {
         sub: decoded.sub,
+        name: decoded.name,
+        email: decoded.email,
         Role: decoded.Role,
       };
 

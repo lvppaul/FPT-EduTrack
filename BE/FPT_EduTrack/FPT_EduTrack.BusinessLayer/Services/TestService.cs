@@ -16,11 +16,13 @@ namespace FPT_EduTrack.BusinessLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+   
 
         public TestService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
+         
         }
 
         public async Task<List<Test>> GetTestsAsync()
@@ -533,5 +535,143 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw new Exception($"Error retrieving tests for exam ID {examId} and lecturer ID {lecturerId}", ex);
             }
         }
+
+        public async Task<List<TestResponse>> GetCurrentExamTestAsync(int status, int pageSize, int pageNumber)
+        {
+            try
+            {
+                if (pageSize <= 0)
+                    throw new ArgumentException("Page size must be greater than 0");
+                
+                if (pageNumber <= 0)
+                    throw new ArgumentException("Page number must be greater than 0");
+
+                // Get all tests with their exams
+                var tests = await _unitOfWork.TestRepository.GetTestsAsync();
+                if (tests == null || !tests.Any())
+                    return new List<TestResponse>();
+
+                // Filter tests based on exam status - exclude Cancelled, Postponed, Completed
+                var excludedStatuses = new List<string>
+                {
+                    ExamStatus.Cancelled.ToString(),
+                    ExamStatus.Postponed.ToString(),
+                    ExamStatus.Completed.ToString()
+                };
+
+                var filteredTests = tests
+                    .Where(t => t.Exam != null && 
+                               !t.isDeleted.GetValueOrDefault() &&
+                               !string.IsNullOrEmpty(t.Exam.Status) &&
+                               !excludedStatuses.Contains(t.Exam.Status))
+                    .OrderBy(t => t.Exam.CreatedAt ?? DateTime.MinValue) // Order by exam creation date, then by test ID
+                    .ThenBy(t => t.Id)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return filteredTests.Select(TestMapper.ToResponse).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving current exam tests with pagination (PageSize: {pageSize}, PageNumber: {pageNumber})", ex);
+            }
+        }
+
+        public async Task<AssignLecturerDto> AssignLecturerToTest(AssignLecturerDto dto)
+        {
+            try
+            {
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
+                var lecturer = await _unitOfWork.UserRepository.GetByIdAsync(dto.LecturerId);
+
+                if (test == null || lecturer == null)
+                    return null;
+
+                var existed = await _unitOfWork.TestRepository.IsLecturerAssigned(dto.LecturerId, dto.TestId);
+
+                if (existed)
+                    return null;
+                var link = new LecturersTestsDetail
+                {
+                    TestId = dto.TestId,
+                    LecturerId = dto.LecturerId,
+                    Score = dto.Score ?? 0,
+                    Reason = dto.Reason,
+                    isGrading = dto.isGrading ?? true
+                };
+                await _unitOfWork.LecturerTestDetailRepository.CreateAsync(link);
+                return new AssignLecturerDto
+                {
+                    TestId = dto.TestId,
+                    LecturerId = dto.LecturerId,
+                    Score = link.Score,
+                    Reason = link.Reason,
+                    isGrading = link.isGrading
+                };
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at AssignLecturerToTest"+ e);
+            }
+           
+        }
+
+        public async Task<List<TestResponse>> GetTestsByLecturer(int lecturerId, bool isGrading = true)
+        {
+            try
+            {
+               var tests = await _unitOfWork.LecturerTestDetailRepository.GetTestsByLecturer(lecturerId, isGrading);
+                if (tests == null || !tests.Any())
+                    return null;
+                // Convert to TestResponse
+                var testResponses = tests.Select(t => TestMapper.ToResponse(t.Test)).ToList();
+                return testResponses;
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at GetTestsByLecturer" + e);
+            }
+        }
+
+        public async Task<bool> UpdateLecturerTestDetail(AssignLecturerDto dto)
+        {
+            try
+            {
+                var result = await _unitOfWork.LecturerTestDetailRepository.GetLecturerTestDetailByLecturerIdAndTestId(dto.LecturerId, dto.TestId);
+                if (result == null)
+                {
+                    throw new Exception($"No lecturer test detail found for LecturerId: {dto.LecturerId} and TestId: {dto.TestId}");
+                }
+
+                // Update trực tiếp vào entity đang được tracked
+                result.Score = dto.Score ?? 0;
+                result.Reason = dto.Reason;
+                result.isGrading = dto.isGrading ?? true;
+
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
+                if (test == null)
+                {
+                    throw new Exception($"Test with ID {dto.TestId} not found");
+                }
+                test.Score = (float)result.Score;
+
+                var updateLecturerTestDetail = await _unitOfWork.LecturerTestDetailRepository.UpdateAsync(result);
+                var updateTest = await _unitOfWork.TestRepository.UpdateAsync(test);
+
+                if (updateLecturerTestDetail == 0 || updateTest == 0)
+                {
+                    throw new Exception("Failed to update lecturer test detail or test");
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error at UpdateLecturerTestDetail: " + e.Message, e);
+            }
+        }
+
     }
 }

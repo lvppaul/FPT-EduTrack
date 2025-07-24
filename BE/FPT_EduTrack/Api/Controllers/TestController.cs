@@ -604,6 +604,89 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         /// <summary>
+        /// Get current active exam tests with pagination
+        /// Returns tests from exams that are not Cancelled, Postponed, or Completed
+        /// </summary>
+        /// <param name="pageSize">Number of items per page (default: 10)</param>
+        /// <param name="pageNumber">Page number starting from 1 (default: 1)</param>
+        /// <returns>Paginated list of tests from active exams</returns>
+        [HttpGet]
+        [Route("tests/current-exams")]
+        public async Task<IActionResult> GetCurrentExamTests([FromQuery] int pageSize = 10, [FromQuery] int pageNumber = 1)
+        {
+            try
+            {
+                if (pageSize <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Page size must be greater than 0"
+                    });
+                }
+
+                if (pageNumber <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = "Page number must be greater than 0"
+                    });
+                }
+
+                var tests = await _testService.GetCurrentExamTestAsync(0, pageSize, pageNumber);
+
+                if (!tests.Any())
+                {
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "No tests found for current active exams",
+                        data = new List<object>(),
+                        pagination = new
+                        {
+                            pageNumber,
+                            pageSize,
+                            count = 0
+                        }
+                    });
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Current exam tests retrieved successfully",
+                    data = tests,
+                    pagination = new
+                    {
+                        pageNumber,
+                        pageSize,
+                        count = tests.Count,
+                        hasMore = tests.Count == pageSize // Indicates if there might be more pages
+                    }
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while retrieving current exam tests with pagination (PageSize: {PageSize}, PageNumber: {PageNumber})", pageSize, pageNumber);
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving current exam tests",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
         /// Validate document files without uploading
         /// </summary>
         /// <param name="files">Files to validate</param>
@@ -661,6 +744,110 @@ namespace FPT_EduTrack.Api.Controllers
                 {
                     success = false,
                     message = "An error occurred while validating files",
+                    error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpPost]
+        [Route("tests/assign-lecturer-in-test")]
+        public async Task<IActionResult> AssignLecturerToTest([FromBody] AssignLecturerDto dto)
+        {
+            try
+            {
+
+                var createdDto = await _testService.AssignLecturerToTest(dto);
+                if (createdDto == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Lecturer or test not found or lecturer has been assigned to Test already"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lecturer assigned to test successfully",
+                    data = createdDto
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while assign lecturer to test");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while assign lecturer to test",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("tests/by-lecturer/{lecturerId}")]
+        public async Task<IActionResult> GetTestsByLecturer(int lecturerId, [FromQuery] bool isGrading = true)
+        {
+            try
+            {
+
+                var list = await _testService.GetTestsByLecturer(lecturerId,isGrading);
+                if (list == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "GetTestsByLecturer has no data"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Get test by lecturer successfully",
+                    data = list
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while Get Tests By Lecturer");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while Get Tests By Lecturer",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("tests/{testId}/lecturer/{lecturerId}")]
+        public async Task<IActionResult> UpdateLecturerTestDetail([FromBody] AssignLecturerDto dto)
+        {
+            try
+            {
+                var check = await _testService.UpdateLecturerTestDetail(dto) ;
+                if (!check)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Update Lecturer Test Detail Unsuccessfully"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Update Lecturer Test Detail Successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while UpdateLecturerTestDetail");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while UpdateLecturerTestDetail",
                     error = ex.Message
                 });
             }

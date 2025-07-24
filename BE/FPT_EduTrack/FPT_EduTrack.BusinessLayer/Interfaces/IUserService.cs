@@ -22,6 +22,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<UserResponse> GetUserWithRoleAsync(int userId);
         Task<User> RegisterAsync(UserRequest user);
         Task SaveGoogleTokenAsync(string email, string accessToken, string refreshToken, DateTime accessTokenExpiredAt);
-
+        Task<IEnumerable<UserResponse>> GetAllLecturersAsync();
+        Task<IEnumerable<UserResponse>> GetAllStudentsAsync();
     }
 }

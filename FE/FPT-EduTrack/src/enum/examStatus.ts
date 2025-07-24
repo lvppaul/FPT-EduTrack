@@ -7,14 +7,21 @@
  * Kỳ thi đã bị hoãn hoặc được lên lịch lại do một số lý do (thời tiết, vấn đề kỹ thuật, v.v.)
  * Kỳ thi đã bị hủy hoàn toàn và sẽ không được tổ chức
  */
-export type ExamStatus = "0" | "1" | "2" | "3" | "4" | "5" | "6";
+export type ExamStatus =
+  | "InProgress"
+  | "Completed"
+  | "Grading"
+  | "ResultsPublished"
+  | "UnderReview"
+  | "Postponed"
+  | "Cancelled";
 
 export const ExamStatus = {
-  InProgress: "0" as ExamStatus,
-  Completed: "1" as ExamStatus,
-  Grading: "2" as ExamStatus,
-  ResultsPublished: "3" as ExamStatus,
-  UnderReview: "4" as ExamStatus,
-  Postponed: "5" as ExamStatus,
-  Cancelled: "6" as ExamStatus,
+  InProgress: "InProgress" as ExamStatus,
+  Completed: "Completed" as ExamStatus,
+  Grading: "Grading" as ExamStatus,
+  ResultsPublished: "ResultsPublished" as ExamStatus,
+  UnderReview: "UnderReview" as ExamStatus,
+  Postponed: "Postponed" as ExamStatus,
+  Cancelled: "Cancelled" as ExamStatus,
 };

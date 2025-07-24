@@ -9,7 +9,7 @@ public partial class LecturersTestsDetail
 
     public int LecturerId { get; set; }
 
-    public double? Score { get; set; }
+    public double? Score { get; set; }=0;
 
     public string? Reason { get; set; }
 

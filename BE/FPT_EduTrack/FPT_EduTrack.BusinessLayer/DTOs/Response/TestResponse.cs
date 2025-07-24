@@ -19,13 +19,13 @@ namespace FPT_EduTrack.BusinessLayer.DTOs.Response
 
         public string? Link { get; set; }
 
-        public virtual float TestsScores { get; set; } 
+        public float? TestsScores { get; set; } 
 
         public int? ExamId { get; set; }
 
         public int? StudentId { get; set; }
 
-        public virtual string StudentName { get; set; }
+        public virtual string? StudentName { get; set; }
     
         public virtual bool hasReport { get; set; } = false;
         
