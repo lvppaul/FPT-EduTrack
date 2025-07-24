@@ -283,5 +283,75 @@ namespace FPT_EduTrack.BusinessLayer.Services
 
             return eventResponse;
         }
+
+        public async Task<List<MeetingResponse>> GetEventsOrganizePaginationAsync(string organizerEmail, Pagination pagination)
+        {
+            try
+            {
+                var restRequest = new RestRequest("primary/events");
+                restRequest.AddParameter("singleEvents", "true");
+                restRequest.AddParameter("orderBy", "startTime");
+
+                var accessToken = await this.tokenProvider.GetAccessTokenAsync(organizerEmail);
+                restRequest.AddHeader("Authorization", $"Bearer {accessToken}");
+
+                var response = await this.restClient.ExecuteAsync(restRequest);
+
+                if (!response.IsSuccessful)
+                {
+                    throw new Exception($"Google API Error:\nStatus: {response.StatusCode}\nContent: {response.Content}\nError: {response.ErrorMessage}");
+                }
+
+                var jsonResponse = JObject.Parse(response.Content);
+                var itemsJson = jsonResponse["items"]?.ToString();
+
+                if (string.IsNullOrEmpty(itemsJson))
+                {
+                    return new List<MeetingResponse>();
+                }
+
+                var allEvents = JsonConvert.DeserializeObject<List<EventResponse>>(itemsJson);
+
+                var organizerEvents = allEvents
+                    .Where(e => e != null && e.Organizer?.Email == organizerEmail)
+                    .ToList();
+
+                var googleEventIds = organizerEvents
+                    .Select(e => e.Id)
+                    .Where(id => !string.IsNullOrEmpty(id))
+                    .ToList();
+
+                if (!googleEventIds.Any())
+                {
+                    return new List<MeetingResponse>();
+                }
+
+                var meetingsInDb = await _unitOfWork.MeetingRepository.GetMeetingsByGoogleIdsAsync(googleEventIds);
+                var meetingIdSet = new HashSet<string>(meetingsInDb.Select(m => m.GoogleMeetingId));
+
+                var validMeetings = meetingsInDb
+                    .Where(m => meetingIdSet.Contains(m.GoogleMeetingId))
+                    .ToList();
+
+                var meetingResponses = validMeetings.Select(m => new MeetingResponse
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    CreatedAt = m.CreatedAt,
+                    Link = m.Link,
+                    MeetingStatusId = m.MeetingStatusId,
+                    MeetingStatusName = m.MeetingStatus?.Name
+                })
+                .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+                .Take(pagination.PageSize)
+                .ToList();
+
+                return meetingResponses;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving events for organizer '{organizerEmail}': {ex.Message}", ex);
+            }
+        }
     }
 }
