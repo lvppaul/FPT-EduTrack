@@ -2,6 +2,7 @@
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Services;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 using GoogleCalendarAPI;
 using Microsoft.AspNetCore.Http;
@@ -109,18 +110,26 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpGet("events-organized")]
-        public async Task<IActionResult> GetEventsOrganizeAsync()
+        public async Task<IActionResult> GetEventsOrganizeAsync([FromQuery]Pagination pagination)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
             if (string.IsNullOrEmpty(organizerEmail))
                 return Unauthorized("Email claim not found in token");
 
-            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
-            if (listEvent == null || !listEvent.Any())
+            var listEventPagination = await this.meetingService.GetEventsOrganizePaginationAsync(organizerEmail, pagination);
+            if (listEventPagination == null || !listEventPagination.Any())
                 return NotFound("No events found for the organizer.");
 
-            return Ok(listEvent);
+            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Meeting retrieved true",
+                data = listEventPagination,
+                count = listEvent.Count
+            });
         }
 
         [HttpDelete("event/{meetingId}/delete")]
@@ -137,9 +146,12 @@ namespace FPT_EduTrack.Api.Controllers
             if (string.IsNullOrEmpty(meeting.GoogleMeetingId))
                 return BadRequest("GoogleMeetingId is missing. Cannot delete event from Google Calendar.");
 
-            if (await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail)) { 
+            if (await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail)) {
+
+                var subject = _templateService.GetMeetingCancelSubject();
+                var body = _templateService.GetMeetingCancelBody(meeting, organizerEmail);
             
-            var attendees = await meetingService.GetMeetingAttendees(meetingId);
+                var attendees = await meetingService.GetMeetingAttendees(meetingId);
                 if (attendees != null && attendees.Any())
                 {
                     foreach (var email in attendees)
@@ -149,8 +161,8 @@ namespace FPT_EduTrack.Api.Controllers
                             await _emailService.SendEmailAsync(new EmailDto
                             {
                                 To = new List<string> { email },
-                                Subject = "Hủy cuộc họp",
-                                Body = $"Cuộc họp (ID: {meetingId}) đã bị hủy bởi {organizerEmail}."
+                                Subject = subject,
+                                Body = body
                             });
                         }
                     }

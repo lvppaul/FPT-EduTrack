@@ -144,31 +144,31 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     tweaks = new
                     {
                         // Text Input cho grading description
-                        TextInput9i7Xs = new Dictionary<string, object>
+                        TextInputUwzlE = new Dictionary<string, object>
                         {
                             ["input_value"] = gradingGuide ?? ""
                         },
 
                         // Text Input cho IELTS questions
-                        TextInput9MxMY = new Dictionary<string, object>
+                        TextInputVA8YW = new Dictionary<string, object>
                         {
                             ["input_value"] = request.TextInputValue ?? "Please evaluate this essay according to the four criteria: Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9)."
                         },
 
                         // Text Input cho student essay
-                        TextInput43JFe = new Dictionary<string, object>
+                        TextInputVU0oa = new Dictionary<string, object>
                         {
                             ["input_value"] = studentEssays ?? ""
                         },
 
                         // Prompt template
-                        PromptVo0PP = new Dictionary<string, object>
+                        PromptNMxLe = new Dictionary<string, object>
                         {
                             ["template"] = "You are an IELTS examiner. Evaluate the following Task 2 writing based on IELTS band descriptors and document.\nDocument:\n{docs}\nCriteria:\n- Task Response\n- Coherence and Cohesion\n- Lexical Resource\n- Grammatical Range and Accuracy\n\nGive a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9).\nQuestions:\n{questions}"
                         },
 
                         // OpenRouter AI model
-                        OpenRouterComponentpCawE = new Dictionary<string, object>
+                        OpenRouterComponentPwNfE = new Dictionary<string, object>
                         {
                             ["model_name"] = "deepseek/deepseek-r1-0528:free",
                             ["temperature"] = 0.7,
@@ -176,7 +176,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         },
 
                         // Text Output component
-                        TextOutputPsVZo = new Dictionary<string, object>
+                        TextOutputG4vmg = new Dictionary<string, object>
                         {
                             ["input_value"] = ""
                         }
@@ -199,7 +199,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 _httpClient.DefaultRequestHeaders.Accept.Clear();
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                var _url = _configuration.GetSection("LangflowURL").ToString();
+                var _url = _configuration["LangflowURL"];
                 var response = await _httpClient.PostAsync(_url, content);
 
                 if (response.IsSuccessStatusCode)
