@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 //Temporary license for Apose.Words
 var license = new Aspose.Words.License();
-license.SetLicense("Properties/Aspose.Wordsfor.NET.lic");
+license.SetLicense("Properties/Aspose.Totalfor.NET.lic");
 
 // Add services to the container.
 

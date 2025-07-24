@@ -62,6 +62,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         string filename = Guid.NewGuid().ToString() + extension;
                         uploadedGuidelineFileNames.Add(filename);
                         gradingGuide = await _parseService.ReadFileAsync(file);
+                        Console.WriteLine(gradingGuide);
                         if (string.IsNullOrWhiteSpace(gradingGuide))
                         {
                             return new GradingAIResponse
@@ -104,6 +105,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         string filename = Guid.NewGuid().ToString() + extension;
                         uploadedTestFileNames.Add(filename);
                         studentEssays = await _parseService.ReadFileAsync(file);
+                        Console.WriteLine(studentEssays);
+
 
                         // Debug logging
                         _logger.LogInformation($"Read test file: {file.FileName}, Size: {file.Length}, Content length: {studentEssays?.Length ?? 0}");
