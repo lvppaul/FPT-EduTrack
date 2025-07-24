@@ -1,3 +1,4 @@
+using FPT_EduTrack.DataAccessLayer.Entities;
 using GoogleCalendarAPI;
 
 namespace FPT_EduTrack.BusinessLayer.Interfaces
@@ -8,5 +9,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         string GetMeetingInvitationBody(EventResponse response, string organizerEmail);
         string GetMeetingUpdateSubject();
         string GetMeetingUpdateBody(EventResponse response, string organizerEmail);
+        string GetMeetingCancelSubject();
+        string GetMeetingCancelBody(Meeting meeting, string organizerEmail);
     }
 }

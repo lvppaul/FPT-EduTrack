@@ -146,9 +146,12 @@ namespace FPT_EduTrack.Api.Controllers
             if (string.IsNullOrEmpty(meeting.GoogleMeetingId))
                 return BadRequest("GoogleMeetingId is missing. Cannot delete event from Google Calendar.");
 
-            if (await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail)) { 
+            if (await meetingService.DeleteMeetingAsync(meeting.GoogleMeetingId, organizerEmail)) {
+
+                var subject = _templateService.GetMeetingCancelSubject();
+                var body = _templateService.GetMeetingCancelBody(meeting, organizerEmail);
             
-            var attendees = await meetingService.GetMeetingAttendees(meetingId);
+                var attendees = await meetingService.GetMeetingAttendees(meetingId);
                 if (attendees != null && attendees.Any())
                 {
                     foreach (var email in attendees)
@@ -158,8 +161,8 @@ namespace FPT_EduTrack.Api.Controllers
                             await _emailService.SendEmailAsync(new EmailDto
                             {
                                 To = new List<string> { email },
-                                Subject = "Hủy cuộc họp",
-                                Body = $"Cuộc họp (ID: {meetingId}) đã bị hủy bởi {organizerEmail}."
+                                Subject = subject,
+                                Body = body
                             });
                         }
                     }
