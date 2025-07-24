@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
@@ -13,13 +14,15 @@ namespace FPT_EduTrack.BusinessLayer.Services
         private readonly HttpClient _httpClient;
         private readonly ILogger<GradingAIService> _logger;
         private readonly IParseResponse _parseService;
-        private readonly string _url = "http://langflow2025.gtcbaqfsdwfaf6ep.eastasia.azurecontainer.io:7860/api/v1/run/9ae28e62-f044-4d78-b81d-969989442b0b";
+        private readonly IConfiguration _configuration;
+        //private readonly string _url = "http://langflow2025.gtcbaqfsdwfaf6ep.eastasia.azurecontainer.io:7860/api/v1/run/9ae28e62-f044-4d78-b81d-969989442b0b";
 
-        public GradingAIService(HttpClient httpClient, ILogger<GradingAIService> logger, IParseResponse parseService)
+        public GradingAIService(HttpClient httpClient, ILogger<GradingAIService> logger, IParseResponse parseService, IConfiguration configuration)
         {
             _httpClient = httpClient;
             _logger = logger;
             _parseService = parseService;
+            _configuration = configuration;
         }
 
         public async Task<GradingAIResponse> ProcessGradingAsync(GradingFileRequest request)
@@ -196,24 +199,35 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 _httpClient.DefaultRequestHeaders.Accept.Clear();
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                var _url = _configuration.GetSection("LangflowURL").ToString();
                 var response = await _httpClient.PostAsync(_url, content);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var cleanedContent = _parseService.ParseLangflowResponse(responseContent);
-
-                    return new GradingAIResponse
+                    var gradingResponse = _parseService.ParseLangflowResponse(responseContent);
+                    if (gradingResponse == null)
                     {
-                        Success = true,
-                        Grading = cleanedContent,
-                        GuidelineFilesProcessed = uploadedGuidelineFileNames.Count,
-                        GuidelineUploadedFiles = uploadedGuidelineFileNames,
-                        OriginalGuidelineFileNames = request.GuidelineFiles?.Select(f => f.FileName).ToArray() ?? new string[0],
-                        TestFilesProcessed = uploadedTestFileNames.Count,
-                        TestUploadedFiles = uploadedTestFileNames,
-                        OriginalTestFileNames = request.TestFiles?.Select(f => f.FileName).ToArray() ?? new string[0]
-                    };
+                        return new GradingAIResponse
+                        {
+                            Success = false,
+                            Grading = new GradingResponse { Justification = $"Parsing Response failed" }
+                        };
+                    }
+                    else
+                    {
+                        return new GradingAIResponse
+                        {
+                            Success = true,
+                            Grading = gradingResponse,
+                            GuidelineFilesProcessed = uploadedGuidelineFileNames.Count,
+                            GuidelineUploadedFiles = uploadedGuidelineFileNames,
+                            OriginalGuidelineFileNames = request.GuidelineFiles?.Select(f => f.FileName).ToArray() ?? new string[0],
+                            TestFilesProcessed = uploadedTestFileNames.Count,
+                            TestUploadedFiles = uploadedTestFileNames,
+                            OriginalTestFileNames = request.TestFiles?.Select(f => f.FileName).ToArray() ?? new string[0]
+                        };
+                    }
                 }
                 else
                 {
