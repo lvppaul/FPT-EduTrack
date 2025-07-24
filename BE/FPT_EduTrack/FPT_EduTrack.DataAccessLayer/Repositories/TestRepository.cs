@@ -36,6 +36,17 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             }
         }
 
-      
+        public async Task<bool> IsLecturerAssigned(int lecturerId, int testId)
+        {
+            try
+            {
+                return await _context.LecturersTestsDetails
+                    .AnyAsync(ltd => ltd.LecturerId == lecturerId && ltd.TestId == testId);
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error at IsLecturerAssigned at TestRepository", e);
+            }
+        }
     }
 }

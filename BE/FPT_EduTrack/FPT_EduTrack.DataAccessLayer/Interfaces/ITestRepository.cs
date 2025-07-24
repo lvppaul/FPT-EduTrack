@@ -10,7 +10,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
     public interface ITestRepository : IGenericRepository<Test>
     {
         Task<List<Test>> GetTestsAsync();
-      
+        Task<bool> IsLecturerAssigned(int lecturerId, int testId);
 
     }
 }

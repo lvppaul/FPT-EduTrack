@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FPT_EduTrack.BusinessLayer.DTOs.Request
 {
-    public class LecturerTestDetailRequest
+    public class AssignLecturerDto
     {
         public int TestId { get; set; }
 

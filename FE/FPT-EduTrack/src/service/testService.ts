@@ -1,3 +1,4 @@
+import type { AssignLecturerDto } from "../types/testType";
 import http from "./axios";
 
 export async function getTestsByExamIdAndStudentId(
@@ -66,6 +67,29 @@ export async function upLoadTest(id: number, formData: FormData) {
     }
   } catch (error: unknown) {
     console.error("upLoadTest error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
+
+export async function assignLecturerToTest(payload: AssignLecturerDto) {
+  try {
+    const response = await http.post(
+      `/tests/assign-lecturer-in-test`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("assignLecturerToTest error:", error);
     throw new Error(
       "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
     );

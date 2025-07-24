@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Calendar,
@@ -42,6 +42,20 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+  // Update selectedTest when exam data changes
+  useEffect(() => {
+    if (selectedTest && exam.test) {
+      const updatedTest = exam.test.find((test) => test.id === selectedTest.id);
+      if (
+        updatedTest &&
+        JSON.stringify(updatedTest) !== JSON.stringify(selectedTest)
+      ) {
+        setSelectedTest(updatedTest);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exam.test]);
+
   const handleViewTest = (test: Test) => {
     setSelectedTest(test);
     setShowTestDetail(true);
@@ -50,6 +64,13 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
   const handleBackFromTestDetail = () => {
     setShowTestDetail(false);
     setSelectedTest(null);
+  };
+
+  // Handle refresh test data when assign lecturer or other actions
+  const handleRefreshTestData = () => {
+    if (onRefreshExam) {
+      onRefreshExam();
+    }
   };
 
   // Pagination logic for tests
@@ -73,8 +94,6 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
     setIsUploading(true);
     try {
       await upLoadTest(exam.id, formData);
-      console.log("Uploading test with exam id:", exam.id);
-      console.log("Uploading test with formData:", formData);
 
       // Simulate API call - Remove this when using real API
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -106,7 +125,11 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
   // Show test detail view if a test is selected
   if (showTestDetail && selectedTest) {
     return (
-      <TestDetailView test={selectedTest} onBack={handleBackFromTestDetail} />
+      <TestDetailView
+        test={selectedTest}
+        onBack={handleBackFromTestDetail}
+        onRefreshTest={handleRefreshTestData}
+      />
     );
   }
   const getStatusText = (status: string) => {

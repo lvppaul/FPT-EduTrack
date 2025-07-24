@@ -18,7 +18,7 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         private IMeetingDetailRepository _meetingDetailRepository;
         private ITestRepository _testRepository;
         private IExamRepository _examRepository;
-
+        private ILecturerTestDetailRepository _lecturerTestDetailRepository;
         // Constructor to initialize the context
         public UnitOfWork() => _context ??= new FptEduTrackContext();
 
@@ -57,6 +57,13 @@ namespace FPT_EduTrack.DataAccessLayer.UnitOfWork
         {
             get { return _examRepository ??= new ExamRepository(_context); }
         }
+
+        public ILecturerTestDetailRepository LecturerTestDetailRepository
+        {
+            get { return _lecturerTestDetailRepository ??= new LecturerTestDetailRepository(_context); }
+        }
+        
+
         // Transaction Management
         public async Task BeginTransactionAsync()
         {

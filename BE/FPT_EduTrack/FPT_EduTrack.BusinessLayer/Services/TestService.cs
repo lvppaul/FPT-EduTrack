@@ -16,11 +16,13 @@ namespace FPT_EduTrack.BusinessLayer.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+   
 
         public TestService(IUnitOfWork unitOfWork, ICloudinaryService cloudinaryService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryService = cloudinaryService;
+         
         }
 
         public async Task<List<Test>> GetTestsAsync()
@@ -574,6 +576,46 @@ namespace FPT_EduTrack.BusinessLayer.Services
             {
                 throw new Exception($"Error retrieving current exam tests with pagination (PageSize: {pageSize}, PageNumber: {pageNumber})", ex);
             }
+        }
+
+        public async Task<AssignLecturerDto> AssignLecturerToTest(AssignLecturerDto dto)
+        {
+            try
+            {
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
+                var lecturer = await _unitOfWork.UserRepository.GetByIdAsync(dto.LecturerId);
+
+                if (test == null || lecturer == null)
+                    return null;
+
+                var existed = await _unitOfWork.TestRepository.IsLecturerAssigned(dto.LecturerId, dto.TestId);
+
+                if (existed)
+                    return null;
+                var link = new LecturersTestsDetail
+                {
+                    TestId = dto.TestId,
+                    LecturerId = dto.LecturerId,
+                    Score = dto.Score ?? 0,
+                    Reason = dto.Reason,
+                    isGrading = dto.isGrading ?? true
+                };
+                await _unitOfWork.LecturerTestDetailRepository.CreateAsync(link);
+                return new AssignLecturerDto
+                {
+                    TestId = dto.TestId,
+                    LecturerId = dto.LecturerId,
+                    Score = link.Score,
+                    Reason = link.Reason,
+                    isGrading = link.isGrading
+                };
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at AssignLecturerToTest"+ e);
+            }
+           
         }
     }
 }

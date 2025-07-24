@@ -1,6 +1,7 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.DataAccessLayer.Entities;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,5 +27,9 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
 
         //---------Examiner     ---------//
         Task<List<TestResponse>> GetCurrentExamTestAsync(int status, int pageSize, int pageNumber);
+
+        // ---LecturerTestsDetails--- //
+        Task<AssignLecturerDto> AssignLecturerToTest(AssignLecturerDto dto);
+
     }
 }

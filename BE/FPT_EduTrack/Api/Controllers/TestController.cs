@@ -748,5 +748,41 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
         }
+
+
+        [HttpPost]
+        [Route("tests/assign-lecturer-in-test")]
+        public async Task<IActionResult> AssignLecturerToTest([FromBody] AssignLecturerDto dto)
+        {
+            try
+            {
+
+                var createdDto = await _testService.AssignLecturerToTest(dto);
+                if (createdDto == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Lecturer or test not found or lecturer has been assigned to Test already"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lecturer assigned to test successfully",
+                    data = createdDto
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while assign lecturer to test");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while assign lecturer to test",
+                    error = ex.Message
+                });
+            }
+        }
     }
 }
