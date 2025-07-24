@@ -95,3 +95,46 @@ export async function assignLecturerToTest(payload: AssignLecturerDto) {
     );
   }
 }
+
+export async function getTestsByGradingLecturerId(
+  id: number,
+  isGrading: boolean
+) {
+  try {
+    const response = await http.get(
+      `tests/by-lecturer/${id}?isGrading=${isGrading == true}`
+    );
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("getTestsByStudentId error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
+
+export async function updateTestScore(payload: AssignLecturerDto) {
+  try {
+    const response = await http.put(
+      `tests/${payload.testId}/lecturer/${payload.lecturerId}`,
+      payload,
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error("Không cập nhật được điểm. Vui lòng thử lại.");
+    }
+  } catch (error: unknown) {
+    console.error("updateTestScore error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}

@@ -12,10 +12,16 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
 }) => {
   const menuItems = [
     {
-      id: "exams",
-      label: "Kỳ Thi",
+      id: "grading",
+      label: "Các Bài Cần Chấm",
       icon: GraduationCap,
-      description: "Quản lý và chấm điểm kỳ thi",
+      description: "Bài Thi cần chấm điểm",
+    },
+    {
+      id: "re-grading",
+      label: "Các Bài Cần Chấm Lại",
+      icon: GraduationCap,
+      description: "Các Bài cần chấm lại",
     },
   ];
 
@@ -78,29 +84,17 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
                 Cần hỗ trợ?
               </h4>
               <p className="text-xs text-green-700 mt-1">
-                Liên hệ với bộ phận IT để được hỗ trợ
+                Liên hệ với bộ phận kỹ thuật để được hỗ trợ
               </p>
-              <button className="mt-2 text-xs text-green-600 hover:text-green-800 font-medium">
+              <a
+                href="https://daihoc.fpt.edu.vn/en/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 text-xs text-green-600 hover:text-green-800 font-medium"
+              >
                 Liên hệ hỗ trợ →
-              </button>
+              </a>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* User Info Section */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50">
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-            <GraduationCap className="w-5 h-5 text-gray-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">
-              Lecturer Name
-            </p>
-            <p className="text-xs text-gray-500 truncate">
-              lecturer@fpt.edu.vn
-            </p>
           </div>
         </div>
       </div>

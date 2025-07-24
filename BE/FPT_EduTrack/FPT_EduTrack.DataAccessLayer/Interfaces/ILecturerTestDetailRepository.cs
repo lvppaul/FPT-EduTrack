@@ -9,5 +9,9 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
 {
     public interface ILecturerTestDetailRepository: IGenericRepository<LecturersTestsDetail>
     {
+        Task<List<LecturersTestsDetail>> GetTestsByLecturer(int lecturerId, bool isGrading = true);
+        Task<LecturersTestsDetail> GetLecturerTestDetailByLecturerIdAndTestId(int lecturerId, int testId);
     }
+
+
 }

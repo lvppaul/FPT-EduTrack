@@ -784,5 +784,73 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
         }
+
+        [HttpGet]
+        [Route("tests/by-lecturer/{lecturerId}")]
+        public async Task<IActionResult> GetTestsByLecturer(int lecturerId, [FromQuery] bool isGrading = true)
+        {
+            try
+            {
+
+                var list = await _testService.GetTestsByLecturer(lecturerId,isGrading);
+                if (list == null)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "GetTestsByLecturer has no data"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Get test by lecturer successfully",
+                    data = list
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while Get Tests By Lecturer");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while Get Tests By Lecturer",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Route("tests/{testId}/lecturer/{lecturerId}")]
+        public async Task<IActionResult> UpdateLecturerTestDetail([FromBody] AssignLecturerDto dto)
+        {
+            try
+            {
+                var check = await _testService.UpdateLecturerTestDetail(dto) ;
+                if (!check)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Update Lecturer Test Detail Unsuccessfully"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Update Lecturer Test Detail Successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while UpdateLecturerTestDetail");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while UpdateLecturerTestDetail",
+                    error = ex.Message
+                });
+            }
+        }
     }
 }

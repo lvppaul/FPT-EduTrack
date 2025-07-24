@@ -617,5 +617,61 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
            
         }
+
+        public async Task<List<TestResponse>> GetTestsByLecturer(int lecturerId, bool isGrading = true)
+        {
+            try
+            {
+               var tests = await _unitOfWork.LecturerTestDetailRepository.GetTestsByLecturer(lecturerId, isGrading);
+                if (tests == null || !tests.Any())
+                    return null;
+                // Convert to TestResponse
+                var testResponses = tests.Select(t => TestMapper.ToResponse(t.Test)).ToList();
+                return testResponses;
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at GetTestsByLecturer" + e);
+            }
+        }
+
+        public async Task<bool> UpdateLecturerTestDetail(AssignLecturerDto dto)
+        {
+            try
+            {
+                var result = await _unitOfWork.LecturerTestDetailRepository.GetLecturerTestDetailByLecturerIdAndTestId(dto.LecturerId, dto.TestId);
+                if (result == null)
+                {
+                    throw new Exception($"No lecturer test detail found for LecturerId: {dto.LecturerId} and TestId: {dto.TestId}");
+                }
+
+                // Update trực tiếp vào entity đang được tracked
+                result.Score = dto.Score ?? 0;
+                result.Reason = dto.Reason;
+                result.isGrading = dto.isGrading ?? true;
+
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
+                if (test == null)
+                {
+                    throw new Exception($"Test with ID {dto.TestId} not found");
+                }
+                test.Score = (float)result.Score;
+
+                var updateLecturerTestDetail = await _unitOfWork.LecturerTestDetailRepository.UpdateAsync(result);
+                var updateTest = await _unitOfWork.TestRepository.UpdateAsync(test);
+
+                if (updateLecturerTestDetail == 0 || updateTest == 0)
+                {
+                    throw new Exception("Failed to update lecturer test detail or test");
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error at UpdateLecturerTestDetail: " + e.Message, e);
+            }
+        }
+
     }
 }

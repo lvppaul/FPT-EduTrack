@@ -30,6 +30,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
 
         // ---LecturerTestsDetails--- //
         Task<AssignLecturerDto> AssignLecturerToTest(AssignLecturerDto dto);
-
+        Task<List<TestResponse>> GetTestsByLecturer(int lecturerId, bool isGrading = true);
+        Task<bool> UpdateLecturerTestDetail(AssignLecturerDto dto);
     }
 }
