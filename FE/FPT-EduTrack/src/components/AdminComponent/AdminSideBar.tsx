@@ -94,7 +94,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
         </nav>
 
         {/* Help Section */}
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start space-x-3 mt-10">
           <MessageSquare className="w-5 h-5 text-purple-600 mt-0.5" />
           <div>
             <h4 className="text-sm font-medium text-purple-900">Cần hỗ trợ?</h4>
@@ -102,7 +102,7 @@ const AdminSidebar: React.FC<SidebarProps> = ({ activeItem, onItemClick }) => {
               Liên hệ với bộ phận kỹ thuật để được hỗ trợ
             </p>
             <a
-              href="https://daihoc.fpt.edu.vn/en/"
+              href="https://zalo.me/g/cpnkak838"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 inline-block text-xs text-purple-600 hover:text-purple-800 font-medium"

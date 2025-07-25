@@ -8,6 +8,8 @@ import {
   CheckCircle,
   AlertCircle,
   X,
+  Edit,
+  RefreshCw,
 } from "lucide-react";
 import type { Exam, Test } from "../../types/examType";
 import { ExamStatus } from "../../enum/examStatus";
@@ -16,6 +18,7 @@ import TestDetailView from "./TestDetailView";
 import Pagination from "../Pagination";
 import UploadTestModal from "./UploadTestModal";
 import { upLoadTest } from "../../service/testService";
+import { updateExamStatus } from "../../service/examService";
 interface ExamDetailViewProps {
   exam: Exam;
   onBack: () => void;
@@ -38,6 +41,10 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
     message: string;
   } | null>(null);
 
+  // Status modal states
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
   // Pagination states for tests
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
@@ -55,6 +62,88 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exam.test]);
+
+  // Status options
+  const statusOptions = [
+    {
+      value: "InProgress",
+      label: "Đang diễn ra",
+      color: "bg-blue-100 text-blue-800",
+    },
+    {
+      value: "Completed",
+      label: "Đã hoàn thành",
+      color: "bg-green-100 text-green-800",
+    },
+    {
+      value: "Grading",
+      label: "Đang chấm điểm",
+      color: "bg-yellow-100 text-yellow-800",
+    },
+    {
+      value: "ResultsPublished",
+      label: "Kết quả đã công bố",
+      color: "bg-purple-100 text-purple-800",
+    },
+    {
+      value: "UnderReview",
+      label: "Đang xem xét",
+      color: "bg-orange-100 text-orange-800",
+    },
+    {
+      value: "Postponed",
+      label: "Đã hoãn",
+      color: "bg-gray-100 text-gray-800",
+    },
+    { value: "Cancelled", label: "Đã hủy", color: "bg-red-100 text-red-800" },
+  ];
+
+  // Map status string to number for API
+  const getStatusNumber = (status: string): number => {
+    const statusMap: { [key: string]: number } = {
+      InProgress: 0,
+      Completed: 1,
+      Grading: 2,
+      ResultsPublished: 3,
+      UnderReview: 4,
+      Postponed: 5,
+      Cancelled: 6,
+    };
+    return statusMap[status] || 0;
+  };
+
+  // Handle status update
+  const handleStatusUpdate = async (newStatus: string) => {
+    setIsUpdatingStatus(true);
+    try {
+      const statusNumber = getStatusNumber(newStatus);
+      await updateExamStatus(exam.id, statusNumber);
+
+      setNotification({
+        type: "success",
+        message: "Cập nhật trạng thái thành công!",
+      });
+
+      // Refresh exam data
+      if (onRefreshExam) {
+        onRefreshExam();
+      }
+
+      // Close modal
+      setShowStatusModal(false);
+
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setNotification({
+        type: "error",
+        message: "Có lỗi xảy ra khi cập nhật trạng thái. Vui lòng thử lại.",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   const handleViewTest = (test: Test) => {
     setSelectedTest(test);
@@ -194,16 +283,37 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
                 {exam.duration ? `${exam.duration} phút` : "Chưa xác định"}
               </span>
             </div>
+
+            <div className="flex justify-end items-center">
+              <button
+                onClick={() => setShowStatusModal(true)}
+                disabled={isUpdatingStatus}
+                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                {isUpdatingStatus ? "Đang cập nhật..." : "Cập nhật trạng thái"}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center space-x-2">
             <span className="font-medium text-gray-800">Trạng thái:</span>
             <span
               className={`px-2 py-1 rounded-full text-xs font-medium ${
-                exam.status === "In-Process"
+                exam.status === "InProgress"
                   ? "bg-blue-100 text-blue-800"
                   : exam.status === "Completed"
                   ? "bg-green-100 text-green-800"
+                  : exam.status === "Grading"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : exam.status === "ResultsPublished"
+                  ? "bg-purple-100 text-purple-800"
+                  : exam.status === "UnderReview"
+                  ? "bg-orange-100 text-orange-800"
+                  : exam.status === "Postponed"
+                  ? "bg-gray-100 text-gray-800"
+                  : exam.status === "Cancelled"
+                  ? "bg-red-100 text-red-800"
                   : "bg-gray-100 text-gray-800"
               }`}
             >
@@ -227,7 +337,7 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
             </div>
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Test
@@ -291,6 +401,104 @@ const ExamDetailView: React.FC<ExamDetailViewProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Status Update Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Cập nhật trạng thái kỳ thi
+                </h3>
+                <button
+                  onClick={() => setShowStatusModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isUpdatingStatus}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Kỳ thi: <span className="font-medium">{exam.name}</span>
+              </p>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-3">
+                {statusOptions.map((status) => (
+                  <button
+                    key={status.value}
+                    onClick={() => handleStatusUpdate(status.value)}
+                    disabled={isUpdatingStatus || exam.status === status.value}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                      exam.status === status.value
+                        ? "border-blue-500 bg-blue-50 cursor-not-allowed opacity-60"
+                        : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
+                    } ${
+                      isUpdatingStatus ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            status.value === "InProgress"
+                              ? "bg-blue-500"
+                              : status.value === "Completed"
+                              ? "bg-green-500"
+                              : status.value === "Grading"
+                              ? "bg-yellow-500"
+                              : status.value === "ResultsPublished"
+                              ? "bg-purple-500"
+                              : status.value === "UnderReview"
+                              ? "bg-orange-500"
+                              : status.value === "Postponed"
+                              ? "bg-gray-500"
+                              : "bg-red-500"
+                          }`}
+                        />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {status.label}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {status.value}
+                          </p>
+                        </div>
+                      </div>
+                      {exam.status === status.value && (
+                        <CheckCircle className="w-5 h-5 text-blue-600" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {isUpdatingStatus && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
+                    <span className="text-sm text-blue-800">
+                      Đang cập nhật trạng thái...
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                disabled={isUpdatingStatus}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,38 +1,31 @@
 import React, { useEffect, useState } from "react";
 import {
   FileText,
-  Calendar,
   Eye,
   CheckCircle,
   XCircle,
-  Clock,
-  Download,
-  Bot,
-  User,
   ChevronDown,
   X,
   Save,
+  AlertCircle,
+  BookOpen,
+  Download,
 } from "lucide-react";
-import type { Test } from "../../types/examType";
-import {
-  getTestsByGradingLecturerId,
-  updateTestScore,
-} from "../../service/testService";
+import type { Report } from "../../types/requestType";
+import { getReportsByLecturer } from "../../service/reportService";
+import { updateTestScoreChangeReportStatus } from "../../service/testService";
 import { AuthUtils } from "../../utils/authUtils";
-import TestDetailView from "../AdminComponent/TestDetailView";
 import Pagination from "../Pagination";
 
-const LecturerGradingTest: React.FC = () => {
-  const [tests, setTests] = useState<Test[]>([]);
+const LecturerReportReview: React.FC = () => {
+  const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTest, setSelectedTest] = useState<Test | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
   // Manual grading modal states
   const [showGradingModal, setShowGradingModal] = useState(false);
-  const [gradingTest, setGradingTest] = useState<Test | null>(null);
+  const [gradingReport, setGradingReport] = useState<Report | null>(null);
   const [gradingForm, setGradingForm] = useState({
     score: 0,
     reason: "",
@@ -53,9 +46,6 @@ const LecturerGradingTest: React.FC = () => {
 
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "pending" | "graded"
-  >("all");
 
   // Helper function to show toast notification
   const showToastNotification = (
@@ -81,7 +71,7 @@ const LecturerGradingTest: React.FC = () => {
     setToastTimeoutId(newTimeoutId);
   };
 
-  const fetchGradingTests = async () => {
+  const fetchReports = async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -92,27 +82,24 @@ const LecturerGradingTest: React.FC = () => {
         return;
       }
 
-      const response = await getTestsByGradingLecturerId(
-        parseInt(userData.sub),
-        true
-      );
+      const response = await getReportsByLecturer(parseInt(userData.sub));
 
       if (response && response.data) {
-        setTests(response.data);
+        setReports(response.data);
       } else {
-        setTests([]);
+        setReports([]);
       }
     } catch (error) {
-      console.error("Failed to fetch grading tests:", error);
-      setError("Có lỗi xảy ra khi tải danh sách bài test");
-      setTests([]);
+      console.error("Failed to fetch reports:", error);
+      setError("Có lỗi xảy ra khi tải danh sách báo cáo");
+      setReports([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchGradingTests();
+    fetchReports();
   }, []);
 
   // Cleanup timeout on unmount
@@ -139,15 +126,15 @@ const LecturerGradingTest: React.FC = () => {
     };
   }, [openDropdown]);
 
-  const handleToggleDropdown = (testId: number, e: React.MouseEvent) => {
+  const handleToggleDropdown = (reportId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    setOpenDropdown(openDropdown === testId ? null : testId);
+    setOpenDropdown(openDropdown === reportId ? null : reportId);
   };
 
-  const handleManualGrading = (test: Test) => {
-    setGradingTest(test);
+  const handleManualGrading = (report: Report) => {
+    setGradingReport(report);
     setGradingForm({
-      score: 0,
+      score: report.test.testsScores || 0,
       reason: "",
     });
     setShowGradingModal(true);
@@ -156,7 +143,7 @@ const LecturerGradingTest: React.FC = () => {
 
   const handleCloseGradingModal = () => {
     setShowGradingModal(false);
-    setGradingTest(null);
+    setGradingReport(null);
     setGradingForm({
       score: 0,
       reason: "",
@@ -171,7 +158,7 @@ const LecturerGradingTest: React.FC = () => {
   };
 
   const handleSubmitGrading = async () => {
-    if (!gradingTest) return;
+    if (!gradingReport) return;
 
     // Validate form data
     if (gradingForm.score < 0 || gradingForm.score > 10) {
@@ -180,7 +167,7 @@ const LecturerGradingTest: React.FC = () => {
     }
 
     if (!gradingForm.reason.trim()) {
-      showToastNotification("⚠️ Vui lòng nhập nhận xét", "warning");
+      showToastNotification("⚠️ Vui lòng nhập nhận xét chấm lại", "warning");
       return;
     }
 
@@ -196,63 +183,79 @@ const LecturerGradingTest: React.FC = () => {
         return;
       }
 
+      const reportId = gradingReport.id;
+      const reportStatusId = 3;
       const gradingData = {
-        testId: gradingTest.id,
-        lecturerId: parseInt(userData.sub),
+        testId: gradingReport.test.id,
         score: Number(gradingForm.score), // Ensure it's a number
+        lecturerId: parseInt(userData.sub),
         reason: gradingForm.reason.trim(),
-        isGrading: false, // Set to false as requested
+        isGrading: false, // Set to false as the grading is completed
       };
 
-      console.log("Submitting grading data:", gradingData);
+      console.log("=== DEBUG INFO ===");
+      console.log("Report ID:", reportId);
+      console.log("Report Status ID:", reportStatusId);
+      console.log("Grading Data:", gradingData);
+      console.log("User Data:", userData);
+      console.log("=================");
 
-      const response = await updateTestScore(gradingData);
+      const response = await updateTestScoreChangeReportStatus(
+        reportId,
+        reportStatusId,
+        gradingData
+      );
+
+      console.log("API response:", response);
 
       if (response) {
-        showToastNotification(
-          "🎉 Cập nhật điểm thành công! Điểm số đã được lưu vào hệ thống.",
-          "success"
-        );
+        showToastNotification(" Chấm lại bài test thành công!", "success");
+        // Close modal and refresh data
         handleCloseGradingModal();
-        fetchGradingTests(); // Refresh the list
+        await fetchReports();
       } else {
         showToastNotification(
-          "❌ Có lỗi xảy ra khi chấm điểm. Vui lòng thử lại.",
+          "Có lỗi xảy ra khi chấm lại bài test. Vui lòng thử lại.",
           "error"
         );
       }
-    } catch (error) {
-      console.error("Error submitting grading:", error);
-      showToastNotification(
-        "❌ Có lỗi xảy ra khi chấm điểm. Vui lòng thử lại.",
-        "error"
-      );
+    } catch (error: unknown) {
+      console.error("Error updating test score:", error);
+
+      // More detailed error handling
+      let errorMessage =
+        "Có lỗi xảy ra khi chấm lại bài test. Vui lòng thử lại.";
+
+      if (error && typeof error === "object" && "response" in error) {
+        // Server responded with error status
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        console.error("Server error response:", axiosError.response?.data);
+        errorMessage = ` Lỗi từ server: ${
+          axiosError.response?.data?.message || "Không xác định"
+        }`;
+      } else if (error && typeof error === "object" && "request" in error) {
+        // Network error
+        console.error(
+          "Network error:",
+          (error as { request: unknown }).request
+        );
+        errorMessage = " Lỗi kết nối mạng. Vui lòng kiểm tra kết nối.";
+      } else if (error && typeof error === "object" && "message" in error) {
+        // Other error
+        errorMessage = ` ${(error as { message: string }).message}`;
+      }
+
+      showToastNotification(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleAIGrading = (test: Test) => {
-    // TODO: Implement AI grading logic here
-    console.log("AI Grading for test:", test);
-    // For now, redirect to TestDetailView for AI grading
-    setSelectedTest(test);
-    setShowDetail(true);
-    setOpenDropdown(null);
-  };
-
-  const handleBackToList = () => {
-    setShowDetail(false);
-    setSelectedTest(null);
-  };
-
-  const handleRefreshTests = () => {
-    fetchGradingTests();
-  };
-
   const handleDownloadTest = (testLink: string | null, testTitle: string) => {
     if (!testLink) {
-      showToastNotification("📁 Không có file để tải xuống", "warning");
+      showToastNotification(" Không có file để tải xuống", "warning");
       return;
     }
 
@@ -266,44 +269,20 @@ const LecturerGradingTest: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 8) return "text-green-600";
-    if (score >= 6) return "text-yellow-600";
-    if (score >= 4) return "text-orange-600";
-    return "text-red-600";
-  };
-
   // Filter and search logic
-  const filteredTests = tests.filter((test) => {
-    // Search by title
-    const matchesSearch = test.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  const filteredReports = reports.filter((report) => {
+    const matchesSearch =
+      report.test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (report.test.code || "").toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filter by status
-    let matchesStatus = true;
-    if (statusFilter === "pending") {
-      // Chưa chấm - check if any lecturer is still grading (isGrading = true)
-      matchesStatus =
-        test.lecturersTestsDetailResponse?.some(
-          (lecturer) => lecturer.isGrading
-        ) ?? true;
-    } else if (statusFilter === "graded") {
-      // Đã chấm - all lecturers have finished grading (isGrading = false)
-      matchesStatus =
-        test.lecturersTestsDetailResponse?.every(
-          (lecturer) => !lecturer.isGrading
-        ) ?? false;
-    }
-
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
-  // Pagination logic with filtered data
-  const totalItems = filteredTests.length;
+  // Pagination logic
+  const totalItems = filteredReports.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedTests = filteredTests.slice(
+  const paginatedReports = filteredReports.slice(
     startIndex,
     startIndex + itemsPerPage
   );
@@ -317,85 +296,56 @@ const LecturerGradingTest: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  const handleStatusFilterChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    setStatusFilter(e.target.value as "all" | "pending" | "graded");
-    setCurrentPage(1); // Reset to first page when filtering
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setCurrentPage(1);
-  };
-
-  // Show test detail view if a test is selected
-  if (showDetail && selectedTest) {
-    return (
-      <TestDetailView
-        test={selectedTest}
-        onBack={handleBackToList}
-        onRefreshTest={handleRefreshTests}
-      />
-    );
-  }
+  // Show test detail view
+  // (Removed test detail view functionality)
 
   return (
     <>
-      <style>
-        {`
-          @keyframes slideInRight {
-            from {
-              transform: translateX(100%);
-              opacity: 0;
-            }
-            to {
-              transform: translateX(0);
-              opacity: 1;
-            }
-          }
-        `}
-      </style>
-
       {/* Manual Grading Modal */}
-      {showGradingModal && gradingTest && (
+      {showGradingModal && gradingReport && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 p-6">
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">
-                Chấm điểm thủ công
-              </h2>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Save className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Chấm Lại Bài Test
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {gradingReport.student.fullname} -{" "}
+                    {gradingReport.test.title}
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={handleCloseGradingModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                disabled={isSubmitting}
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
 
-            {/* Test Info */}
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold text-gray-900">
-                {gradingTest.title}
-              </h3>
-              <p className="text-sm text-gray-600">
-                Mã test: {gradingTest.code}
-              </p>
-            </div>
-
-            {/* Grading Form */}
+            {/* Modal Body */}
             <div className="space-y-4">
-              {/* Score Input */}
+              {/* New Score Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Điểm số (0-10)
+                  Điểm mới <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -411,13 +361,14 @@ const LecturerGradingTest: React.FC = () => {
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   placeholder="Nhập điểm từ 0 đến 10"
+                  disabled={isSubmitting}
                 />
               </div>
 
               {/* Reason Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nhận xét
+                  Nhận xét chấm lại
                 </label>
                 <textarea
                   value={gradingForm.reason}
@@ -426,7 +377,8 @@ const LecturerGradingTest: React.FC = () => {
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                   rows={4}
-                  placeholder="Nhập nhận xét về bài làm của sinh viên..."
+                  placeholder="Nhập nhận xét chi tiết về việc chấm lại..."
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -445,7 +397,8 @@ const LecturerGradingTest: React.FC = () => {
                 disabled={
                   isSubmitting ||
                   gradingForm.score < 0 ||
-                  gradingForm.score > 10
+                  gradingForm.score > 10 ||
+                  !gradingForm.reason.trim()
                 }
                 className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
@@ -473,23 +426,23 @@ const LecturerGradingTest: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
-                  Chấm Điểm Bài Test
+                  Báo Cáo Chấm Lại
                 </h1>
                 <p className="text-gray-600 mt-1">
-                  Danh sách bài test cần chấm điểm
+                  Danh sách báo cáo cần xem xét và chấm lại
                 </p>
               </div>
               <button
-                onClick={fetchGradingTests}
+                onClick={fetchReports}
                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md"
               >
-                <Clock className="w-4 h-4 mr-2" />
+                <BookOpen className="w-4 h-4 mr-2" />
                 Làm mới
               </button>
             </div>
 
             <div className="text-sm text-gray-600">
-              Tổng: {tests.length} bài test | Hiển thị: {totalItems} kết quả
+              Tổng: {reports.length} báo cáo | Hiển thị: {totalItems} kết quả
             </div>
 
             {/* Search and Filter Section */}
@@ -499,33 +452,23 @@ const LecturerGradingTest: React.FC = () => {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Tìm kiếm theo tên test..."
+                    placeholder="Tìm kiếm theo tên test hoặc mã test..."
                     value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   />
-                  <FileText className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <FileText className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 </div>
               </div>
 
-              {/* Status Filter */}
-              <div className="sm:w-48">
-                <select
-                  value={statusFilter}
-                  onChange={handleStatusFilterChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors duration-200"
-                >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="pending">Chưa chấm</option>
-                  <option value="graded">Đã chấm</option>
-                </select>
-              </div>
-
               {/* Clear Filters Button */}
-              {(searchTerm || statusFilter !== "all") && (
+              {searchTerm && (
                 <button
-                  onClick={clearFilters}
-                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setCurrentPage(1);
+                  }}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                 >
                   Xóa bộ lọc
                 </button>
@@ -535,25 +478,23 @@ const LecturerGradingTest: React.FC = () => {
 
           {/* Content */}
           <div className="p-6">
-            {/* Loading state */}
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-                <span className="ml-3 text-gray-600">Đang tải...</span>
-              </div>
-            ) : error ? (
+            {error ? (
               /* Error state */
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <XCircle className="w-8 h-8 text-red-500" />
-                </div>
+                <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                 <p className="text-red-600 mb-4">{error}</p>
                 <button
-                  onClick={fetchGradingTests}
+                  onClick={fetchReports}
                   className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md"
                 >
                   Thử lại
                 </button>
+              </div>
+            ) : isLoading ? (
+              /* Loading state */
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <span className="ml-3 text-gray-600">Đang tải dữ liệu...</span>
               </div>
             ) : totalItems === 0 ? (
               /* Empty state - no results after filtering */
@@ -562,128 +503,84 @@ const LecturerGradingTest: React.FC = () => {
                   <FileText className="w-8 h-8 text-gray-400" />
                 </div>
                 <p className="text-gray-500 mb-2">
-                  {searchTerm || statusFilter !== "all"
-                    ? "Không tìm thấy test nào phù hợp"
-                    : "Không có bài test nào cần chấm"}
+                  {searchTerm
+                    ? "Không tìm thấy báo cáo nào phù hợp"
+                    : "Không có báo cáo nào cần xem xét"}
                 </p>
                 <p className="text-sm text-gray-400">
-                  {searchTerm || statusFilter !== "all"
-                    ? "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc"
-                    : "Tất cả bài test đã được chấm điểm hoặc chưa được phân công"}
+                  {searchTerm
+                    ? "Thử thay đổi từ khóa tìm kiếm"
+                    : "Tất cả báo cáo đã được xem xét hoặc chưa có báo cáo mới"}
                 </p>
               </div>
             ) : (
-              /* Tests list */
+              /* Reports list */
               <div className="space-y-4">
-                {paginatedTests.map((test) => (
+                {paginatedReports.map((report) => (
                   <div
-                    key={test.id}
+                    key={report.id}
                     className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-3">
                           <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-white" />
+                            <BookOpen className="w-6 h-6 text-white" />
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-gray-900">
-                              {test.title}
+                              {report.test.title}
                             </h3>
-                            <p className="text-sm text-gray-600">
-                              Mã test: {test.code}
-                            </p>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
                           <div className="flex items-center space-x-2">
-                            <Calendar className="w-4 h-4 text-gray-500" />
+                            <FileText className="w-4 h-4 text-gray-500" />
                             <span className="font-medium text-gray-700">
-                              Trạng thái chấm:
+                              Mã test:
                             </span>
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                test.lecturersTestsDetailResponse?.some(
-                                  (lecturer) => lecturer.isGrading
-                                )
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-green-100 text-green-800"
-                              }`}
-                            >
-                              {test.lecturersTestsDetailResponse?.some(
-                                (lecturer) => lecturer.isGrading
-                              ) ? (
-                                <>
-                                  <Clock className="w-3 h-3 mr-1" />
-                                  Chưa chấm
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Đã chấm
-                                </>
-                              )}
+                            <span className="text-gray-600">
+                              {report.test.code || "N/A"}
                             </span>
                           </div>
+                        </div>
+
+                        <div className="text-xs text-gray-500">
+                          Tạo lúc: {formatDate(report.createdAt)}
                         </div>
                       </div>
 
                       <div className="text-right ml-6">
-                        <div
-                          className={`text-3xl font-bold mb-2 ${getScoreColor(
-                            test.testsScores || 0
-                          )}`}
-                        >
-                          {test.testsScores || "0"}
-                        </div>
-                        <p className="text-xs text-gray-500 mb-4">
-                          Điểm hiện tại
-                        </p>
-
                         <div className="flex flex-col space-y-2">
-                          <div className="flex items-center space-x-2 mb-2">
-                            {/* Dropdown Button for Grading */}
+                          <div className="flex items-center space-x-2 mb-2 mt-20 ">
+                            {/* Dropdown Button for Actions */}
                             <div className="relative">
                               <button
                                 onClick={(e) =>
-                                  handleToggleDropdown(test.id, e)
+                                  handleToggleDropdown(report.id, e)
                                 }
                                 className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 shadow-md"
                               >
                                 <Eye className="w-4 h-4 mr-2" />
-                                Chấm điểm
+                                Chấm lại
                                 <ChevronDown className="w-4 h-4 ml-2" />
                               </button>
 
                               {/* Dropdown Menu */}
-                              {openDropdown === test.id && (
+                              {openDropdown === report.id && (
                                 <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                                   <button
-                                    onClick={() => handleManualGrading(test)}
-                                    className="w-full flex items-center px-4 py-3 text-left hover:bg-green-50 transition-colors duration-200 border-b border-gray-100"
-                                  >
-                                    <User className="w-4 h-4 mr-3 text-green-600" />
-                                    <div>
-                                      <div className="text-sm font-medium text-gray-900">
-                                        Chấm thủ công
-                                      </div>
-                                      <div className="text-xs text-gray-500">
-                                        Chấm điểm bằng tay
-                                      </div>
-                                    </div>
-                                  </button>
-                                  <button
-                                    onClick={() => handleAIGrading(test)}
+                                    onClick={() => handleManualGrading(report)}
                                     className="w-full flex items-center px-4 py-3 text-left hover:bg-green-50 transition-colors duration-200"
                                   >
-                                    <Bot className="w-4 h-4 mr-3 text-green-600" />
+                                    <Save className="w-4 h-4 mr-3 text-green-600" />
                                     <div>
                                       <div className="text-sm font-medium text-gray-900">
-                                        AI hỗ trợ chấm
+                                        Chấm lại thủ công
                                       </div>
                                       <div className="text-xs text-gray-500">
-                                        Chấm điểm tự động
+                                        Chấm lại điểm test
                                       </div>
                                     </div>
                                   </button>
@@ -693,16 +590,19 @@ const LecturerGradingTest: React.FC = () => {
 
                             <button
                               onClick={() =>
-                                handleDownloadTest(test.link, test.title)
+                                handleDownloadTest(
+                                  report.test.link,
+                                  report.test.title
+                                )
                               }
                               className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
-                                test.link
+                                report.test.link
                                   ? "bg-green-600 text-white hover:bg-green-700"
                                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
                               }`}
-                              disabled={!test.link}
+                              disabled={!report.test.link}
                               title={
-                                test.link
+                                report.test.link
                                   ? "Tải xuống test"
                                   : "Không có file để tải"
                               }
@@ -751,34 +651,19 @@ const LecturerGradingTest: React.FC = () => {
                 : "bg-yellow-50 border-yellow-200 text-yellow-800"
             }`}
           >
-            {/* Toast Icon */}
-            <div className="flex-shrink-0">
-              {toastType === "success" && (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              )}
-              {toastType === "error" && (
-                <XCircle className="w-5 h-5 text-red-600" />
-              )}
-              {toastType === "warning" && (
-                <Clock className="w-5 h-5 text-yellow-600" />
-              )}
-            </div>
-
-            {/* Toast Message */}
+            {toastType === "success" ? (
+              <CheckCircle className="w-5 h-5 text-green-600" />
+            ) : toastType === "error" ? (
+              <XCircle className="w-5 h-5 text-red-600" />
+            ) : (
+              <AlertCircle className="w-5 h-5 text-yellow-600" />
+            )}
             <div className="flex-1">
-              <p className="text-sm font-medium">{toastMessage}</p>
+              <p className="font-medium text-sm">{toastMessage}</p>
             </div>
-
-            {/* Close Button */}
             <button
-              onClick={() => {
-                if (toastTimeoutId) {
-                  clearTimeout(toastTimeoutId);
-                  setToastTimeoutId(null);
-                }
-                setShowToast(false);
-              }}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              onClick={() => setShowToast(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
             >
               <X className="w-4 h-4" />
             </button>
@@ -789,4 +674,4 @@ const LecturerGradingTest: React.FC = () => {
   );
 };
 
-export default LecturerGradingTest;
+export default LecturerReportReview;

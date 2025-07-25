@@ -264,11 +264,19 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
               </p>
             </div>
             <button
-              onClick={() => setIsAssignModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              onClick={() => {
+                setAssignForm({
+                  lecturerId: "",
+                  score: 0,
+                  reason: "",
+                  isGrading: true,
+                });
+                setIsAssignModalOpen(true);
+              }}
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Assign Lecturer
+              Chọn giảng viên
             </button>
           </div>
         </div>
@@ -405,7 +413,7 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">
-                Assign Lecturer
+                Thêm Giảng Viên Chấm Điểm
               </h2>
               <button
                 onClick={() => setIsAssignModalOpen(false)}
@@ -439,8 +447,8 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                 </select>
               </div>
 
-              {/* Score */}
-              <div>
+              {/* Score - Hidden */}
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Điểm số
                 </label>
@@ -455,10 +463,10 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0.0"
                 />
-              </div>
+              </div> */}
 
-              {/* Reason */}
-              <div>
+              {/* Reason - Hidden */}
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Lý do / Nhận xét
                 </label>
@@ -470,10 +478,10 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Nhập lý do hoặc nhận xét (tùy chọn)"
                 />
-              </div>
+              </div> */}
 
-              {/* Is Grading */}
-              <div>
+              {/* Is Grading - Hidden, default value: true */}
+              {/* <div>
                 <label className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -486,7 +494,7 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                     Đang trong quá trình chấm điểm
                   </span>
                 </label>
-              </div>
+              </div> */}
 
               {/* Actions */}
               <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -501,7 +509,7 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                 <button
                   type="submit"
                   disabled={isAssigning}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   {isAssigning ? (
                     <>
@@ -511,7 +519,7 @@ const TestDetailView: React.FC<TestDetailViewProps> = ({
                   ) : (
                     <>
                       <Plus className="w-4 h-4" />
-                      <span>Assign</span>
+                      <span>Thêm</span>
                     </>
                   )}
                 </button>

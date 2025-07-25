@@ -6,12 +6,14 @@ interface RequestTableProps {
   requests: Report[];
   onDelete: (id: string) => void;
   onUpdateStatus: (id: string, status: string) => void;
+  onViewDetail: (report: Report) => void;
 }
 
 const RequestTable: React.FC<RequestTableProps> = ({
   requests,
   onDelete,
   onUpdateStatus,
+  onViewDetail,
 }) => {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
@@ -99,10 +101,10 @@ const RequestTable: React.FC<RequestTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {request.studentName}
+                    {request.student?.fullname || "N/A"}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {request.studentEmail}
+                    {request.student?.email || "N/A"}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -145,7 +147,13 @@ const RequestTable: React.FC<RequestTableProps> = ({
                   {activeDropdown === request.id.toString() && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
                       <div className="py-2">
-                        <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                        <button
+                          onClick={() => {
+                            onViewDetail(request);
+                            setActiveDropdown(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        >
                           <Eye className="w-4 h-4" />
                           <span>View Details</span>
                         </button>

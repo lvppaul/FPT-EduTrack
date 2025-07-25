@@ -1,19 +1,18 @@
+import type { User } from "./userType";
+import type { Test } from "./examType";
+
 export interface Report {
   id: number;
   title: string;
   content: string;
   isDeleted: boolean;
   isSecond: boolean;
-  createdAt: string; // ISO string
+  createdAt: string;
   studentId: number;
-  studentName: string;
-  studentEmail: string;
-  reportStatusId: number;
+  student: User;
   testId: number;
-  testCode: string;
-  testTitle: string;
-  testContent: string;
-  testLink: string;
+  test: Test;
+  reportStatusId: number;
 }
 
 export interface GetReportsResponse {

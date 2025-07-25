@@ -1,12 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  FileCheck,
-  ClipboardCheck,
-  LogOut,
-} from "lucide-react";
-import AuthUtils from "../../utils/authUtils";
+import { FileCheck, MessageSquare } from "lucide-react";
 
 interface SidebarProps {
   activeItem: string;
@@ -17,118 +10,85 @@ const HeadOfDepartmentSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
 }) => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    AuthUtils.clearAuthData();
-    navigate("/login");
-  };
   const menuItems = [
-    {
-      id: "overview",
-      label: "Tổng Quan",
-      icon: LayoutDashboard,
-      description: "Dashboard và thống kê tổng quát",
-    },
     {
       id: "grade-approval",
       label: "Xác Nhận Điểm",
       icon: FileCheck,
       description: "Xác nhận điểm chấm từ giảng viên",
     },
-
-    {
-      id: "exams",
-      label: "Quản Lý Kỳ Thi",
-      icon: ClipboardCheck,
-      description: "Theo dõi và quản lý kỳ thi",
-    },
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg h-screen flex flex-col border-r border-gray-200">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">H</span>
+    <div className="w-64 bg-white shadow-lg h-screen border-r border-gray-200 flex flex-col">
+      <div className="p-6 flex-1">
+        {/* Logo/Brand Section */}
+        <div className="flex items-center mb-8">
+          <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+            <span className="text-white text-sm font-bold">FPT</span>
           </div>
           <div>
-            <h2 className="font-bold text-gray-800 text-lg">Trưởng Khoa</h2>
-            <p className="text-sm text-gray-500">Quản lý khoa</p>
+            <h2 className="text-lg font-bold text-gray-800">EduTrack</h2>
+            <p className="text-xs text-gray-500">Head of Department</p>
           </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+        <nav className="space-y-3">
           {menuItems.map((item) => {
-            const IconComponent = item.icon;
+            const Icon = item.icon;
             const isActive = activeItem === item.id;
 
             return (
-              <li key={item.id}>
+              <div key={item.id}>
                 <button
                   onClick={() => onItemClick(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 group ${
+                  className={`w-full flex items-center px-4 py-3 text-left rounded-lg transition-all duration-200 hover:bg-gray-50 group ${
                     isActive
-                      ? "bg-blue-50 text-blue-700 border-l-4 border-blue-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                      : "text-gray-700 hover:text-gray-900"
                   }`}
                 >
-                  <IconComponent
-                    size={20}
-                    className={`${
+                  <Icon
+                    className={`w-5 h-5 mr-3 ${
                       isActive
-                        ? "text-blue-700"
-                        : "text-gray-400 group-hover:text-gray-600"
+                        ? "text-white"
+                        : "text-gray-500 group-hover:text-gray-700"
                     }`}
                   />
                   <div className="flex-1">
-                    <div
-                      className={`font-medium ${
-                        isActive ? "text-blue-700" : "text-gray-700"
-                      }`}
-                    >
-                      {item.label}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-0.5">
-                      {item.description}
-                    </div>
+                    <span className="font-medium text-sm">{item.label}</span>
+                    {!isActive && (
+                      <p className="text-xs text-gray-400 mt-0.5 group-hover:text-gray-500">
+                        {item.description}
+                      </p>
+                    )}
                   </div>
                 </button>
-              </li>
+              </div>
             );
           })}
-        </ul>
-      </nav>
+        </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200 space-y-3">
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-gray-600 font-medium text-sm">TK</span>
-          </div>
-          <div className="flex-1">
-            <div className="font-medium text-gray-800 text-sm">Trưởng Khoa</div>
-            <div className="text-xs text-gray-500">Đang hoạt động</div>
-          </div>
-        </div>
-
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 group"
-        >
-          <LogOut size={20} className="text-red-500 group-hover:text-red-600" />
-          <div className="flex-1">
-            <div className="font-medium">Đăng xuất</div>
-            <div className="text-xs text-red-400 mt-0.5">
-              Thoát khỏi hệ thống
+        {/* Help Section */}
+        <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+          <div className="flex items-start space-x-3">
+            <MessageSquare className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-medium text-blue-900">Cần hỗ trợ?</h4>
+              <p className="text-xs text-blue-700 mt-1">
+                Liên hệ với bộ phận kỹ thuật để được hỗ trợ
+              </p>
+              <a
+                href="https://zalo.me/g/cpnkak838"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Liên hệ hỗ trợ →
+              </a>
             </div>
           </div>
-        </button>
+        </div>
       </div>
     </div>
   );

@@ -1,50 +1,60 @@
-import React, { useState } from "react";
-import { X, Calendar, Clock, Users, FileText, AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, FileText, AlertCircle, CheckCircle } from "lucide-react";
+import { AuthUtils } from "../../utils/authUtils";
+import { createExam } from "../../service/examService";
 
 interface CreateExamModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (examData: ExamCreateRequest) => void;
-  isLoading?: boolean;
+  onSuccess: () => void;
 }
 
 interface ExamCreateRequest {
   code: string;
+  name: string;
+  examinerId: number;
   duration: number;
-  description?: string;
-  startTime?: string;
-  endTime?: string;
-  maxAttempts?: number;
-  passingScore?: number;
+  status: number;
 }
 
 interface FormErrors {
   code?: string;
+  name?: string;
   duration?: string;
-  description?: string;
-  startTime?: string;
-  endTime?: string;
-  maxAttempts?: string;
-  passingScore?: string;
 }
 
 const CreateExamModal: React.FC<CreateExamModalProps> = ({
   isOpen,
   onClose,
-  onSubmit,
-  isLoading = false,
+  onSuccess,
 }) => {
   const [formData, setFormData] = useState<ExamCreateRequest>({
     code: "",
+    name: "",
+    examinerId: 0, // Will be set from AuthUtils
     duration: 60,
-    description: "",
-    startTime: "",
-    endTime: "",
-    maxAttempts: 1,
-    passingScore: 70,
+    status: 0,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  // Set examiner ID from current user when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const currentUser = AuthUtils.getUserFromToken();
+      if (currentUser) {
+        setFormData((prev) => ({
+          ...prev,
+          examinerId: parseInt(currentUser.sub), // Convert sub to number
+        }));
+      }
+    }
+  }, [isOpen]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -56,40 +66,68 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
       newErrors.code = "Mã kỳ thi phải có ít nhất 3 ký tự";
     }
 
+    if (!formData.name.trim()) {
+      newErrors.name = "Tên kỳ thi là bắt buộc";
+    } else if (formData.name.length < 3) {
+      newErrors.name = "Tên kỳ thi phải có ít nhất 3 ký tự";
+    }
+
     if (!formData.duration || formData.duration <= 0) {
       newErrors.duration = "Thời gian thi phải lớn hơn 0";
     } else if (formData.duration > 300) {
       newErrors.duration = "Thời gian thi không được vượt quá 300 phút";
     }
 
-    if (formData.maxAttempts && formData.maxAttempts <= 0) {
-      newErrors.maxAttempts = "Số lần thi phải lớn hơn 0";
-    }
-
-    if (
-      formData.passingScore &&
-      (formData.passingScore < 0 || formData.passingScore > 100)
-    ) {
-      newErrors.passingScore = "Điểm đạt phải từ 0 đến 100";
-    }
-
-    // Date validation
-    if (formData.startTime && formData.endTime) {
-      const startDate = new Date(formData.startTime);
-      const endDate = new Date(formData.endTime);
-      if (startDate >= endDate) {
-        newErrors.endTime = "Thời gian kết thúc phải sau thời gian bắt đầu";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    const currentUser = AuthUtils.getUserFromToken();
+    const examinerId = currentUser ? parseInt(currentUser.sub) : 0;
+
+    try {
+      setIsSubmitting(true);
+
+      const examData = {
+        ...formData,
+        examinerId: examinerId,
+      };
+      console.log("Exam created successfully:", examData);
+      await createExam(examData);
+      console.log("Exam created successfully:", examData);
+
+      // Show success notification
+      setNotification({
+        type: "success",
+        message: "Tạo kỳ thi thành công!",
+      });
+
+      // Auto hide notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+
+      resetForm();
+      onClose();
+      onSuccess();
+    } catch (error: unknown) {
+      console.error("Error creating exam:", error);
+
+      // Show error notification
+      setNotification({
+        type: "error",
+        message: "Có lỗi xảy ra khi tạo kỳ thi",
+      });
+
+      // Auto hide notification after 3 seconds
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -105,14 +143,15 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
   };
 
   const resetForm = () => {
+    const currentUser = AuthUtils.getUserFromToken();
+    const examinerId = currentUser ? parseInt(currentUser.sub) : 0;
+
     setFormData({
       code: "",
+      name: "",
+      examinerId: examinerId,
       duration: 60,
-      description: "",
-      startTime: "",
-      endTime: "",
-      maxAttempts: 1,
-      passingScore: 70,
+      status: 0,
     });
     setErrors({});
   };
@@ -126,6 +165,42 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      {/* Notification */}
+      {notification && (
+        <div
+          className={`fixed top-4 right-4 z-[60] p-4 rounded-lg shadow-lg flex items-center space-x-3 min-w-80 ${
+            notification.type === "success"
+              ? "bg-green-50 border border-green-200"
+              : "bg-red-50 border border-red-200"
+          }`}
+        >
+          {notification.type === "success" ? (
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-red-600" />
+          )}
+          <span
+            className={`text-sm font-medium flex-1 ${
+              notification.type === "success"
+                ? "text-green-800"
+                : "text-red-800"
+            }`}
+          >
+            {notification.message}
+          </span>
+          <button
+            onClick={() => setNotification(null)}
+            className={`text-gray-400 hover:text-gray-600 ${
+              notification.type === "success"
+                ? "hover:text-green-600"
+                : "hover:text-red-600"
+            }`}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -143,7 +218,7 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
           <button
             onClick={handleClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-            disabled={isLoading}
+            disabled={isSubmitting}
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -164,7 +239,7 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
                 errors.code ? "border-red-300" : "border-gray-300"
               }`}
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
             {errors.code && (
               <div className="flex items-center mt-1 text-red-600 text-sm">
@@ -174,152 +249,54 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
             )}
           </div>
 
-          {/* Duration and Basic Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Clock className="w-4 h-4 inline mr-1" />
-                Thời gian thi (phút) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={formData.duration}
-                onChange={(e) =>
-                  handleInputChange("duration", parseInt(e.target.value) || 0)
-                }
-                placeholder="60"
-                min="1"
-                max="300"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                  errors.duration ? "border-red-300" : "border-gray-300"
-                }`}
-                disabled={isLoading}
-              />
-              {errors.duration && (
-                <div className="flex items-center mt-1 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errors.duration}
-                </div>
-              )}
-            </div>
-
-            {/* Max Attempts */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Users className="w-4 h-4 inline mr-1" />
-                Số lần thi tối đa
-              </label>
-              <input
-                type="number"
-                value={formData.maxAttempts}
-                onChange={(e) =>
-                  handleInputChange(
-                    "maxAttempts",
-                    parseInt(e.target.value) || 1
-                  )
-                }
-                placeholder="1"
-                min="1"
-                max="10"
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                  errors.maxAttempts ? "border-red-300" : "border-gray-300"
-                }`}
-                disabled={isLoading}
-              />
-              {errors.maxAttempts && (
-                <div className="flex items-center mt-1 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errors.maxAttempts}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Passing Score */}
+          {/* Exam Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Điểm đạt (%)
+              Tên kỳ thi <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
-              value={formData.passingScore}
-              onChange={(e) =>
-                handleInputChange(
-                  "passingScore",
-                  parseInt(e.target.value) || 70
-                )
-              }
-              placeholder="70"
-              min="0"
-              max="100"
+              type="text"
+              value={formData.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              placeholder="Nhập tên kỳ thi (VD: Thi cuối kỳ môn Toán)"
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                errors.passingScore ? "border-red-300" : "border-gray-300"
+                errors.name ? "border-red-300" : "border-gray-300"
               }`}
-              disabled={isLoading}
+              disabled={isSubmitting}
             />
-            {errors.passingScore && (
+            {errors.name && (
               <div className="flex items-center mt-1 text-red-600 text-sm">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.passingScore}
+                {errors.name}
               </div>
             )}
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Start Time */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                Thời gian bắt đầu
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.startTime}
-                onChange={(e) => handleInputChange("startTime", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                disabled={isLoading}
-              />
-            </div>
-
-            {/* End Time */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                Thời gian kết thúc
-              </label>
-              <input
-                type="datetime-local"
-                value={formData.endTime}
-                onChange={(e) => handleInputChange("endTime", e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
-                  errors.endTime ? "border-red-300" : "border-gray-300"
-                }`}
-                disabled={isLoading}
-              />
-              {errors.endTime && (
-                <div className="flex items-center mt-1 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {errors.endTime}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Description */}
+          {/* Duration */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Mô tả kỳ thi
+              Thời gian thi (phút) <span className="text-red-500">*</span>
             </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Nhập mô tả chi tiết về kỳ thi..."
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 resize-none"
-              disabled={isLoading}
+            <input
+              type="number"
+              value={formData.duration}
+              onChange={(e) =>
+                handleInputChange("duration", parseInt(e.target.value) || 0)
+              }
+              placeholder="60"
+              min="1"
+              max="300"
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 ${
+                errors.duration ? "border-red-300" : "border-gray-300"
+              }`}
+              disabled={isSubmitting}
             />
+            {errors.duration && (
+              <div className="flex items-center mt-1 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {errors.duration}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -328,16 +305,16 @@ const CreateExamModal: React.FC<CreateExamModalProps> = ({
               type="button"
               onClick={handleClose}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-              disabled={isLoading}
+              disabled={isSubmitting}
             >
               Hủy
             </button>
             <button
               type="submit"
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center shadow-lg hover:shadow-xl"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   Đang tạo...

@@ -138,3 +138,34 @@ export async function updateTestScore(payload: AssignLecturerDto) {
     );
   }
 }
+
+export async function updateTestScoreChangeReportStatus(
+  reportId: number,
+  reportStatusId: number,
+  payload: AssignLecturerDto
+) {
+  try {
+    const url = `report/${reportId}/report-status/${reportStatusId}/tests/${payload.testId}/lecturer/${payload.lecturerId}`;
+
+    const response = await http.put(url, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (response.data.success) {
+      return response.data;
+    } else {
+      throw new Error(
+        response.data.message || "Không cập nhật được điểm. Vui lòng thử lại."
+      );
+    }
+  } catch (error: unknown) {
+    // Re-throw the error so it can be handled by the calling component
+    if (error && typeof error === "object" && "response" in error) {
+      throw error; // Preserve the original axios error
+    } else {
+      throw new Error(
+        "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+      );
+    }
+  }
+}

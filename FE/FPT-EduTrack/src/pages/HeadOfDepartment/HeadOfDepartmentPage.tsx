@@ -1,33 +1,13 @@
 import React, { useState } from "react";
 import HeadOfDepartmentSidebar from "../../components/HeadOfDepartmentComponent/HeadOfDepartmentSideBar";
-import HeadOfDepartmentDashboard from "../../components/HeadOfDepartmentComponent/HeadOfDepartmentDashboard";
 import HeadOfDepartmentGradeApproval from "../../components/HeadOfDepartmentComponent/HeadOfDepartmentGradeApproval";
 import Header from "../../components/Header";
 
 const HeadOfDepartmentPage: React.FC = () => {
-  const [activeItem, setActiveItem] = useState("overview");
+  const [activeItem, setActiveItem] = useState("grade-approval");
 
   const renderContent = () => {
-    switch (activeItem) {
-      case "overview":
-        return <HeadOfDepartmentDashboard />;
-      case "grade-approval":
-        return <HeadOfDepartmentGradeApproval />;
-      case "exams":
-        return (
-          <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              Quản Lý Kỳ Thi
-            </h1>
-            <p className="text-gray-600">
-              Tính năng quản lý kỳ thi đang được phát triển...
-            </p>
-          </div>
-        );
-
-      default:
-        return <HeadOfDepartmentDashboard />;
-    }
+    return <HeadOfDepartmentGradeApproval />;
   };
 
   return (

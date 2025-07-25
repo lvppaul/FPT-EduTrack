@@ -1,5 +1,5 @@
 import React from "react";
-import { Eye, Edit } from "lucide-react";
+import { Eye } from "lucide-react";
 import type { Test } from "../../types/examType";
 
 interface TestCardProps {
@@ -63,9 +63,6 @@ const TestCard: React.FC<TestCardProps> = ({ test, onViewTest }) => {
             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
           >
             <Eye className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200">
-            <Edit className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   Search,
@@ -6,107 +6,53 @@ import {
   Edit,
   Trash2,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   Video,
-  Calendar,
   Clock,
-  Users,
   Link,
   Play,
   Copy,
+  RefreshCw,
+  CheckCircle,
+  X,
 } from "lucide-react";
-
-interface Meeting {
-  id: string;
-  code: string;
-  participants: number;
-  maxParticipants: number;
-  status: "Scheduled" | "In-Progress" | "Completed" | "Cancelled";
-  meetLink: string;
-  scheduledTime: string;
-  duration: string;
-  subject?: string;
-}
-
-const MeetingManagement: React.FC = () => {
-  const [meetings] = useState<Meeting[]>([
-    {
-      id: "1",
-      code: "M00001",
-
-      participants: 4,
-      maxParticipants: 4,
-      status: "In-Progress",
-      meetLink: "https://meet.google.com/abc-defg-hij",
-      scheduledTime: "2024-01-15 08:00",
-      duration: "2 hours",
-      subject: "SWD392",
-    },
-    {
-      id: "2",
-      code: "M00002",
-
-      participants: 4,
-      maxParticipants: 4,
-      status: "Scheduled",
-      meetLink: "https://meet.google.com/xyz-uvwx-yzab",
-      scheduledTime: "2024-01-15 14:00",
-      duration: "1.5 hours",
-      subject: "DBI202",
-    },
-    {
-      id: "3",
-      code: "M00003",
-
-      participants: 4,
-      maxParticipants: 4,
-      status: "Completed",
-      meetLink: "https://meet.google.com/pqr-stuv-wxyz",
-      scheduledTime: "2024-01-14 10:00",
-      duration: "3 hours",
-      subject: "PRJ301",
-    },
-    {
-      id: "4",
-      code: "M00004",
-
-      participants: 0,
-      maxParticipants: 4,
-      status: "Cancelled",
-      meetLink: "https://meet.google.com/def-ghij-klmn",
-      scheduledTime: "2024-01-15 16:00",
-      duration: "1 hour",
-    },
-    {
-      id: "5",
-      code: "M00005",
-
-      participants: 0,
-      maxParticipants: 4,
-      status: "Scheduled",
-      meetLink: "https://meet.google.com/opq-rstu-vwxy",
-      scheduledTime: "2024-01-16 09:00",
-      duration: "2 hours",
-      subject: "MAD101",
-    },
-  ]);
-
-  const [selectedMeetings, setSelectedMeetings] = useState<string[]>([]);
+import type { Meeting, GetMeetingsResponse } from "../../types/meetingType";
+import {
+  getMeetings,
+  updateMeetingStatus,
+} from "../../service/googleAuthService";
+import Pagination from "../Pagination";
+import CreateMeetingModal from "./CreateMeetingModal";
+const AdminMeetingManagement: React.FC = () => {
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedMeetings, setSelectedMeetings] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState<number | "all">("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [showActionMenu, setShowActionMenu] = useState<number | null>(null);
 
-  const itemsPerPage = 10;
-  const totalMeetings = meetings.length;
+  // Modal states
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
+  // Status update modal states
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedMeetingForStatus, setSelectedMeetingForStatus] =
+    useState<Meeting | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Filter meetings based on search and status
   const filteredMeetings = meetings.filter((meeting) => {
-    const matchesSearch = meeting.code
+    const matchesSearch = meeting.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
-      statusFilter === "All" || meeting.status === statusFilter;
+      statusFilter === "all" || meeting.meetingStatusId === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -117,6 +63,46 @@ const MeetingManagement: React.FC = () => {
     startIndex + itemsPerPage
   );
 
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  // Reset current page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // Fetch meetings data
+  const fetchMeetings = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response: GetMeetingsResponse = await getMeetings();
+
+      if (response && response.data) {
+        setMeetings(response.data);
+      } else {
+        setMeetings([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch meetings:", error);
+      setError("Có lỗi xảy ra khi tải danh sách cuộc họp");
+      setMeetings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMeetings();
+  }, []);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedMeetings(paginatedMeetings.map((meeting) => meeting.id));
@@ -125,7 +111,7 @@ const MeetingManagement: React.FC = () => {
     }
   };
 
-  const handleSelectMeeting = (meetingId: string, checked: boolean) => {
+  const handleSelectMeeting = (meetingId: number, checked: boolean) => {
     if (checked) {
       setSelectedMeetings([...selectedMeetings, meetingId]);
     } else {
@@ -133,33 +119,50 @@ const MeetingManagement: React.FC = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Scheduled":
+  const getStatusColor = (statusId: number) => {
+    switch (statusId) {
+      case 1: // Scheduled
         return "bg-blue-100 text-blue-800";
-      case "In-Progress":
+      case 2: // In Progress
         return "bg-green-100 text-green-800";
-      case "Completed":
+      case 3: // Completed
         return "bg-gray-100 text-gray-800";
-      case "Cancelled":
+      case 4: // Cancelled
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusDot = (status: string) => {
-    switch (status) {
-      case "Scheduled":
+  const getStatusDot = (statusId: number) => {
+    switch (statusId) {
+      case 1: // Scheduled
         return "bg-blue-500";
-      case "In-Progress":
+      case 2: // In Progress
         return "bg-green-500";
-      case "Completed":
+      case 3: // Completed
         return "bg-gray-500";
-      case "Cancelled":
+      case 4: // Cancelled
         return "bg-red-500";
       default:
         return "bg-gray-500";
+    }
+  };
+
+  const getStatusText = (statusId: number, statusName?: string) => {
+    if (statusName) return statusName;
+
+    switch (statusId) {
+      case 1:
+        return "Đã lên lịch";
+      case 2:
+        return "Đang diễn ra";
+      case 3:
+        return "Đã hoàn thành";
+      case 4:
+        return "Đã hủy";
+      default:
+        return "Không xác định";
     }
   };
 
@@ -172,28 +175,124 @@ const MeetingManagement: React.FC = () => {
     window.open(link, "_blank");
   };
 
+  // Handle create meeting success
+  const handleCreateSuccess = () => {
+    setNotification({
+      type: "success",
+      message: "Tạo phòng họp thành công!",
+    });
+    fetchMeetings(); // Refresh the meetings list
+
+    // Auto hide notification after 3 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  // Status options based on the image provided
+  const statusOptions = [
+    {
+      id: 1,
+      name: "Scheduled",
+      label: "Đã lên lịch",
+      color: "bg-blue-100 text-blue-800",
+    },
+    {
+      id: 2,
+      name: "In Progress",
+      label: "Đang diễn ra",
+      color: "bg-green-100 text-green-800",
+    },
+    {
+      id: 3,
+      name: "Completed",
+      label: "Đã hoàn thành",
+      color: "bg-gray-100 text-gray-800",
+    },
+    {
+      id: 4,
+      name: "Cancelled",
+      label: "Đã hủy",
+      color: "bg-red-100 text-red-800",
+    },
+  ];
+
+  // Handle edit status click
+  const handleEditStatus = (meeting: Meeting) => {
+    setSelectedMeetingForStatus(meeting);
+    setShowStatusModal(true);
+    setShowActionMenu(null); // Close action menu
+  };
+
+  // Handle status update
+  const handleStatusUpdate = async (newStatusId: number) => {
+    if (!selectedMeetingForStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      await updateMeetingStatus(
+        selectedMeetingForStatus.id.toString(),
+        newStatusId
+      );
+
+      setNotification({
+        type: "success",
+        message: "Cập nhật trạng thái thành công!",
+      });
+
+      // Refresh meetings list
+      fetchMeetings();
+
+      // Close modal
+      setShowStatusModal(false);
+      setSelectedMeetingForStatus(null);
+
+      setTimeout(() => setNotification(null), 3000);
+    } catch (error) {
+      console.error("Error updating meeting status:", error);
+      setNotification({
+        type: "error",
+        message: "Có lỗi xảy ra khi cập nhật trạng thái. Vui lòng thử lại.",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-white to-indigo-50 rounded-t-lg">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Meeting Management
+                Quản Lý Cuộc Họp
               </h1>
               <p className="text-gray-600 mt-1">
-                Total: {totalMeetings} meetings
+                Hiển thị {Math.min(filteredMeetings.length, itemsPerPage)} trong{" "}
+                {filteredMeetings.length} cuộc họp
               </p>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200">
-                <Calendar className="w-4 h-4" />
-                <span>Schedule</span>
+              <button
+                onClick={fetchMeetings}
+                disabled={isLoading}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 disabled:opacity-50"
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+                />
+                <span>Làm mới</span>
               </button>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200">
+
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+              >
                 <Plus className="w-4 h-4" />
-                <span>New Meeting</span>
+                <span>Tạo mới cuộc họp</span>
               </button>
             </div>
           </div>
@@ -204,7 +303,7 @@ const MeetingManagement: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search by code, title, or host..."
+                placeholder="Search by meeting name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -215,266 +314,399 @@ const MeetingManagement: React.FC = () => {
               <span className="text-sm text-gray-600">Status:</span>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  setStatusFilter(
+                    e.target.value === "all" ? "all" : parseInt(e.target.value)
+                  )
+                }
                 className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="All">All</option>
-                <option value="Scheduled">Scheduled</option>
-                <option value="In-Progress">In-Progress</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
+                <option value="all">Tất cả</option>
+                <option value={1}>Đã lên lịch</option>
+                <option value={2}>Đang diễn ra</option>
+                <option value={3}>Đã hoàn thành</option>
+                <option value={4}>Đã hủy</option>
               </select>
             </div>
           </div>
         </div>
 
+        {/* Loading and Error States */}
+        {error && (
+          <div className="p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={fetchMeetings}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="p-6 text-center">
+            <div className="inline-flex items-center">
+              <RefreshCw className="w-5 h-5 animate-spin mr-2" />
+              <span>Loading meetings...</span>
+            </div>
+          </div>
+        )}
+
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-4 text-left">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedMeetings.length === paginatedMeetings.length &&
-                      paginatedMeetings.length > 0
-                    }
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Code
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Date Time
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Participants
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Meeting Link
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {paginatedMeetings.map((meeting) => (
-                <tr
-                  key={meeting.id}
-                  className="hover:bg-gray-50 transition-colors duration-150"
-                >
-                  <td className="px-6 py-4">
+        {!isLoading && !error && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-6 py-4 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedMeetings.includes(meeting.id)}
-                      onChange={(e) =>
-                        handleSelectMeeting(meeting.id, e.target.checked)
+                      checked={
+                        selectedMeetings.length === paginatedMeetings.length &&
+                        paginatedMeetings.length > 0
                       }
+                      onChange={(e) => handleSelectAll(e.target.checked)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                        <Video className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="font-bold text-gray-900 text-lg">
-                        {meeting.code}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {new Date(meeting.scheduledTime).toLocaleString()} (
-                        {meeting.duration})
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <Users className="w-4 h-4 text-gray-500" />
-                      <span className="font-semibold text-gray-900">
-                        {meeting.participants}
-                      </span>
-                      <span className="text-gray-500 text-sm">
-                        / {meeting.maxParticipants}
-                      </span>
-                    </div>
-                    <div className="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
-                      <div
-                        className="bg-blue-500 h-1.5 rounded-full"
-                        style={{
-                          width: `${
-                            (meeting.participants / meeting.maxParticipants) *
-                            100
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                        meeting.status
-                      )}`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 ${getStatusDot(
-                          meeting.status
-                        )} rounded-full mr-1.5`}
-                      ></div>
-                      {meeting.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-1 bg-gray-50 rounded-lg px-2 py-1">
-                        <Link className="w-3 h-3 text-gray-500" />
-                        <span className="text-xs text-gray-600 font-mono">
-                          {meeting.meetLink.replace(
-                            "https://meet.google.com/",
-                            ""
-                          )}
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Meeting Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Created Date
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Meeting Link
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {paginatedMeetings.map((meeting) => (
+                  <tr
+                    key={meeting.id}
+                    className="hover:bg-gray-50 transition-colors duration-150"
+                  >
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedMeetings.includes(meeting.id)}
+                        onChange={(e) =>
+                          handleSelectMeeting(meeting.id, e.target.checked)
+                        }
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <Video className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="font-medium text-gray-900">
+                          {meeting.name}
                         </span>
                       </div>
-                      <button
-                        onClick={() => copyMeetLink(meeting.meetLink)}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
-                        title="Copy link"
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center text-sm text-gray-500">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {new Date(meeting.createdAt).toLocaleDateString()}{" "}
+                        {new Date(meeting.createdAt).toLocaleTimeString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                          meeting.meetingStatusId
+                        )}`}
                       >
-                        <Copy className="w-3 h-3 text-gray-500" />
-                      </button>
-                      {meeting.status === "In-Progress" && (
-                        <button
-                          onClick={() => joinMeeting(meeting.meetLink)}
-                          className="p-1 hover:bg-green-100 rounded transition-colors duration-200 text-green-600"
-                          title="Join meeting"
-                        >
-                          <Play className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setShowActionMenu(
-                            showActionMenu === meeting.id ? null : meeting.id
-                          )
-                        }
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                      >
-                        <MoreHorizontal className="w-4 h-4 text-gray-600" />
-                      </button>
-
-                      {showActionMenu === meeting.id && (
-                        <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                          <div className="py-1">
-                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                              <Eye className="w-4 h-4" />
-                              <span>View Details</span>
-                            </button>
-                            <button
-                              onClick={() => joinMeeting(meeting.meetLink)}
-                              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                            >
-                              <Video className="w-4 h-4" />
-                              <span>Join Meeting</span>
-                            </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
-                              <Edit className="w-4 h-4" />
-                              <span>Edit Meeting</span>
-                            </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
-                              <Trash2 className="w-4 h-4" />
-                              <span>Cancel Meeting</span>
-                            </button>
-                          </div>
+                        <div
+                          className={`w-1.5 h-1.5 ${getStatusDot(
+                            meeting.meetingStatusId
+                          )} rounded-full mr-1.5`}
+                        ></div>
+                        {getStatusText(
+                          meeting.meetingStatusId,
+                          meeting.meetingStatusName
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1 bg-gray-50 rounded-lg px-2 py-1">
+                          <Link className="w-3 h-3 text-gray-500" />
+                          <span className="text-xs text-gray-600 font-mono max-w-xs truncate">
+                            {meeting.link}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        <button
+                          onClick={() => copyMeetLink(meeting.link)}
+                          className="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+                          title="Copy link"
+                        >
+                          <Copy className="w-3 h-3 text-gray-500" />
+                        </button>
+                        {meeting.meetingStatusId === 2 && (
+                          <button
+                            onClick={() => joinMeeting(meeting.link)}
+                            className="p-1 hover:bg-green-100 rounded transition-colors duration-200 text-green-600"
+                            title="Join meeting"
+                          >
+                            <Play className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="relative">
+                        <button
+                          onClick={() =>
+                            setShowActionMenu(
+                              showActionMenu === meeting.id ? null : meeting.id
+                            )
+                          }
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-gray-600" />
+                        </button>
+
+                        {showActionMenu === meeting.id && (
+                          <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                            <div className="py-1">
+                              <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2">
+                                <Eye className="w-4 h-4" />
+                                <span>View Details</span>
+                              </button>
+                              <button
+                                onClick={() => joinMeeting(meeting.link)}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                              >
+                                <Video className="w-4 h-4" />
+                                <span>Join Meeting</span>
+                              </button>
+                              <button
+                                onClick={() => handleEditStatus(meeting)}
+                                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+                              >
+                                <Edit className="w-4 h-4" />
+                                <span>Edit Status</span>
+                              </button>
+                              <button className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
+                                <Trash2 className="w-4 h-4" />
+                                <span>Cancel Meeting</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && paginatedMeetings.length === 0 && (
+          <div className="p-12 text-center">
+            <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm || statusFilter !== "all"
+                ? "No meetings found"
+                : "No meetings yet"}
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm || statusFilter !== "all"
+                ? "Try adjusting your search or filter criteria"
+                : "Get started by creating your first meeting"}
+            </p>
+            {!searchTerm && statusFilter === "all" && (
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 mx-auto transition-colors duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Meeting</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + itemsPerPage, filteredMeetings.length)} of{" "}
-            {filteredMeetings.length} results
-          </div>
+        {!isLoading && !error && filteredMeetings.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={filteredMeetings.length}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        )}
+      </div>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+      {/* Create Meeting Modal */}
+      <CreateMeetingModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
 
-            <div className="flex items-center space-x-1">
-              {[...Array(Math.min(5, totalPages))].map((_, index) => {
-                const pageNumber = index + 1;
-                return (
+      {/* Status Update Modal */}
+      {showStatusModal && selectedMeetingForStatus && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Cập nhật trạng thái cuộc họp
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowStatusModal(false);
+                    setSelectedMeetingForStatus(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  disabled={isUpdatingStatus}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">
+                Cuộc họp:{" "}
+                <span className="font-medium">
+                  {selectedMeetingForStatus.name}
+                </span>
+              </p>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-3">
+                {statusOptions.map((status) => (
                   <button
-                    key={pageNumber}
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      currentPage === pageNumber
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                    key={status.id}
+                    onClick={() => handleStatusUpdate(status.id)}
+                    disabled={
+                      isUpdatingStatus ||
+                      selectedMeetingForStatus.meetingStatusId === status.id
+                    }
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 ${
+                      selectedMeetingForStatus.meetingStatusId === status.id
+                        ? "border-blue-500 bg-blue-50 cursor-not-allowed opacity-60"
+                        : "border-gray-200 hover:border-blue-300 hover:bg-gray-50 cursor-pointer"
+                    } ${
+                      isUpdatingStatus ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    {pageNumber}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            status.id === 1
+                              ? "bg-blue-500"
+                              : status.id === 2
+                              ? "bg-green-500"
+                              : status.id === 3
+                              ? "bg-gray-500"
+                              : "bg-red-500"
+                          }`}
+                        />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {status.label}
+                          </p>
+                          <p className="text-sm text-gray-500">{status.name}</p>
+                        </div>
+                      </div>
+                      {selectedMeetingForStatus.meetingStatusId ===
+                        status.id && (
+                        <CheckCircle className="w-5 h-5 text-blue-600" />
+                      )}
+                    </div>
                   </button>
-                );
-              })}
-              {totalPages > 5 && (
-                <>
-                  <span className="px-2 text-gray-400">...</span>
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                      currentPage === totalPages
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                </>
+                ))}
+              </div>
+
+              {isUpdatingStatus && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <RefreshCw className="w-4 h-4 text-blue-600 animate-spin" />
+                    <span className="text-sm text-blue-800">
+                      Đang cập nhật trạng thái...
+                    </span>
+                  </div>
+                </div>
               )}
             </div>
 
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => {
+                  setShowStatusModal(false);
+                  setSelectedMeetingForStatus(null);
+                }}
+                disabled={isUpdatingStatus}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification */}
+      {notification && (
+        <div className="fixed top-4 right-4 z-50">
+          <div
+            className={`flex items-center p-4 rounded-lg shadow-lg ${
+              notification.type === "success"
+                ? "bg-green-100 border border-green-200"
+                : "bg-red-100 border border-red-200"
+            }`}
+          >
+            {notification.type === "success" ? (
+              <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
+            ) : (
+              <X className="w-5 h-5 text-red-600 mr-3" />
+            )}
+            <p
+              className={`text-sm font-medium ${
+                notification.type === "success"
+                  ? "text-green-800"
+                  : "text-red-800"
+              }`}
             >
-              <ChevronRight className="w-4 h-4" />
+              {notification.message}
+            </p>
+            <button
+              onClick={() => setNotification(null)}
+              className={`ml-4 p-1 rounded ${
+                notification.type === "success"
+                  ? "hover:bg-green-200"
+                  : "hover:bg-red-200"
+              }`}
+            >
+              <X
+                className={`w-4 h-4 ${
+                  notification.type === "success"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              />
             </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-export default MeetingManagement;
+export default AdminMeetingManagement;
