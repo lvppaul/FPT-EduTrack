@@ -29,8 +29,10 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<List<TestResponse>> GetCurrentExamTestAsync(int status, int pageSize, int pageNumber);
 
         // ---LecturerTestsDetails--- //
-        Task<AssignLecturerDto> AssignLecturerToTest(AssignLecturerDto dto);
-        Task<List<TestResponse>> GetTestsByLecturer(int lecturerId, bool isGrading = true);
-        Task<bool> UpdateLecturerTestDetail(AssignLecturerDto dto);
+        Task<AssignLecturerDto> AssignLecturerToTest( AssignLecturerDto dto);
+        Task<List<TestResponse>> GetTestsDontHaveReportByLecturer(int lecturerId, bool isGrading = true);
+        Task<bool> UpdateLecturerTestDetailChangeReportStatus(int reportId, int reportStatusId, AssignLecturerDto dto);
+        Task<bool> UpdateLecturerTestDetail( AssignLecturerDto dto);
+
     }
 }

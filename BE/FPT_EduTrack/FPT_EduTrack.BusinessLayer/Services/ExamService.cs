@@ -99,5 +99,31 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
             return exams.Select(ExamMapper.MapToDTO).ToList();
         }
+
+        public async Task<int> UpdateExamStatus(int id, int status)
+        {
+            try
+            {
+                var exam = await _unitOfWork.ExamRepository.GetByIdAsync(id);
+                if (exam == null)
+                {
+                    throw new Exception("Exam not found");
+                }
+
+                if (!Enum.IsDefined(typeof(ExamStatus), status))
+                {
+                    throw new ArgumentException("Invalid exam status");
+                }
+
+                exam.Status = ((ExamStatus)status).ToString();
+
+                return await _unitOfWork.ExamRepository.UpdateAsync(exam);
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at UpdateExamStatus"+ e);
+            }
+        }
     }
 }

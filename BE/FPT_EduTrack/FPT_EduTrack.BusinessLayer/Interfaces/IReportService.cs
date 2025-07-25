@@ -25,5 +25,18 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<ReportResponse> GetReportByStudentAndTestPaginationAsync(int studentId, int testId, Pagination pagination);
         Task<IEnumerable<ReportResponse>> GetReportByStatusAsync(int statusId);
         Task<IEnumerable<ReportResponse>> GetReportByStatusPaginationAsync(int statusId, Pagination pagination);
+
+        Task<int> UpdateReportStatusAsync(int reportId, int statusId);
+        //-----Lecturer Report-----//
+        Task<List<ReportResponse>> GetReportToReGradingAsync(int lectuerId);
+
+        // -------head of department report ---- /
+
+        Task<List<ReportResponse>> GetReportToConfirmedAsync();
+        Task<int> UpdateReportStatusToConfirm(int reportId);
+        Task<int> UpdateReportStatusToReject(int reportId);
+
+        //--- Examiner ---//    
+        Task<int> UpdateReportStatusToGrading(int reportId);
     }
 }

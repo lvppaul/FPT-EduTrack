@@ -792,13 +792,14 @@ namespace FPT_EduTrack.Api.Controllers
             try
             {
 
-                var list = await _testService.GetTestsByLecturer(lecturerId,isGrading);
+                var list = await _testService.GetTestsDontHaveReportByLecturer(lecturerId,isGrading);
                 if (list == null)
                 {
-                    return NotFound(new
+                    return Ok(new
                     {
-                        success = false,
-                        message = "GetTestsByLecturer has no data"
+                        success = true,
+                        message = "No data found",
+                        data = list
                     });
                 }
                 return Ok(new
@@ -821,12 +822,44 @@ namespace FPT_EduTrack.Api.Controllers
         }
 
         [HttpPut]
+        [Route("report/{reportId}/report-status/{reportStatusId}/tests/{testId}/lecturer/{lecturerId}")]
+        public async Task<IActionResult> UpdateLecturerTestDetailChangeReportStatus(int reportId, int reportStatusId, [FromBody] AssignLecturerDto dto)
+        {
+            try
+            {
+                var check = await _testService.UpdateLecturerTestDetailChangeReportStatus(reportId,reportStatusId,dto) ;
+                if (!check)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Update Lecturer Test Detail Unsuccessfully"
+                    });
+                }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Update Lecturer Test Detail Successfully",
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while UpdateLecturerTestDetail");
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "An error occurred while UpdateLecturerTestDetail",
+                    error = ex.Message
+                });
+            }
+        }
+        [HttpPut]
         [Route("tests/{testId}/lecturer/{lecturerId}")]
         public async Task<IActionResult> UpdateLecturerTestDetail([FromBody] AssignLecturerDto dto)
         {
             try
             {
-                var check = await _testService.UpdateLecturerTestDetail(dto) ;
+                var check = await _testService.UpdateLecturerTestDetail( dto);
                 if (!check)
                 {
                     return NotFound(new

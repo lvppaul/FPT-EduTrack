@@ -21,5 +21,8 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<List<ExamResponse>> GetExamsByStatusAsync(ExamStatus status);
         Task<int> GetTotalExamCountAsync();
         Task<List<ExamResponse>> GetAllAsync();
+
+        //---------Examiner     ---------//
+        Task<int> UpdateExamStatus(int id,int status);
     }
 }

@@ -18,7 +18,12 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task<List<LecturersTestsDetail>> GetTestsByLecturer(int lecturerId, bool isGrading = true)
         {
-            var tests = await _context.LecturersTestsDetails.Where(ltd => ltd.LecturerId == lecturerId && ltd.isGrading == isGrading).Include(ltd => ltd.Test).ToListAsync();
+                    var tests = await _context.LecturersTestsDetails
+             .Where(ltd => ltd.LecturerId == lecturerId && ltd.isGrading == isGrading)
+             .Include(ltd => ltd.Test)
+                 .ThenInclude(d => d.Reports.Where(r => r.IsDeleted == false)) // Chỉ include reports còn "sống"
+             .Where(d => d.Test.isDeleted == false)
+             .ToListAsync();
             return tests;
         }
 

@@ -23,5 +23,8 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<bool> DeleteMeetingAsync(string meetingId, string organizerEmail);
         Task<List<string>> GetMeetingAttendees(int meetingId);
         Task<EventResponse> GetEventByMeetingIdAsync(string organizerEmail, int meetingId);
+
+        //---Examiner---//
+        Task<int> UpdateMeetingStatus(int meetingId,int statusId);
     }
 }

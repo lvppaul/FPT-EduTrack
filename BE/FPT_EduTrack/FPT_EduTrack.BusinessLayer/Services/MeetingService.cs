@@ -224,17 +224,9 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     .Where(m => meetingIdSet.Contains(m.GoogleMeetingId))
                     .ToList();
 
-                var meetingResponses = validMeetings.Select(m => new MeetingResponse
-                {
-                    Id = m.Id,
-                    Name = m.Name,
-                    CreatedAt = m.CreatedAt,
-                    Link = m.Link,
-                    MeetingStatusId = m.MeetingStatusId,
-                    MeetingStatusName = m.MeetingStatus?.Name
-                }).ToList();
-
-                return meetingResponses;
+             
+                  
+                return validMeetings.Select(MeetingMapper.ToRequest).ToList();
             }
             catch (Exception ex)
             {
@@ -351,6 +343,25 @@ namespace FPT_EduTrack.BusinessLayer.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error retrieving events for organizer '{organizerEmail}': {ex.Message}", ex);
+            }
+        }
+
+        public async Task<int> UpdateMeetingStatus(int meetingId, int statusId)
+        {
+            try
+            {
+                var meeting = await _unitOfWork.MeetingRepository.GetByIdAsync(meetingId);
+                if (meeting == null)
+                {
+                    throw new Exception($"Meeting with ID {meetingId} not found.");
+                }
+                meeting.MeetingStatusId = statusId;
+                return await _unitOfWork.MeetingRepository.UpdateAsync(meeting);
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at UpdateMeetingStatus: "+e);
             }
         }
     }

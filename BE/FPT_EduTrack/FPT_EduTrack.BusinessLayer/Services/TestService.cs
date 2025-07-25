@@ -618,16 +618,28 @@ namespace FPT_EduTrack.BusinessLayer.Services
            
         }
 
-        public async Task<List<TestResponse>> GetTestsByLecturer(int lecturerId, bool isGrading = true)
+        public async Task<List<TestResponse>> GetTestsDontHaveReportByLecturer(int lecturerId, bool isGrading = true)
         {
             try
             {
                var tests = await _unitOfWork.LecturerTestDetailRepository.GetTestsByLecturer(lecturerId, isGrading);
                 if (tests == null || !tests.Any())
                     return null;
-                // Convert to TestResponse
-                var testResponses = tests.Select(t => TestMapper.ToResponse(t.Test)).ToList();
-                return testResponses;
+                var allReports = await _unitOfWork.ReportRepository.GetAllAsync(); // await trước!
+
+                var testIdsWithReports = allReports
+                    .Where(r => r.TestId != null)
+                    .Select(r => r.TestId.Value)
+                    .Distinct()
+                    .ToHashSet();
+
+                var validTests = tests
+     .Where(t => t.Test != null
+              && t.Test.isDeleted == false
+              && !testIdsWithReports.Contains(t.Test.Id))
+     .Select(t => TestMapper.ToResponse(t.Test))
+     .ToList();
+                return validTests;
             }
             catch (Exception e)
             {
@@ -636,10 +648,15 @@ namespace FPT_EduTrack.BusinessLayer.Services
             }
         }
 
-        public async Task<bool> UpdateLecturerTestDetail(AssignLecturerDto dto)
+        public async Task<bool> UpdateLecturerTestDetailChangeReportStatus(int reportId,int reportStatusId,AssignLecturerDto dto)
         {
             try
             {
+                var reportStatus = await _unitOfWork.ReportRepository.UpdateReportStatusAsync(reportId,reportStatusId);
+                if (reportStatus == 0)
+                {
+                    throw new Exception($"Failed to update report status for ReportId: {reportId}");
+                }
                 var result = await _unitOfWork.LecturerTestDetailRepository.GetLecturerTestDetailByLecturerIdAndTestId(dto.LecturerId, dto.TestId);
                 if (result == null)
                 {
@@ -650,6 +667,44 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 result.Score = dto.Score ?? 0;
                 result.Reason = dto.Reason;
                 result.isGrading = dto.isGrading ?? true;
+
+                var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
+                if (test == null)
+                {
+                    throw new Exception($"Test with ID {dto.TestId} not found");
+                }
+                test.Score = (float)result.Score;
+
+                var updateLecturerTestDetail = await _unitOfWork.LecturerTestDetailRepository.UpdateAsync(result);
+                var updateTest = await _unitOfWork.TestRepository.UpdateAsync(test);
+
+                if (updateLecturerTestDetail == 0 || updateTest == 0)
+                {
+                    throw new Exception("Failed to update lecturer test detail or test");
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("Error at UpdateLecturerTestDetail: " + e.Message, e);
+            }
+        }
+
+        public async Task<bool> UpdateLecturerTestDetail( AssignLecturerDto dto)
+        {
+            try
+            {
+               
+                var result = await _unitOfWork.LecturerTestDetailRepository.GetLecturerTestDetailByLecturerIdAndTestId(dto.LecturerId, dto.TestId);
+                if (result == null)
+                {
+                    throw new Exception($"No lecturer test detail found for LecturerId: {dto.LecturerId} and TestId: {dto.TestId}");
+                }
+
+                // Update trực tiếp vào entity đang được tracked
+                result.Score = dto.Score ?? 0;
+                result.Reason = dto.Reason;
+                result.isGrading = dto.isGrading ?? false;
 
                 var test = await _unitOfWork.TestRepository.GetByIdAsync(dto.TestId);
                 if (test == null)
