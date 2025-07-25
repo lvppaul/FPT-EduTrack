@@ -1,7 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { FileText, MessageSquare, GraduationCap, LogOut } from "lucide-react";
-import AuthUtils from "../../utils/authUtils";
+
+import { FileText, MessageSquare, GraduationCap } from "lucide-react";
 
 interface SidebarProps {
   activeItem: string;
@@ -12,12 +11,6 @@ const StudentSidebar: React.FC<SidebarProps> = ({
   activeItem,
   onItemClick,
 }) => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    AuthUtils.clearAuthData();
-    navigate("/login");
-  };
   const menuItems = [
     {
       id: "exams",
@@ -90,43 +83,19 @@ const StudentSidebar: React.FC<SidebarProps> = ({
             <div>
               <h4 className="text-sm font-medium text-blue-900">Cần hỗ trợ?</h4>
               <p className="text-xs text-blue-700 mt-1">
-                Liên hệ với bộ phận IT để được hỗ trợ
+                Liên hệ với bộ phận kỹ thuật để được hỗ trợ
               </p>
-              <button className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium">
+              <a
+                href="https://zalo.me/g/cpnkak838"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-medium"
+              >
                 Liên hệ hỗ trợ →
-              </button>
+              </a>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* User Info Section */}
-      <div className="p-6 border-t border-gray-200 bg-gray-50 space-y-3">
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
-            <GraduationCap className="w-5 h-5 text-gray-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">
-              Student Name
-            </p>
-            <p className="text-xs text-gray-500 truncate">student@fpt.edu.vn</p>
-          </div>
-        </div>
-
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-red-600 hover:bg-red-50 hover:text-red-700 group"
-        >
-          <LogOut size={20} className="text-red-500 group-hover:text-red-600" />
-          <div className="flex-1">
-            <div className="font-medium">Đăng xuất</div>
-            <div className="text-xs text-red-400 mt-0.5">
-              Thoát khỏi hệ thống
-            </div>
-          </div>
-        </button>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 StudentId = report.StudentId,
                 Student = report.Student.ToResponse(),
                 TestId = report.TestId,
-                Test = report.Test.ToResponse(),
+                Test = report.Test != null ? report.Test.ToResponse() : null,
                 ReportStatusId = report.ReportStatusId
             };
         }

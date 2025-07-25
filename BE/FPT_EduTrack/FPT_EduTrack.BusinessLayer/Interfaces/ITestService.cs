@@ -34,5 +34,7 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
         Task<bool> UpdateLecturerTestDetailChangeReportStatus(int reportId, int reportStatusId, AssignLecturerDto dto);
         Task<bool> UpdateLecturerTestDetail( AssignLecturerDto dto);
 
+      
+
     }
 }

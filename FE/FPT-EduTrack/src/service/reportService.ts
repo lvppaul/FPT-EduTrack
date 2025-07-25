@@ -1,3 +1,4 @@
+import type { CreateReportForm } from "../types/requestType";
 import http from "./axios";
 
 export async function getReportsPagination(
@@ -108,6 +109,37 @@ export async function GradingReport(reportId: number) {
     }
   } catch (error: unknown) {
     console.error("GradingReport error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
+
+export async function createReport(payload: CreateReportForm) {
+  try {
+    const response = await http.post(`Report`, payload);
+
+    // Check for successful response (201 status for created resources)
+    if (response.status === 201 || response.data.success || response.data) {
+      return response.data;
+    } else {
+      throw new Error("Không thể tạo đơn phúc khảo. Vui lòng thử lại.");
+    }
+  } catch (error: unknown) {
+    console.error("createReport error:", error);
+    throw new Error("Có lỗi xảy ra khi tạo đơn phúc khảo. Vui lòng thử lại.");
+  }
+}
+
+export async function getReportsByStudent(studentId: number) {
+  try {
+    const response = await http.get(`Report/student/${studentId}`);
+
+    if (response.data.success) {
+      return response.data;
+    }
+  } catch (error: unknown) {
+    console.error("Get Reports error:", error);
     throw new Error(
       "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
     );

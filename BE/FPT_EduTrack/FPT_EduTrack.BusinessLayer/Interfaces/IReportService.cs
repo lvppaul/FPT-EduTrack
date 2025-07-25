@@ -38,5 +38,8 @@ namespace FPT_EduTrack.BusinessLayer.Interfaces
 
         //--- Examiner ---//    
         Task<int> UpdateReportStatusToGrading(int reportId);
+
+        // --- Student---//
+        Task<List<ReportResponse>> GetReportByStudentAsync(int studentId);
     }
 }

@@ -21,3 +21,10 @@ export interface GetReportsResponse {
   data: Report[];
   count: number;
 }
+
+export interface CreateReportForm {
+  title: string;
+  content: string;
+  studentId: number;
+  testId: number;
+}

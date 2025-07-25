@@ -188,5 +188,21 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             _context.Reports.Update(report.Result);
             return await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Report>> GetReportByStudentAsync(int studentId)
+        {
+                        return await _context.Reports
+                 .Include(r => r.ReportStatus)
+                 .Include(r => r.Student) // THÊM DÒNG NÀY để load thông tin student
+                 .Include(r => r.Test)
+                     .ThenInclude(t => t.Student)
+                 .Include(r => r.Test)
+                     .ThenInclude(t => t.LecturersTestsDetails)
+                         .ThenInclude(ld => ld.Lecturer)
+                             .ThenInclude(l => l.Role)
+                 .Where(r => r.IsDeleted == false)
+                 .Where(r => r.StudentId == studentId)
+                 .ToListAsync();
+        }
     }
 }

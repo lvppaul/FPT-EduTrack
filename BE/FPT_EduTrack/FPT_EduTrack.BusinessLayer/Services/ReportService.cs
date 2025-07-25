@@ -210,5 +210,23 @@ namespace FPT_EduTrack.BusinessLayer.Services
             return await _unitOfWork.ReportRepository.UpdateAsync(report);
 
         }
+
+        public async Task<List<ReportResponse>> GetReportByStudentAsync(int studentId)
+        {
+            try
+            {
+                var tests = await _unitOfWork.ReportRepository.GetReportByStudentAsync(studentId);
+                if (tests == null || !tests.Any())
+                {
+                    return new List<ReportResponse>();
+                }
+                return tests.Select(ReportMapper.ToResponse).ToList();
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("GetReportByStudentAsync Service error: "+e);
+            }
+        }
     }
 }

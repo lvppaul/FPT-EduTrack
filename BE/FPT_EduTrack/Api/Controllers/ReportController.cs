@@ -409,5 +409,30 @@ namespace FPT_EduTrack.Api.Controllers
                 message = "Grading successfully.",
             });
         }
+
+
+        [HttpGet("student/{studentId}")]
+        public async Task<IActionResult> GetReportByStudent(int studentId)
+        {
+            var listReportPagination = await _reportService.GetReportByStudentAsync(studentId);
+            if (listReportPagination == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Student hasn't create any report"
+                });
+            }
+
+            var listReport = await _reportService.GetReportByStudentAsync(studentId);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
+            });
+        }
     }
 }

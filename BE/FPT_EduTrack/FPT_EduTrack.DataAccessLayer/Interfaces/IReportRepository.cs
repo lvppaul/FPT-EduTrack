@@ -30,6 +30,10 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         //--  head of department report --//
         Task<List<Report>> GetReportToConfirmedAsync();
 
-       
+
+         //---Student---//
+        Task<List<Report>> GetReportByStudentAsync(int studentId);
+
+
     }
 }
