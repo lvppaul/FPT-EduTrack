@@ -295,5 +295,144 @@ namespace FPT_EduTrack.Api.Controllers
                 count = listReport.Count()
             });
         }
+
+        [HttpGet("lecturer/{lecturerId}")]
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> GetReportToReGradingAsync(int lecturerId)
+        {
+            var report = await _reportService.GetReportToReGradingAsync(lecturerId);
+            if (report == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Reports with LecturerID {lecturerId} not found."
+                });
+            }
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = report,
+                count = 1
+            });
+        }
+
+        [HttpGet("to-confirmed")]
+        //[Authorize]
+        public async Task<ActionResult<ReportResponse>> GetReportToConfrimedAsync()
+        {
+            var report = await _reportService.GetReportToConfirmedAsync();
+            if (report == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"no data."
+                });
+            }
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = report,
+                count = 1
+            });
+        }
+
+        [HttpPut("to-confirmed/{id}")]
+        //[Authorize]
+        public async Task<IActionResult> UpdateReportStatusToConfirm(int id)
+        {
+          
+
+            var existingReport = await _reportService.UpdateReportStatusToConfirm(id);
+            if (existingReport<=0)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Confirm report with ID {id} failed."
+                });
+            }
+
+
+            return Ok(new
+            {
+                success = true,
+                message = "Confirm successfully.",
+            });
+        }
+        [HttpPut("to-rejected/{id}")]
+        //[Authorize]
+        public async Task<IActionResult> UpdateReportStatusToReject(int id)
+        {
+
+
+            var existingReport = await _reportService.UpdateReportStatusToReject(id);
+            if (existingReport <= 0)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Reject report with ID {id} failed."
+                });
+            }
+
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reject successfully.",
+            });
+        }
+        [HttpPut("to-grading/{id}")]
+        //[Authorize]
+        public async Task<IActionResult> UpdateReportStatusToGrading(int id)
+        {
+
+
+            var existingReport = await _reportService.UpdateReportStatusToGrading(id);
+            if (existingReport <= 0)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Grading report with ID {id} failed."
+                });
+            }
+
+
+            return Ok(new
+            {
+                success = true,
+                message = "Grading successfully.",
+            });
+        }
+
+
+        [HttpGet("student/{studentId}")]
+        public async Task<IActionResult> GetReportByStudent(int studentId)
+        {
+            var listReportPagination = await _reportService.GetReportByStudentAsync(studentId);
+            if (listReportPagination == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Student hasn't create any report"
+                });
+            }
+
+            var listReport = await _reportService.GetReportByStudentAsync(studentId);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Reports retrieved successfully.",
+                data = listReportPagination,
+                count = listReport.Count()
+            });
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
     {
         Task<List<Test>> GetTestsAsync();
         Task<bool> IsLecturerAssigned(int lecturerId, int testId);
-        
+
+       
     }
 }

@@ -22,5 +22,18 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task<Report> GetReportByStudentAndTestPaginationAsync(int studentId, int testId, Pagination pagination);
         Task<List<Report>> GetReportByStatusAsync(int statusId);
         Task<List<Report>> GetReportByStatusPaginationAsync(int statusId, Pagination pagination);
+
+        Task<int> UpdateReportStatusAsync(int reportId, int statusId);
+        //-----Lecturer Report-----//
+        Task<List<Report>> GetReportToReGradingAsync(int lectuerId);
+       
+        //--  head of department report --//
+        Task<List<Report>> GetReportToConfirmedAsync();
+
+
+         //---Student---//
+        Task<List<Report>> GetReportByStudentAsync(int studentId);
+
+
     }
 }

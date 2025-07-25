@@ -18,7 +18,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task<List<Meeting>> GetAllMeetingsAsync()
         {
-            return await _context.Meetings
+            return await _context.Meetings.Include(m => m.MeetingStatus)
                 .Where(m => m.IsDeleted != true)
                 .ToListAsync();
         }
@@ -32,8 +32,8 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
 
         public async Task<List<Meeting>> GetMeetingsByGoogleIdsAsync(List<string> googleIds)
         {
-            return await _context.Meetings
-                .Where(m => googleIds.Contains(m.GoogleMeetingId) && m.IsDeleted != true)
+            return await _context.Meetings.Include(m => m.MeetingStatus).Include(m => m.MeetingDetails).ThenInclude(d=>d.User).ThenInclude(d=>d.Role)
+                .Where(m => googleIds.Contains(m.GoogleMeetingId) && m.IsDeleted != true).OrderByDescending(m => m.Id)
                 .ToListAsync();
         }
 

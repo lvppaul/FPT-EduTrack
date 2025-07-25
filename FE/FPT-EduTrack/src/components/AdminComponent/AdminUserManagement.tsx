@@ -202,7 +202,7 @@ const UserManagement: React.FC = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="border-b border-gray-200 p-6 bg-gradient-to-r from-white to-indigo-50 rounded-t-lg">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
@@ -215,10 +215,10 @@ const UserManagement: React.FC = () => {
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Plus className="w-4 h-4" />
-              <span>New User</span>
+              <span>Tạo mới người dùng</span>
             </button>
           </div>
 
@@ -238,10 +238,10 @@ const UserManagement: React.FC = () => {
             secondaryFilterValue={roleFilter}
             onSecondaryFilterChange={handleRoleFilterChange}
             secondaryFilterOptions={[
-              { value: "1", label: "Examiner" },
-              { value: "2", label: "Lecturer" },
-              { value: "3", label: "Head" },
-              { value: "4", label: "Student" },
+              { value: "1", label: "Khảo Thí" },
+              { value: "2", label: "Giảng Viên" },
+              { value: "3", label: "Trưởng Khoa" },
+              { value: "4", label: "Sinh Viên" },
             ]}
             secondaryFilterLabel="Vai trò"
             secondaryFilterPlaceholder="Tất cả vai trò"

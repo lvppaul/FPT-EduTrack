@@ -18,7 +18,7 @@ export default function AdminPage() {
         return <UserManagement />;
       case "exam":
         return <ExamManagement />;
-      case "test":
+      case "request":
         return <RequestManagement />;
       case "meeting":
         return <MeetingManagement />;

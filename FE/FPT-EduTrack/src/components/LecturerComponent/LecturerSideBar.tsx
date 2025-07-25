@@ -87,7 +87,7 @@ const LecturerSidebar: React.FC<SidebarProps> = ({
                 Liên hệ với bộ phận kỹ thuật để được hỗ trợ
               </p>
               <a
-                href="https://daihoc.fpt.edu.vn/en/"
+                href="https://zalo.me/g/cpnkak838"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 text-xs text-green-600 hover:text-green-800 font-medium"

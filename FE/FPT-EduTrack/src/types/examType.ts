@@ -54,10 +54,8 @@ export interface ExamResponse {
 
 export interface ExamCreateRequest {
   code: string;
+  name: string;
+  examinerId: number;
   duration: number;
-  description?: string;
-  startTime?: string;
-  endTime?: string;
-  maxAttempts?: number;
-  passingScore?: number;
+  status: string;
 }

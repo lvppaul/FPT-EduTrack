@@ -16,5 +16,6 @@ namespace FPT_EduTrack.DataAccessLayer.Interfaces
         Task<List<Exam>> GetAllAsync(Pagination pagination);
         Task<int> CountAsync();
         Task<List<Exam>> GetAllAsync();
+
     }
 }

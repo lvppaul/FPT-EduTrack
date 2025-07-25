@@ -95,21 +95,15 @@ export async function deleteExam(id: number) {
   }
 }
 
-export async function createExam(
-  code: string,
-  name: string,
-  examinerId: number,
-  duration: number,
-  status: "InProgress"
-) {
+export async function createExam(data: {
+  code: string;
+  name: string;
+  examinerId: number;
+  duration: number;
+  status: number;
+}) {
   try {
-    const response = await http.post("Exam/create", {
-      code,
-      name,
-      examinerId,
-      duration,
-      status,
-    });
+    const response = await http.post("Exam", data);
 
     if (response.data.success) {
       return response.data;
@@ -118,6 +112,23 @@ export async function createExam(
     throw new Error("Tạo bài thi thất bại.");
   } catch (error: unknown) {
     console.error("Create Exam error:", error);
+    throw new Error(
+      "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
+    );
+  }
+}
+
+export async function updateExamStatus(examId: number, status: number) {
+  try {
+    const response = await http.put(`Exam/${examId}/status/${status}`);
+
+    if (response.data.success) {
+      return response.data;
+    }
+
+    throw new Error("Cập nhật trạng thái thất bại.");
+  } catch (error: unknown) {
+    console.error("Update Exam Status error:", error);
     throw new Error(
       "Lỗi không xác định. Vui lòng kiểm tra kết nối và thử lại."
     );

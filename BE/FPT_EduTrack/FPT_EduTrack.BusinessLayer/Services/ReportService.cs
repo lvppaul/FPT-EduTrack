@@ -1,8 +1,10 @@
 ﻿using FPT_EduTrack.BusinessLayer.DTOs.Request;
 using FPT_EduTrack.BusinessLayer.DTOs.Response;
 using FPT_EduTrack.BusinessLayer.DTOs.Update;
+using FPT_EduTrack.BusinessLayer.Enums;
 using FPT_EduTrack.BusinessLayer.Interfaces;
 using FPT_EduTrack.BusinessLayer.Mappings;
+using FPT_EduTrack.DataAccessLayer.Entities;
 using FPT_EduTrack.DataAccessLayer.Repositories;
 using FPT_EduTrack.DataAccessLayer.UnitOfWork;
 
@@ -134,6 +136,97 @@ namespace FPT_EduTrack.BusinessLayer.Services
                 throw new KeyNotFoundException($"Report not found.");
             }
             return listReport.ToDtoList();
+        }
+
+        public async Task<List<ReportResponse>> GetReportToReGradingAsync(int lectuerId)
+        {
+            var reports = await _unitOfWork.ReportRepository.GetReportToReGradingAsync(lectuerId);
+            if (reports == null || !reports.Any())
+            {
+                return new List<ReportResponse>();
+            }
+            return reports.Select(ReportMapper.ToResponse).ToList();
+        }
+
+        public async Task<List<ReportResponse>> GetReportToConfirmedAsync()
+        {
+            var reports = await _unitOfWork.ReportRepository.GetReportToConfirmedAsync();
+            if (reports == null || !reports.Any())
+            {
+                return new List<ReportResponse>();
+            }
+            return reports.Select(ReportMapper.ToResponse).ToList();
+        }
+
+        public async Task<int> UpdateReportStatusAsync(int reportId, int statusId)
+        {
+            var check = await _unitOfWork.ReportRepository.GetByIdAsync(reportId);
+           
+            if (check == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {reportId} not found.");
+            }
+            var result = await _unitOfWork.ReportRepository.UpdateReportStatusAsync(reportId, statusId);
+            if (result == 0)
+            {
+                throw new InvalidOperationException($"Failed to update status for report with ID {reportId}.");
+            }
+           return result;
+        }
+
+        public async Task<int> UpdateReportStatusToConfirm(int reportId)
+        {
+            var report = await _unitOfWork.ReportRepository.GetByIdAsync(reportId);   
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {reportId} not found.");
+            }
+            
+            report.ReportStatusId = ReportStatuses.Confirmed; 
+            return await _unitOfWork.ReportRepository.UpdateAsync(report);
+
+        }
+        public async Task<int> UpdateReportStatusToReject(int reportId)
+        {
+            var report = await _unitOfWork.ReportRepository.GetByIdAsync(reportId);
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {reportId} not found.");
+            }
+
+            report.ReportStatusId = ReportStatuses.Rejected;
+            return await _unitOfWork.ReportRepository.UpdateAsync(report);
+
+        }
+        public async Task<int> UpdateReportStatusToGrading(int reportId)
+        {
+            var report = await _unitOfWork.ReportRepository.GetByIdAsync(reportId);
+            if (report == null)
+            {
+                throw new KeyNotFoundException($"Report with ID {reportId} not found.");
+            }
+
+            report.ReportStatusId = ReportStatuses.Grading;
+            return await _unitOfWork.ReportRepository.UpdateAsync(report);
+
+        }
+
+        public async Task<List<ReportResponse>> GetReportByStudentAsync(int studentId)
+        {
+            try
+            {
+                var tests = await _unitOfWork.ReportRepository.GetReportByStudentAsync(studentId);
+                if (tests == null || !tests.Any())
+                {
+                    return new List<ReportResponse>();
+                }
+                return tests.Select(ReportMapper.ToResponse).ToList();
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("GetReportByStudentAsync Service error: "+e);
+            }
         }
     }
 }

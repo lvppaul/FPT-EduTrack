@@ -2,6 +2,7 @@ import { useState } from "react";
 import LecturerSidebar from "../../components/LecturerComponent/LecturerSideBar";
 import Header from "../../components/Header";
 import LecturerGradingTest from "../../components/LecturerComponent/LecturerGradingTest";
+import LecturerReportReview from "../../components/LecturerComponent/LecturerReportReview";
 
 export default function LecturerPage() {
   const [activeItem, setActiveItem] = useState("grading");
@@ -11,7 +12,14 @@ export default function LecturerPage() {
   };
 
   const renderContent = () => {
-    return <LecturerGradingTest />;
+    switch (activeItem) {
+      case "grading":
+        return <LecturerGradingTest />;
+      case "re-grading":
+        return <LecturerReportReview />;
+      default:
+        return <LecturerGradingTest />;
+    }
   };
 
   return (

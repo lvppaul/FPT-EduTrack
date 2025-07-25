@@ -1,18 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {
-  Edit,
-  Trash2,
-  Eye,
-  Plus,
-  CheckCircle,
-  AlertCircle,
-  X,
-} from "lucide-react";
-import type {
-  ExamResponse,
-  Exam,
-  ExamCreateRequest,
-} from "../../types/examType";
+import { Eye, Plus, CheckCircle, AlertCircle, X } from "lucide-react";
+import type { ExamResponse, Exam } from "../../types/examType";
 import { getExams } from "../../service/examService";
 import { ExamStatus } from "../../enum/examStatus";
 import ExamDetailView from "./ExamDetailView";
@@ -29,7 +17,6 @@ const ExamManagement: React.FC = () => {
 
   // Modal states
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [notification, setNotification] = useState<{
     type: "success" | "error";
     message: string;
@@ -120,37 +107,19 @@ const ExamManagement: React.FC = () => {
   };
 
   // Modal handlers
-  const handleCreateExam = async (examData: ExamCreateRequest) => {
-    try {
-      setIsCreating(true);
-      // TODO: Replace with actual API call
-      console.log("Creating exam:", examData);
+  const handleCreateExamSuccess = () => {
+    // Show success notification
+    setNotification({
+      type: "success",
+      message: "Kỳ thi đã được tạo thành công!",
+    });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Close modal and refresh data
+    setIsCreateModalOpen(false);
+    fetchExams();
 
-      // Show success notification
-      setNotification({
-        type: "success",
-        message: "Kỳ thi đã được tạo thành công!",
-      });
-
-      // Close modal and refresh data
-      setIsCreateModalOpen(false);
-      fetchExams();
-
-      // Auto hide notification after 3 seconds
-      setTimeout(() => setNotification(null), 3000);
-    } catch (error) {
-      console.error("Failed to create exam:", error);
-      setNotification({
-        type: "error",
-        message: "Có lỗi xảy ra khi tạo kỳ thi. Vui lòng thử lại.",
-      });
-      setTimeout(() => setNotification(null), 3000);
-    } finally {
-      setIsCreating(false);
-    }
+    // Auto hide notification after 3 seconds
+    setTimeout(() => setNotification(null), 3000);
   };
 
   const handleCloseCreateModal = () => {
@@ -185,7 +154,7 @@ const ExamManagement: React.FC = () => {
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
+              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <Plus className="w-4 h-4 mr-2" />
               Tạo kỳ thi mới
@@ -304,12 +273,6 @@ const ExamManagement: React.FC = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -361,8 +324,7 @@ const ExamManagement: React.FC = () => {
       <CreateExamModal
         isOpen={isCreateModalOpen}
         onClose={handleCloseCreateModal}
-        onSubmit={handleCreateExam}
-        isLoading={isCreating}
+        onSuccess={handleCreateExamSuccess}
       />
     </div>
   );

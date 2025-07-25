@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bell, Settings, User, LogOut, ChevronDown } from "lucide-react";
+import { Settings, User, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const Header: React.FC = () => {
@@ -36,18 +36,6 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-4"></div>
 
         <div className="flex items-center space-x-4">
-          {/* Notification Button */}
-          <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200 relative">
-            <Bell className="w-5 h-5 text-gray-600" />
-            {/* Notification badge */}
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-
-          {/* Settings Button */}
-          <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
-            <Settings className="w-5 h-5 text-gray-600" />
-          </button>
-
           {/* User Dropdown */}
           <div className="relative">
             <button

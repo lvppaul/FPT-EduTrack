@@ -84,7 +84,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
         {
             return await _context.Exams
                 .Include(m => m.Examiner)
-                .Include(m => m.Tests)
+                .Include(m => m.Tests).ThenInclude(d => d.Reports)
                         .ThenInclude(t => t.Student)
                         .Include(e => e.Tests)
                 .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(ltd => ltd.Lecturer).ThenInclude(l => l.Role)

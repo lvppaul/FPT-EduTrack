@@ -23,6 +23,13 @@ namespace FPT_EduTrack.BusinessLayer.Mappings
                 Link = meeting.Link,
                 MeetingStatusId = meeting.MeetingStatusId,
                 MeetingStatusName = meeting.MeetingStatus?.Name,
+                MeetingDetails = meeting.MeetingDetails?.Select(md => new MeetingDetailsResponse
+                {
+                    MeetingId = md.MeetingId,
+                    UserId = md.UserId,
+                    User =  UserMapper.ToResponse(md.User), 
+
+                }).ToList() ?? new List<MeetingDetailsResponse>()   
             };
         }
         #endregion

@@ -109,8 +109,8 @@ namespace FPT_EduTrack.Api.Controllers
             return Ok(updatedMeeting);
         }
 
-        [HttpGet("events-organized")]
-        public async Task<IActionResult> GetEventsOrganizeAsync([FromQuery]Pagination pagination)
+        [HttpGet("events-organized/pagination")]
+        public async Task<IActionResult> GetEventsOrganizePaginationAsync([FromQuery]Pagination pagination)
         {
             var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
@@ -131,6 +131,28 @@ namespace FPT_EduTrack.Api.Controllers
                 count = listEvent.Count
             });
         }
+
+        [HttpGet("events-organized")]
+        public async Task<IActionResult> GetEventsOrganizeAsync()
+        {
+            var organizerEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(organizerEmail))
+                return Unauthorized("Email claim not found in token");
+
+            
+
+            var listEvent = await this.meetingService.GetEventsOrganizeAsync(organizerEmail);
+
+            return Ok(new
+            {
+                success = true,
+                message = "Meeting retrieved true",
+                data = listEvent,
+                count = listEvent.Count
+            });
+        }
+
 
         [HttpDelete("event/{meetingId}/delete")]
         public async Task<IActionResult> DeleteEventAsync(int meetingId)
@@ -173,6 +195,40 @@ namespace FPT_EduTrack.Api.Controllers
                 success = true,
                 message = "Meeting deleted successfully."
             });
+        }
+
+
+        [HttpPut("meeting/{meetingId}/status/{statusId}")]
+        public async Task<IActionResult> UpdateMeetingStatus(int meetingId, int statusId)
+        {
+            try
+            {
+                var check = await meetingService.UpdateMeetingStatus(meetingId,statusId);
+                if(check <= 0)
+                {
+                    return BadRequest(
+                        new
+                        {
+                            success = false,
+                            message = "Update meeting status unsuccessfully."
+                        }
+                        );
+                }
+                return Ok(
+                       new
+                       {
+                           success = true,
+                           message = "Update meeting status successfully."
+                       }
+                       );
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception("Error at UpdateMeetingStatus Controller: "+e);
+            }
+
+           
         }
     }
 }

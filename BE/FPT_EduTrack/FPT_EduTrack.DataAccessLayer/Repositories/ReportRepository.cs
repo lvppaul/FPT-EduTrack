@@ -23,10 +23,10 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
             return await _context.Reports
                 .Include(r => r.ReportStatus)
                 .Include(r => r.Test)
-                    .ThenInclude(t => t.Student)
+                    .ThenInclude(t => t.Student).ThenInclude(t=>t.Role)
                 .Include(r => r.Test)
                     .ThenInclude(t => t.LecturersTestsDetails)
-                        .ThenInclude(ld => ld.Lecturer)
+                        .ThenInclude(ld => ld.Lecturer).ThenInclude(ld => ld.Role)
                 .Where(r => r.IsDeleted == false)
                 .Skip((pagination.PageNumber - 1) * pagination.PageSize)
                 .Take(pagination.PageSize)
@@ -41,7 +41,7 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                     .ThenInclude(t => t.Student)
                 .Include(r => r.Test)
                     .ThenInclude(t => t.LecturersTestsDetails)
-                        .ThenInclude(ld => ld.Lecturer)
+                        .ThenInclude(ld => ld.Lecturer).ThenInclude(t => t.Role)
                 .Where(r => r.IsDeleted == false)
                 .ToListAsync();
         }
@@ -155,6 +155,54 @@ namespace FPT_EduTrack.DataAccessLayer.Repositories
                 .Take(pagination.PageSize)
                 .Where(r => r.ReportStatus.Id == statusId)
                 .ToListAsync();
+        }
+
+        public async Task<List<Report>> GetReportToReGradingAsync(int lectuerId)
+        {
+            return await _context.Reports
+                .Include(r => r.ReportStatus)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.Student)
+                .Include(r => r.Test)
+                    .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(t=> t.Lecturer)
+                .Where(r => r.IsDeleted == false).Where(d => d.IsSecond == false).Where(d => d.Test.LecturersTestsDetails.Any(ld => ld.LecturerId == lectuerId && ld.isGrading == true))
+                .ToListAsync();
+        }
+
+        public async Task<List<Report>> GetReportToConfirmedAsync()
+        {
+            return await _context.Reports
+               .Include(r => r.ReportStatus)
+               .Include(r => r.Test)
+                   .ThenInclude(t => t.Student).ThenInclude(t => t.Role)
+               .Include(r => r.Test)
+                   .ThenInclude(t => t.LecturersTestsDetails).ThenInclude(t => t.Lecturer).ThenInclude(t => t.Role)
+               .Where(r => r.IsDeleted == false).Where(d => d.IsSecond == false).Where(d => d.ReportStatusId == 3)
+               .ToListAsync();
+        }
+
+        public async Task<int> UpdateReportStatusAsync(int reportId, int statusId)
+        {
+            var report = _context.Reports.FirstOrDefaultAsync(r => r.Id == reportId);
+            report.Result.ReportStatusId = statusId;
+            _context.Reports.Update(report.Result);
+            return await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Report>> GetReportByStudentAsync(int studentId)
+        {
+                        return await _context.Reports
+                 .Include(r => r.ReportStatus)
+                 .Include(r => r.Student) // THÊM DÒNG NÀY để load thông tin student
+                 .Include(r => r.Test)
+                     .ThenInclude(t => t.Student)
+                 .Include(r => r.Test)
+                     .ThenInclude(t => t.LecturersTestsDetails)
+                         .ThenInclude(ld => ld.Lecturer)
+                             .ThenInclude(l => l.Role)
+                 .Where(r => r.IsDeleted == false)
+                 .Where(r => r.StudentId == studentId)
+                 .ToListAsync();
         }
     }
 }

@@ -247,5 +247,29 @@ namespace FPT_EduTrack.Api.Controllers
                 });
             }
         }
+        [HttpPut("{id}/status/{status}")]
+        public async Task<IActionResult> UpdateExamStatus(int id, int status)
+        {
+
+            var existingExam = await _examService.UpdateExamStatus(id, status);
+            if (existingExam <= 0)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Update exam status failed"
+                });
+            }
+
+
+            return Ok(new
+            {
+                success = true,
+                message = "Exam updated successfully.",
+
+            });
+        }
+        
+    
     }
 }

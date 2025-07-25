@@ -9,7 +9,7 @@ public partial class MeetingsStatus
 
     public string? Name { get; set; }
 
-    public bool? IsDeleted { get; set; }
+    public bool? IsDeleted { get; set; } = false;
 
     public virtual ICollection<Meeting> Meetings { get; set; } = new List<Meeting>();
 }
