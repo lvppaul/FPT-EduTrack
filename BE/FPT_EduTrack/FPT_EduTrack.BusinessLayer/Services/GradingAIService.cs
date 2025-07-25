@@ -147,31 +147,31 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     tweaks = new
                     {
                         // Text Input cho grading description
-                        TextInputOoYur = new Dictionary<string, object>
+                        TextInputL8gAl = new Dictionary<string, object>
                         {
                             ["input_value"] = gradingGuide ?? ""
                         },
 
                         // Text Input cho IELTS questions
-                        TextInputOzab0 = new Dictionary<string, object>
+                        TextInputxfq4k = new Dictionary<string, object>
                         {
                             ["input_value"] = request.TextInputValue ?? "Please evaluate this essay according to the four criteria: Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9)."
                         },
 
                         // Text Input cho student essay
-                        TextInputv0lov = new Dictionary<string, object>
+                        TextInputCy4Up = new Dictionary<string, object>
                         {
                             ["input_value"] = studentEssays ?? ""
                         },
 
                         // Prompt template
-                        PromptwmiTL = new Dictionary<string, object>
+                        Prompty983i = new Dictionary<string, object>
                         {
                             ["template"] = "You are an IELTS examiner. Evaluate the following Task 2 writing based on IELTS band descriptors and document.\nDocument:\n{docs}\nCriteria:\n- Task Response\n- Coherence and Cohesion\n- Lexical Resource\n- Grammatical Range and Accuracy\n\nGive a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9).\nQuestions:\n{questions}"
                         },
 
                         // OpenRouter AI model
-                        OpenRouterComponentGU9UU = new Dictionary<string, object>
+                        OpenRouterComponentMCG38 = new Dictionary<string, object>
                         {
                             ["model_name"] = "deepseek/deepseek-r1-0528:free",
                             ["temperature"] = 0.7,
@@ -179,7 +179,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         },
 
                         // Text Output component
-                        TextOutput01LCO = new Dictionary<string, object>
+                        TextOutputnRd3I = new Dictionary<string, object>
                         {
                             ["input_value"] = ""
                         }
