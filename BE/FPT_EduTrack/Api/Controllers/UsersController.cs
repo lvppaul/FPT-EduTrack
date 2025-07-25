@@ -40,7 +40,7 @@ namespace FPT_EduTrack.Api.Controllers
                     success = true,
                     message = "User retrieved successfully",
                     data = users,
-                    cound = totalUser.Count(),
+                    count = totalUser.Count(),
                 });
             }
             catch (Exception ex)

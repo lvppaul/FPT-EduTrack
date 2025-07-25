@@ -65,6 +65,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         string filename = Guid.NewGuid().ToString() + extension;
                         uploadedGuidelineFileNames.Add(filename);
                         gradingGuide = await _parseService.ReadFileAsync(file);
+                        Console.WriteLine(gradingGuide);
                         if (string.IsNullOrWhiteSpace(gradingGuide))
                         {
                             return new GradingAIResponse
@@ -107,6 +108,8 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         string filename = Guid.NewGuid().ToString() + extension;
                         uploadedTestFileNames.Add(filename);
                         studentEssays = await _parseService.ReadFileAsync(file);
+                        Console.WriteLine(studentEssays);
+
 
                         // Debug logging
                         _logger.LogInformation($"Read test file: {file.FileName}, Size: {file.Length}, Content length: {studentEssays?.Length ?? 0}");
@@ -144,31 +147,31 @@ namespace FPT_EduTrack.BusinessLayer.Services
                     tweaks = new
                     {
                         // Text Input cho grading description
-                        TextInputUwzlE = new Dictionary<string, object>
+                        TextInputOoYur = new Dictionary<string, object>
                         {
                             ["input_value"] = gradingGuide ?? ""
                         },
 
                         // Text Input cho IELTS questions
-                        TextInputVA8YW = new Dictionary<string, object>
+                        TextInputOzab0 = new Dictionary<string, object>
                         {
                             ["input_value"] = request.TextInputValue ?? "Please evaluate this essay according to the four criteria: Task Response, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Provide a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9)."
                         },
 
                         // Text Input cho student essay
-                        TextInputVU0oa = new Dictionary<string, object>
+                        TextInputv0lov = new Dictionary<string, object>
                         {
                             ["input_value"] = studentEssays ?? ""
                         },
 
                         // Prompt template
-                        PromptNMxLe = new Dictionary<string, object>
+                        PromptwmiTL = new Dictionary<string, object>
                         {
                             ["template"] = "You are an IELTS examiner. Evaluate the following Task 2 writing based on IELTS band descriptors and document.\nDocument:\n{docs}\nCriteria:\n- Task Response\n- Coherence and Cohesion\n- Lexical Resource\n- Grammatical Range and Accuracy\n\nGive a detailed analysis and suggest a band score for each criterion, followed by an overall score (0–9).\nQuestions:\n{questions}"
                         },
 
                         // OpenRouter AI model
-                        OpenRouterComponentPwNfE = new Dictionary<string, object>
+                        OpenRouterComponentGU9UU = new Dictionary<string, object>
                         {
                             ["model_name"] = "deepseek/deepseek-r1-0528:free",
                             ["temperature"] = 0.7,
@@ -176,7 +179,7 @@ namespace FPT_EduTrack.BusinessLayer.Services
                         },
 
                         // Text Output component
-                        TextOutputG4vmg = new Dictionary<string, object>
+                        TextOutput01LCO = new Dictionary<string, object>
                         {
                             ["input_value"] = ""
                         }
