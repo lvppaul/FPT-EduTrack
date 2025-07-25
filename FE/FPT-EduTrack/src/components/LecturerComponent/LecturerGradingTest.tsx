@@ -12,6 +12,10 @@ import {
   ChevronDown,
   X,
   Save,
+  Upload,
+  File,
+  Trash2,
+  Loader,
 } from "lucide-react";
 import type { Test } from "../../types/examType";
 import {
@@ -21,7 +25,11 @@ import {
 import { AuthUtils } from "../../utils/authUtils";
 import TestDetailView from "../AdminComponent/TestDetailView";
 import Pagination from "../Pagination";
-
+import { gradingByUsingAi } from "../../service/gradingByUsingAiService";
+import type {
+  GradingFormPayload,
+  GradingResponse,
+} from "../../types/aiResponseType";
 const LecturerGradingTest: React.FC = () => {
   const [tests, setTests] = useState<Test[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +46,18 @@ const LecturerGradingTest: React.FC = () => {
     reason: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // AI grading modal states
+  const [showAIGradingModal, setShowAIGradingModal] = useState(false);
+  const [aiGradingTest, setAiGradingTest] = useState<Test | null>(null);
+  const [aiGradingForm, setAiGradingForm] = useState<GradingFormPayload>({
+    guidelineFiles: [],
+    testFiles: [],
+    textInputValue: "",
+  });
+  const [isAIGrading, setIsAIGrading] = useState(false);
+  const [aiGradingResult, setAiGradingResult] =
+    useState<GradingResponse | null>(null);
 
   // Toast notification states
   const [showToast, setShowToast] = useState(false);
@@ -233,12 +253,169 @@ const LecturerGradingTest: React.FC = () => {
   };
 
   const handleAIGrading = (test: Test) => {
-    // TODO: Implement AI grading logic here
-    console.log("AI Grading for test:", test);
-    // For now, redirect to TestDetailView for AI grading
-    setSelectedTest(test);
-    setShowDetail(true);
+    setAiGradingTest(test);
+    setAiGradingForm({
+      guidelineFiles: [],
+      testFiles: [],
+      textInputValue: "",
+    });
+    setAiGradingResult(null);
+    setShowAIGradingModal(true);
     setOpenDropdown(null);
+  };
+
+  // Handle AI grading modal close
+  const handleCloseAIGradingModal = () => {
+    setShowAIGradingModal(false);
+    setAiGradingTest(null);
+    setAiGradingForm({
+      guidelineFiles: [],
+      testFiles: [],
+      textInputValue: "",
+    });
+    setAiGradingResult(null);
+  };
+
+  // Handle file uploads for AI grading
+  const handleFileUpload = (
+    files: FileList | null,
+    type: "guideline" | "test"
+  ) => {
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+    setAiGradingForm((prev) => ({
+      ...prev,
+      [type === "guideline" ? "guidelineFiles" : "testFiles"]: [
+        ...prev[type === "guideline" ? "guidelineFiles" : "testFiles"],
+        ...fileArray,
+      ],
+    }));
+  };
+
+  // Remove file from upload list
+  const handleRemoveFile = (index: number, type: "guideline" | "test") => {
+    setAiGradingForm((prev) => ({
+      ...prev,
+      [type === "guideline" ? "guidelineFiles" : "testFiles"]: prev[
+        type === "guideline" ? "guidelineFiles" : "testFiles"
+      ].filter((_, i) => i !== index),
+    }));
+  };
+
+  // Handle text input change
+  const handleTextInputChange = (value: string) => {
+    setAiGradingForm((prev) => ({
+      ...prev,
+      textInputValue: value,
+    }));
+  };
+
+  // Submit AI grading
+  const handleSubmitAIGrading = async () => {
+    if (!aiGradingTest) return;
+
+    // Validate form data
+    if (aiGradingForm.guidelineFiles.length === 0) {
+      showToastNotification(
+        " Vui lòng upload ít nhất 1 file hướng dẫn",
+        "warning"
+      );
+      return;
+    }
+
+    if (aiGradingForm.testFiles.length === 0) {
+      showToastNotification(
+        " Vui lòng upload ít nhất 1 file bài test",
+        "warning"
+      );
+      return;
+    }
+
+    if (!aiGradingForm.textInputValue.trim()) {
+      showToastNotification(
+        " Vui lòng nhập mô tả hoặc yêu cầu chấm điểm",
+        "warning"
+      );
+      return;
+    }
+
+    try {
+      setIsAIGrading(true);
+
+      const response = await gradingByUsingAi(aiGradingForm);
+
+      if (response.success) {
+        setAiGradingResult(response);
+        showToastNotification(
+          " AI đã hoàn thành việc chấm điểm! Kiểm tra kết quả bên dưới.",
+          "success"
+        );
+      } else {
+        showToastNotification(
+          " AI không thể chấm điểm. Vui lòng thử lại.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error with AI grading:", error);
+      showToastNotification(
+        " Có lỗi xảy ra khi sử dụng AI chấm điểm. Vui lòng thử lại.",
+        "error"
+      );
+    } finally {
+      setIsAIGrading(false);
+    }
+  };
+
+  // Apply AI grading result to test
+  const handleApplyAIResult = async () => {
+    if (!aiGradingTest || !aiGradingResult) return;
+
+    try {
+      setIsSubmitting(true);
+
+      const userData = AuthUtils.getUserFromToken();
+      if (!userData || !userData.sub) {
+        showToastNotification(
+          "🔐 Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại.",
+          "error"
+        );
+        return;
+      }
+
+      const gradingData = {
+        testId: aiGradingTest.id,
+        lecturerId: parseInt(userData.sub),
+        score: aiGradingResult.grading.overallBand,
+        reason: aiGradingResult.grading.justification,
+        isGrading: false,
+      };
+
+      const response = await updateTestScore(gradingData);
+
+      if (response) {
+        showToastNotification(
+          "🎉 Áp dụng kết quả AI thành công! Điểm số đã được lưu vào hệ thống.",
+          "success"
+        );
+        handleCloseAIGradingModal();
+        fetchGradingTests(); // Refresh the list
+      } else {
+        showToastNotification(
+          "❌ Có lỗi xảy ra khi lưu điểm. Vui lòng thử lại.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("Error applying AI result:", error);
+      showToastNotification(
+        "❌ Có lỗi xảy ra khi lưu kết quả AI. Vui lòng thử lại.",
+        "error"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBackToList = () => {
@@ -370,7 +547,7 @@ const LecturerGradingTest: React.FC = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">
-                Chấm điểm thủ công
+                Cập nhật Điểm Bài Test
               </h2>
               <button
                 onClick={handleCloseGradingModal}
@@ -460,6 +637,324 @@ const LecturerGradingTest: React.FC = () => {
                     Lưu điểm
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Grading Modal */}
+      {showAIGradingModal && aiGradingTest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    AI Hỗ Trợ Chấm Điểm
+                  </h2>
+                  <p className="text-sm text-gray-600">
+                    {aiGradingTest.title} - {aiGradingTest.code}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCloseAIGradingModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isAIGrading}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Upload Section */}
+              <div className="space-y-6">
+                {/* Guideline Files Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    File Hướng Dẫn Chấm Điểm
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={(e) =>
+                        handleFileUpload(e.target.files, "guideline")
+                      }
+                      className="hidden"
+                      id="guideline-upload"
+                      disabled={isAIGrading}
+                    />
+                    <label
+                      htmlFor="guideline-upload"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      <Upload className="w-8 h-8 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        Click để upload hoặc kéo thả file vào đây
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        PDF, DOC, DOCX, TXT
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Display uploaded guideline files */}
+                  {aiGradingForm.guidelineFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {aiGradingForm.guidelineFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-purple-50 p-3 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <File className="w-4 h-4 text-purple-600" />
+                            <span className="text-sm text-gray-700">
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveFile(index, "guideline")}
+                            className="text-red-500 hover:text-red-700"
+                            disabled={isAIGrading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Test Files Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    📄 File Bài Test Sinh Viên
+                  </label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                      onChange={(e) => handleFileUpload(e.target.files, "test")}
+                      className="hidden"
+                      id="test-upload"
+                      disabled={isAIGrading}
+                    />
+                    <label
+                      htmlFor="test-upload"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      <Upload className="w-8 h-8 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        Click để upload hoặc kéo thả file vào đây
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        PDF, DOC, DOCX, TXT, JPG, PNG
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Display uploaded test files */}
+                  {aiGradingForm.testFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {aiGradingForm.testFiles.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between bg-blue-50 p-3 rounded-lg"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <File className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-700">
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024).toFixed(1)} KB)
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveFile(index, "test")}
+                            className="text-red-500 hover:text-red-700"
+                            disabled={isAIGrading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Text Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Mô Tả Yêu Cầu Chấm Điểm
+                  </label>
+                  <textarea
+                    value={aiGradingForm.textInputValue}
+                    onChange={(e) => handleTextInputChange(e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                    rows={4}
+                    placeholder="Nhập mô tả về tiêu chí chấm điểm, thang điểm, yêu cầu đặc biệt..."
+                    disabled={isAIGrading}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  onClick={handleSubmitAIGrading}
+                  disabled={
+                    isAIGrading ||
+                    aiGradingForm.guidelineFiles.length === 0 ||
+                    aiGradingForm.testFiles.length === 0 ||
+                    !aiGradingForm.textInputValue.trim()
+                  }
+                  className="w-full inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                >
+                  {isAIGrading ? (
+                    <>
+                      <Loader className="w-5 h-5 mr-2 animate-spin" />
+                      AI Đang Chấm Điểm...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="w-5 h-5 mr-2" />
+                      Bắt Đầu Chấm Điểm AI
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Right Column - Results Section */}
+              <div className="space-y-6">
+                <div className="bg-gray-50 rounded-lg p-6 h-full">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Bot className="w-5 h-5 mr-2 text-purple-600" />
+                    Kết Quả AI
+                  </h3>
+
+                  {isAIGrading ? (
+                    <div className="flex flex-col items-center justify-center space-y-4 py-12">
+                      <Loader className="w-12 h-12 text-purple-600 animate-spin" />
+                      <p className="text-gray-600 text-center">
+                        AI đang phân tích và chấm điểm...
+                        <br />
+                        <span className="text-sm text-gray-500">
+                          Quá trình này có thể mất vài phút
+                        </span>
+                      </p>
+                    </div>
+                  ) : aiGradingResult ? (
+                    <div className="space-y-4">
+                      {/* Score Display */}
+                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <div className="text-center">
+                          <div
+                            className={`text-4xl font-bold mb-2 ${getScoreColor(
+                              aiGradingResult.grading.overallBand
+                            )}`}
+                          >
+                            {aiGradingResult.grading.overallBand}
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            Điểm AI Đề Xuất
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Justification */}
+                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Nhận Xét AI:
+                        </h4>
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {aiGradingResult.grading.justification}
+                        </p>
+                      </div>
+
+                      {/* Session Info */}
+                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          Thông Tin Phiên:
+                        </h4>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p>ID: {aiGradingResult.grading.sessionId}</p>
+                          <p>
+                            Thời gian:{" "}
+                            {new Date(
+                              aiGradingResult.grading.timestamp
+                            ).toLocaleString("vi-VN")}
+                          </p>
+                          <p>Nguồn: {aiGradingResult.grading.source}</p>
+                        </div>
+                      </div>
+
+                      {/* Files Processed */}
+                      <div className="bg-white rounded-lg p-4 shadow-sm">
+                        <h4 className="font-medium text-gray-900 mb-2">
+                          File Đã Xử Lý:
+                        </h4>
+                        <div className="space-y-2 text-sm text-gray-600">
+                          <p>
+                            Hướng dẫn: {aiGradingResult.guidelineFilesProcessed}{" "}
+                            file
+                          </p>
+                          <p>
+                            Bài test: {aiGradingResult.testFilesProcessed} file
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Apply Result Button */}
+                      <button
+                        onClick={handleApplyAIResult}
+                        disabled={isSubmitting}
+                        className="w-full inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader className="w-4 h-4 mr-2 animate-spin" />
+                            Đang Lưu...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4 mr-2" />
+                            Áp Dụng Kết Quả AI
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center space-y-4 py-12">
+                      <Bot className="w-16 h-16 text-gray-300" />
+                      <p className="text-gray-500 text-center">
+                        Upload file và click "Bắt Đầu Chấm Điểm AI"
+                        <br />
+                        để xem kết quả
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={handleCloseAIGradingModal}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                disabled={isAIGrading || isSubmitting}
+              >
+                {aiGradingResult ? "Đóng" : "Hủy"}
               </button>
             </div>
           </div>
