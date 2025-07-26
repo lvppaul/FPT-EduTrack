@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
-import type { Request } from "../../types/requestType";
+
+interface Request {
+  id: string;
+  student: string;
+  purpose: string;
+  processNote: string;
+  status: "Pending" | "In Process" | "Completed" | "Rejected";
+  createdDate: string;
+  responseDate: string;
+}
 
 interface NewRequestModalProps {
   isOpen: boolean;
